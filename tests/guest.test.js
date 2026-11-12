@@ -264,6 +264,7 @@ test('renders optional wedding sections, privacy note, lunch calendar, and custo
       showParents: true,
       groomFather: 'Groom’s father',
       brideFather: 'Bride’s father',
+      parentsInviteText: 'With pleasure, the families invite you',
       groomFull: 'Engineer Omar',
       brideFull: 'Doctor Amina',
       inviteNames: 'Omar & Amina',
@@ -290,8 +291,8 @@ test('renders optional wedding sections, privacy note, lunch calendar, and custo
   };
   const elements = await loadGuest('', wedding);
 
-  assert.equal(elements.get('weddingOpening').hidden, false);
-  assert.equal(elements.get('religiousOpening').textContent, 'Bismillah');
+  assert.equal(elements.get('weddingOpening').hidden, true);
+  assert.equal(elements.get('religiousOpening').textContent, '');
   assert.equal(elements.get('quranBlock').hidden, true);
   assert.equal(elements.get('poem').textContent, 'A loving opening');
   assert.equal(elements.get('venueAddress').textContent, 'Near the city center');
@@ -303,6 +304,7 @@ test('renders optional wedding sections, privacy note, lunch calendar, and custo
   assert.equal(elements.get('layout-katb').hidden, false);
   assert.equal(elements.get('layout-parents').hidden, false);
   assert.equal(elements.get('groomFull').textContent, 'Engineer Omar');
+  assert.equal(elements.get('parentsInviteText').textContent, 'With pleasure, the families invite you');
   assert.equal(elements.get('countdownNote').textContent, 'Until we celebrate');
   assert.equal(elements.get('closing').textContent, 'See you soon');
   assert.equal(elements.get('card').style.properties['--cbg'], '#fefefe');

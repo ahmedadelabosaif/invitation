@@ -38,7 +38,9 @@ a marriage-contract image URL or optimized photo upload plus caption. The
 additional reference-design section includes opening poetry, separate parent invitations, venue address,
 optional henna and lunch sections, a photography privacy note, a marriage
 contract caption, closing text, countdown note, and custom background/accent
-colors. Optional sections appear on the public invitation only when enabled.
+colors. The verse toggle controls the opening invocation and verse together,
+and the parents’ invitation wording can be edited. Optional sections appear on
+the public invitation only when enabled.
 Add an optional map URL to make a **Get directions** link
 appear on the public invitation. Use **Intro description (optional)** to add a
 personal line beneath the intro and above the names. Choose **Islamic wedding**

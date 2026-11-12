@@ -274,14 +274,14 @@
       $('layout-' + name).hidden = !visible;
     }
     setCanvasField('emoji', event.emoji, false);
-    setCanvasField('religiousOpening', isWedding && event.religiousOpening, true);
+    setCanvasField('religiousOpening', isWedding && event.showVerse !== false && event.religiousOpening, true);
     setCanvasField('quranVerse', isWedding && event.showVerse !== false && event.quranVerse, true);
     setCanvasField('quranReference', isWedding && event.showVerse !== false && event.quranReference, true);
     setCanvasField('poem', event.poem, true);
     setLayoutVisible('poem', Boolean(event.poem));
     setLayoutVisible('emoji', Boolean(event.emoji));
-    setLayoutVisible('weddingOpening', Boolean(isWedding &&
-      (event.religiousOpening || (event.showVerse !== false && (event.quranVerse || event.quranReference)))));
+    setLayoutVisible('weddingOpening', Boolean(isWedding && event.showVerse !== false &&
+      (event.religiousOpening || event.quranVerse || event.quranReference)));
     setCanvasField('kicker', event.kicker, true);
     setCanvasField('hostNames', isWedding && event.hostNames, true);
     setCanvasField('groomTitle', weddingNames && event.groomName && event.groomTitle, true);
@@ -358,6 +358,7 @@
       (event.showKatb === true || contractImageUrl || event.contractImageCaption || event.katbText));
     setCanvasField('groomFather', isWedding && event.groomFather, true);
     setCanvasField('brideFather', isWedding && event.brideFather, true);
+    setCanvasField('parentsInviteText', isWedding && event.parentsInviteText, true);
     setCanvasField('groomFull', isWedding && event.groomFull, true);
     setCanvasField('brideFull', isWedding && event.brideFull, true);
     setCanvasField('inviteNames', isWedding && event.inviteNames, true);

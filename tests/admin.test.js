@@ -65,7 +65,7 @@ async function loadAdmin(initialData, storage) {
     'backgroundPreset', 'musicTrack', 'musicUrl', 'poem', 'inviteNames', 'groomFull',
     'brideFull', 'groomFather', 'brideFather', 'venueAddress', 'hennaDate', 'hennaTime',
     'hennaPlace', 'hennaNote', 'hennaVerse', 'privacyText', 'lunchTitle', 'lunchDate',
-    'lunchPlace', 'lunchTime', 'katbText', 'customBackgroundColor', 'customAccentColor',
+    'lunchPlace', 'lunchTime', 'katbText', 'parentsInviteText', 'customBackgroundColor', 'customAccentColor',
     'countdownNote', 'closing', 'showParents', 'showVerse', 'showHenna', 'showPrivacy',
     'showLunch', 'showKatb'
   ]
@@ -84,7 +84,7 @@ async function loadAdmin(initialData, storage) {
         'preEventVenue', 'preEventDetails', 'contractImageCaption', 'poem', 'inviteNames',
         'groomFull', 'brideFull', 'groomFather', 'brideFather', 'venueAddress',
         'hennaPlace', 'hennaNote', 'hennaVerse', 'privacyText', 'lunchTitle', 'lunchPlace',
-        'lunchTime', 'katbText', 'countdownNote', 'closing'
+        'lunchTime', 'katbText', 'parentsInviteText', 'countdownNote', 'closing'
       ].includes(name)) field.tagName = 'TEXTAREA';
       return field;
     });
@@ -475,6 +475,7 @@ test('admin publishes reference wedding sections and custom invitation colors', 
     poem: 'A line for the couple',
     groomFather: 'Groom’s father',
     brideFather: 'Bride’s father',
+    parentsInviteText: 'We are honored to invite you',
     hennaDate: '2027-05-25',
     hennaPlace: 'Family home',
     lunchTitle: 'Wedding lunch',

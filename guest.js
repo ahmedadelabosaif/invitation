@@ -232,7 +232,7 @@
   function renderWeddingDetails(event) {
     var isWedding = event && (!event.eventType || event.eventType === 'wedding');
     var showVerse = isWedding && event.showVerse !== false;
-    var religiousOpening = isWedding ? event.religiousOpening || '' : '';
+    var religiousOpening = showVerse ? event.religiousOpening || '' : '';
     var quranVerse = showVerse ? event.quranVerse || '' : '';
     var quranReference = showVerse ? event.quranReference || '' : '';
     setFormattedText('religiousOpening', religiousOpening);
@@ -362,9 +362,9 @@
     $('layout-parents').hidden = !(isWedding && event.showParents);
     showText('groomFather', isWedding ? event.groomFather : '');
     showText('brideFather', isWedding ? event.brideFather : '');
-    $('parentsInviteText').textContent = isWedding && event.showParents
-      ? 'بدعوة سيادتكم لحضور حفل زفاف'
-      : '';
+    showText('parentsInviteText', isWedding && event.showParents
+      ? event.parentsInviteText || 'بدعوة سيادتكم لحضور حفل زفاف'
+      : '');
     showText('groomFull', isWedding ? event.groomFull || event.groomName : '');
     showText('brideFull', isWedding ? event.brideFull || event.brideName : '');
     showText('inviteNames', isWedding ? event.inviteNames : '');
