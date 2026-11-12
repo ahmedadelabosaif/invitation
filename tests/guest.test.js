@@ -18,8 +18,11 @@ async function loadGuest(search, data) {
         innerHTML: '',
         href: '',
         className: '',
+        attributes: {},
         style: { setProperty() {} },
         replaceChildren() { this.children = []; },
+        removeAttribute(name) { delete this.attributes[name]; },
+        setAttribute(name, value) { this.attributes[name] = value; },
         appendChild(child) { this.children.push(child); },
         append(...children) { this.children.push(...children); }
       });
@@ -40,6 +43,7 @@ async function loadGuest(search, data) {
     document,
     location: { search, hash: '' },
     URLSearchParams,
+    URL,
     Date,
     Math,
     encodeURIComponent,
@@ -62,6 +66,39 @@ test('shows the event selected by its public link', async () => {
   const elements = await loadGuest('?event=party', invitations);
 
   assert.equal(elements.get('names').textContent, 'Birthday party');
+});
+
+test('shows a clickable map link when a valid location URL is provided', async () => {
+  const withMapLink = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Sara & Ahmed',
+      venue: 'Venue name',
+      locationUrl: 'https://maps.example.test/venue',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withMapLink);
+
+  assert.equal(elements.get('venue').textContent, 'Venue name');
+  assert.equal(elements.get('locationLink').hidden, false);
+  assert.equal(elements.get('locationLink').href, 'https://maps.example.test/venue');
+});
+
+test('does not make unsafe location URLs clickable', async () => {
+  const withUnsafeLink = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Sara & Ahmed',
+      locationUrl: 'javascript:alert(1)',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withUnsafeLink);
+
+  assert.equal(elements.get('locationLink').hidden, true);
 });
 
 test('shows the featured event and links to other events', async () => {

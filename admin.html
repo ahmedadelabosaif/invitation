@@ -43,16 +43,28 @@
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
     .preview{position:sticky;top:16px}
-    .preview-card{position:relative;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25)}
+    .preview-card{position:relative;overflow:hidden;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25);animation:preview-arrive .8s ease both}
     .preview-card:before{content:"";position:absolute;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
-    .preview-card>*{position:relative}
+    .preview-card>*{position:relative;z-index:1}
+    .preview-decor{position:absolute!important;z-index:0!important;inset:0;pointer-events:none}
+    .preview-decor span{position:absolute;line-height:1;opacity:0}
+    .preview-decor.fall span{top:-8%;animation:preview-fall 10s linear infinite}
+    .preview-decor.rise span{bottom:-8%;animation:preview-rise 11s linear infinite}
+    .preview-decor.twinkle span{animation:preview-twinkle 3s ease-in-out infinite}
+    @keyframes preview-arrive{from{transform:translateY(12px);opacity:.65}to{transform:translateY(0);opacity:1}}
+    @keyframes preview-fall{0%{transform:translateY(0) rotate(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(24px,300px) rotate(120deg);opacity:0}}
+    @keyframes preview-rise{0%{transform:translateY(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(18px,-300px);opacity:0}}
+    @keyframes preview-twinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.85;transform:scale(1.2)}}
     .preview-emoji{font-size:1.8rem}
     .preview-kicker{margin:6px 0;color:#806b54;font-style:italic}
     .preview-names{margin:4px 0 12px;font:600 2.2rem/1.05 "Cormorant Garamond",Georgia,serif}
     .preview-date{font:600 1.2rem "Cormorant Garamond",Georgia,serif}
     .preview-venue{margin:12px 0 0;font-weight:600}
+    .preview-directions{display:inline-block;margin-top:8px;padding:5px 12px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:999px;color:inherit;font-size:.85rem;text-decoration:none}
+    .preview-directions[aria-disabled=true]{opacity:.5}
     .preview-message{white-space:pre-line}
     .theme-note{color:#766a5d;font-size:.85rem}
+    @media(prefers-reduced-motion:reduce){.preview-card{animation:none}.preview-decor span{animation:none!important;opacity:.5}}
     @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}.preview{position:static;grid-column:1/-1}}
     @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.preview{grid-column:auto}}
   </style>
@@ -82,6 +94,7 @@
             <label>Date<input name="date" type="date"></label>
             <label>Time<input name="time" type="time"></label>
             <label class="wide">Venue<input name="venue" maxlength="160"></label>
+            <label class="wide">Map / location link (optional)<input name="locationUrl" type="url" placeholder="https://maps.google.com/..."></label>
             <label class="wide">Message<textarea name="message" maxlength="500"></textarea></label>
             <label class="wide">Extra details<textarea name="info" maxlength="800"></textarea></label>
             <label>Calendar title<input name="event" maxlength="100"></label>
@@ -115,12 +128,14 @@
       <aside class="panel preview">
         <h2>Live preview</h2>
         <article id="previewCard" class="preview-card">
+          <div id="previewDecor" class="preview-decor" aria-hidden="true"></div>
           <div id="previewEmoji" class="preview-emoji"></div>
           <p id="previewKicker" class="preview-kicker"></p>
           <h2 id="previewNames" class="preview-names"></h2>
           <div id="previewDate" class="preview-date"></div>
           <p id="previewTime"></p>
           <p id="previewVenue" class="preview-venue"></p>
+          <a id="previewDirections" class="preview-directions" target="_blank" rel="noopener noreferrer" aria-disabled="true">Get directions ↗</a>
           <p id="previewMessage" class="preview-message"></p>
           <p id="previewInfo" class="preview-message"></p>
         </article>

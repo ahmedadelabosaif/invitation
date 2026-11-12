@@ -1,16 +1,17 @@
 (function () {
   var THEMES = {
-    classic: { bg: '#fff', ink: '#1f2a44', accent: '#b4476b' },
-    garden: { bg: '#ddebdd', ink: '#1e3a2a', accent: '#3f7a55' },
-    beach: { bg: '#d9eef3', ink: '#123b4a', accent: '#1b7f9a' },
-    sunset: { bg: '#fbe3d6', ink: '#4a2335', accent: '#c2492f' },
-    night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d' }
+    classic: { bg: '#fff', ink: '#1f2a44', accent: '#b4476b', motion: 'fall', emojis: ['✨', '🤍'], count: 8 },
+    garden: { bg: '#ddebdd', ink: '#1e3a2a', accent: '#3f7a55', motion: 'fall', emojis: ['🌸', '🍃', '🌼'], count: 10 },
+    beach: { bg: '#d9eef3', ink: '#123b4a', accent: '#1b7f9a', motion: 'rise', emojis: ['🫧', '🐚'], count: 10 },
+    sunset: { bg: '#fbe3d6', ink: '#4a2335', accent: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
+    night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 }
   };
   var CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
   var invitations = null;
   var originalData = null;
   var selectedId = null;
   var changed = false;
+  var previewTheme = null;
 
   function $(id) {
     return document.getElementById(id);
@@ -28,6 +29,33 @@
 
   function linkFor(event) {
     return new URL('./?event=' + encodeURIComponent(event.id), location.href).href;
+  }
+
+  function safeLocationUrl(value) {
+    if (!value) return '';
+    try {
+      var url = new URL(value);
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function drawPreviewDecor(theme) {
+    var decor = $('previewDecor');
+    decor.replaceChildren();
+    decor.className = 'preview-decor ' + theme.motion;
+    for (var i = 0; i < theme.count; i++) {
+      var span = document.createElement('span');
+      var duration = 9 + (i * 7) % 8;
+      span.textContent = theme.emojis[i % theme.emojis.length];
+      span.style.left = (i * 97) % 100 + '%';
+      if (theme.motion === 'twinkle') span.style.top = (i * 37) % 90 + '%';
+      span.style.fontSize = 0.75 + (i % 4) * 0.2 + 'rem';
+      span.style.animationDuration = (theme.motion === 'twinkle' ? 3 + i % 4 : duration) + 's';
+      span.style.animationDelay = -((i * 5) % duration) + 's';
+      decor.appendChild(span);
+    }
   }
 
   function renderEvents() {
@@ -56,6 +84,10 @@
     $('previewCard').style.setProperty('--preview-bg', theme.bg);
     $('previewCard').style.setProperty('--preview-ink', theme.ink);
     $('previewCard').style.setProperty('--preview-accent', theme.accent);
+    if (previewTheme !== event.env) {
+      previewTheme = event.env;
+      drawPreviewDecor(theme);
+    }
     $('formTitle').textContent = event.names || 'Invitation details';
     $('setFeatured').textContent = event.id === invitations.featured
       ? 'Main invitation'
@@ -74,6 +106,11 @@
       ? new Date('2000-01-01T' + event.time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
     $('previewVenue').textContent = event.venue || '';
+    var locationUrl = safeLocationUrl(event.locationUrl);
+    $('previewDirections').href = locationUrl || '#';
+    $('previewDirections').setAttribute('aria-disabled', locationUrl ? 'false' : 'true');
+    $('previewDirections').tabIndex = locationUrl ? 0 : -1;
+    $('previewDirections').hidden = !locationUrl;
     $('previewMessage').textContent = event.message || '';
     $('previewInfo').textContent = event.info || '';
     var featured = invitations.events.find(function (item) {
@@ -189,6 +226,12 @@
   $('publishButton').addEventListener('click', async function () {
     if (!invitations.events.every(function (event) { return event.names && event.names.trim(); })) {
       setStatus('Add a name or title for every event before publishing.');
+      return;
+    }
+    if (invitations.events.some(function (event) {
+      return event.locationUrl && !safeLocationUrl(event.locationUrl);
+    })) {
+      setStatus('Use a valid map link starting with https:// or http://.');
       return;
     }
     if (!invitations.events.some(function (event) { return event.id === invitations.featured; })) {

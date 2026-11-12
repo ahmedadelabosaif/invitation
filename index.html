@@ -22,6 +22,8 @@
     .decor.fall span{top:-8%;animation:fall linear infinite}
     .decor.rise span{bottom:-8%;animation:rise linear infinite}
     .decor.twinkle span{animation:twinkle ease-in-out infinite}
+    .card{animation:card-arrive .9s cubic-bezier(.2,.75,.3,1) both}
+    @keyframes card-arrive{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
     @keyframes fall{0%{transform:translate(0,0) rotate(0);opacity:0}10%,90%{opacity:.85}100%{transform:translate(36px,640px) rotate(160deg);opacity:0}}
     @keyframes rise{0%{transform:translate(0,0);opacity:0}10%,90%{opacity:.85}100%{transform:translate(24px,-640px);opacity:0}}
     @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
@@ -33,6 +35,8 @@
     .date{margin:0;font:600 1.6rem "Cormorant Garamond",Georgia,serif}
     .time{margin:2px 0 0;color:var(--cmut)}
     .venue{margin:14px 0 0;font-weight:600}
+    .location-link{display:inline-block;margin-top:8px;padding:7px 14px;border:1px solid var(--cacc);border-radius:999px;color:var(--cink);font-size:.92rem;text-decoration:none;transition:background .2s ease,transform .2s ease}
+    .location-link:hover{background:var(--cacc);color:var(--cbg);transform:translateY(-2px)}
     .msg{max-width:38ch;margin:20px auto 0;color:var(--cmut)}
     .info{max-width:40ch;margin:22px auto 0;padding-top:16px;border-top:1px solid var(--cacc);font-size:.95rem;white-space:pre-line}
     .clock{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;margin:28px auto 8px}
@@ -47,7 +51,7 @@
     .mrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-decoration:none}
     .mrow:hover{border-color:var(--accent)}
     .mrow small{display:block;color:var(--muted)}
-    @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}}
+    @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card{animation:none}}
   </style>
 </head>
 <body>
@@ -62,6 +66,7 @@
         <p class="date" id="date"></p>
         <p class="time" id="time"></p>
         <p class="venue" id="venue"></p>
+        <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
         <p class="msg" id="msg"></p>
         <p class="info" id="info"></p>
         <div id="clock" role="timer"></div>

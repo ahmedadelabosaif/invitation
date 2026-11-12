@@ -31,6 +31,16 @@
       'T' + pad(date.getHours()) + pad(date.getMinutes()) + '00';
   }
 
+  function safeLocationUrl(value) {
+    if (!value) return '';
+    try {
+      var url = new URL(value);
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
   function drawDecor(environment) {
     var html = '';
     for (var i = 0; i < environment.count; i++) {
@@ -66,6 +76,9 @@
       ? 'at ' + currentStart.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
     $('venue').textContent = event.venue || '';
+    var locationUrl = safeLocationUrl(event.locationUrl);
+    $('locationLink').hidden = !locationUrl;
+    if (locationUrl) $('locationLink').href = locationUrl;
     $('msg').textContent = event.message || '';
     $('info').textContent = event.info || '';
     $('cal').hidden = !currentStart;
@@ -162,6 +175,8 @@
       $('date').textContent = '';
       $('time').textContent = '';
       $('venue').textContent = '';
+      $('locationLink').hidden = true;
+      $('locationLink').removeAttribute('href');
       $('msg').textContent = 'There are no public invitations right now.';
       $('info').textContent = '';
       $('clock').replaceChildren();

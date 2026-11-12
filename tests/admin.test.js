@@ -33,7 +33,7 @@ async function loadAdmin(initialData) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
-  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'message', 'info', 'event', 'env']
+  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env']
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
@@ -86,6 +86,7 @@ test('admin form previews edits and publishes them to GitHub without copying', a
       date: '2027-06-12',
       time: '16:00',
       venue: 'Venue',
+      locationUrl: 'https://maps.example.test/event',
       message: 'Join us',
       info: '',
       env: 'garden'
@@ -95,6 +96,8 @@ test('admin form previews edits and publishes them to GitHub without copying', a
   const names = fields.find((field) => field.name === 'names');
 
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
+  assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
+  assert.ok(elements.get('previewDecor').children.length > 0);
   names.value = 'Sara & Ahmed’s wedding';
   elements.get('eventForm').handlers.input({ target: names });
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed’s wedding');
