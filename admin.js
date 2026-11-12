@@ -6,7 +6,9 @@
     sunset: { bg: '#fbe3d6', ink: '#4a2335', accent: '#c2492f' },
     night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d' }
   };
+  var CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
   var invitations = null;
+  var originalData = null;
   var selectedId = null;
   var changed = false;
 
@@ -41,7 +43,6 @@
       button.appendChild(meta);
       button.addEventListener('click', function () {
         selectedId = event.id;
-        $('jsonLabel').hidden = true;
         render();
       });
       list.appendChild(button);
@@ -60,15 +61,15 @@
       ? 'Main invitation'
       : 'Set as main invitation';
     $('setFeatured').disabled = event.id === invitations.featured;
+    $('viewEventLink').href = linkFor(event);
     $('previewEmoji').textContent = event.emoji || '';
     $('previewKicker').textContent = event.kicker || '';
     $('previewNames').textContent = event.names || 'Your names here';
-    var date = event.date
+    $('previewDate').textContent = event.date
       ? new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       })
       : 'Date to be announced';
-    $('previewDate').textContent = date;
     $('previewTime').textContent = event.time
       ? new Date('2000-01-01T' + event.time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
@@ -89,25 +90,21 @@
     $('eventForm').hidden = !event;
     if (!event) return;
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
-      if (!control.name) return;
-      if (control.type === 'checkbox') control.checked = event[control.name] !== false;
-      else control.value = event[control.name] || '';
+      if (control.name) control.value = event[control.name] || '';
     });
     renderPreview();
   }
 
   function markChanged() {
     changed = true;
-    $('jsonLabel').hidden = true;
-    $('publishStep').hidden = true;
-    setStatus('Edits are here until you copy and publish them.');
+    setStatus('Unpublished changes.');
   }
 
   $('eventForm').addEventListener('input', function (event) {
     var invitation = selectedEvent();
     var control = event.target;
     if (!invitation || !control.name) return;
-    invitation[control.name] = control.type === 'checkbox' ? control.checked : control.value;
+    invitation[control.name] = control.value;
     markChanged();
     renderEvents();
     renderPreview();
@@ -129,9 +126,8 @@
       env: 'classic'
     });
     selectedId = id;
-    changed = true;
+    markChanged();
     render();
-    setStatus('New event added. Copy and publish the data when ready.');
   });
 
   $('deleteEvent').addEventListener('click', function () {
@@ -145,12 +141,11 @@
       return item.id !== selectedId;
     });
     if (invitations.featured === selectedId) {
-      invitations.featured = invitations.events[0] ? invitations.events[0].id : '';
+      invitations.featured = invitations.events[0].id;
     }
-    selectedId = invitations.events[0] ? invitations.events[0].id : null;
-    changed = true;
+    selectedId = invitations.events[0].id;
+    markChanged();
     render();
-    setStatus('Event deleted. Copy and publish the data when ready.');
   });
 
   $('setFeatured').addEventListener('click', function () {
@@ -159,21 +154,39 @@
     invitations.featured = event.id;
     markChanged();
     render();
-    setStatus('Main invitation changed. Copy and publish the data when ready.');
   });
 
-  $('copyEventLink').addEventListener('click', async function () {
-    var event = selectedEvent();
-    if (!event) return;
+  $('previewButton').addEventListener('click', function () {
+    renderPreview();
+    $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setStatus('Preview updated.');
+  });
+
+  function encodeBase64(text) {
+    var bytes = new TextEncoder().encode(text);
+    var binary = '';
+    bytes.forEach(function (byte) {
+      binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
+  }
+
+  function decodeBase64(text) {
+    var binary = atob(text.replace(/\s/g, ''));
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function responseJson(response) {
     try {
-      await navigator.clipboard.writeText(linkFor(event));
-      setStatus('Guest link copied.');
+      return await response.json();
     } catch (error) {
-      setStatus('Could not copy the link. Copy it from the address bar after opening the public page.');
+      throw new Error('GitHub returned an unreadable response. Try again.');
     }
-  });
+  }
 
-  $('copyData').addEventListener('click', async function () {
+  $('publishButton').addEventListener('click', async function () {
     if (!invitations.events.every(function (event) { return event.names && event.names.trim(); })) {
       setStatus('Add a name or title for every event before publishing.');
       return;
@@ -182,18 +195,58 @@
       setStatus('Choose a main invitation before publishing.');
       return;
     }
-    var text = JSON.stringify(invitations, null, 2);
-    var output = $('jsonOutput');
-    output.value = text;
-    $('jsonLabel').hidden = false;
-    $('publishStep').hidden = false;
+    var tokenInput = $('githubToken');
+    var token = tokenInput.value.trim();
+    if (!token) {
+      setStatus('Enter your GitHub fine-grained token to publish.');
+      return;
+    }
+    var button = $('publishButton');
+    button.disabled = true;
+    setStatus('Publishing…');
+    var headers = {
+      Accept: 'application/vnd.github+json',
+      Authorization: 'Bearer ' + token,
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
     try {
-      await navigator.clipboard.writeText(text);
-      setStatus('Copied. Click Step 2, replace the file contents, and commit.');
+      var fileResponse = await fetch(CONTENTS_URL, { headers: headers });
+      var file = await responseJson(fileResponse);
+      if (!fileResponse.ok) {
+        throw new Error(fileResponse.status === 401 || fileResponse.status === 403
+          ? 'GitHub rejected the token. Check its repository and Contents permissions.'
+          : (file.message || 'Could not load the invitation file from GitHub.'));
+      }
+
+      var remoteData = JSON.parse(decodeBase64(file.content));
+      if (JSON.stringify(remoteData) !== JSON.stringify(originalData)) {
+        throw new Error('The invitation changed on GitHub since you opened this page. Reload before publishing.');
+      }
+
+      var content = JSON.stringify(invitations, null, 2) + '\n';
+      var saveResponse = await fetch(CONTENTS_URL, {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+        body: JSON.stringify({
+          message: 'Update invitation from visual editor',
+          content: encodeBase64(content),
+          sha: file.sha,
+          branch: 'main'
+        })
+      });
+      var result = await responseJson(saveResponse);
+      if (!saveResponse.ok) {
+        throw new Error(result.message || 'GitHub could not publish the invitation.');
+      }
+      originalData = JSON.parse(JSON.stringify(invitations));
+      changed = false;
+      setStatus('Published. The public page updates after GitHub Pages deploys.');
     } catch (error) {
-      output.focus();
-      output.select();
-      setStatus('Select and copy the JSON below, then paste it into GitHub and commit.');
+      setStatus(error.message);
+    } finally {
+      headers.Authorization = '';
+      token = '';
+      button.disabled = false;
     }
   });
 
@@ -209,11 +262,12 @@
       return response.json();
     })
     .then(function (data) {
-      if (!Array.isArray(data.events)) throw new Error('Invitation data is invalid.');
+      if (!Array.isArray(data.events) || !data.events.length) throw new Error('At least one invitation is required.');
       invitations = data;
+      originalData = JSON.parse(JSON.stringify(data));
       selectedId = invitations.events.some(function (event) { return event.id === invitations.featured; })
         ? invitations.featured
-        : (invitations.events[0] && invitations.events[0].id);
+        : invitations.events[0].id;
       render();
     })
     .catch(function (error) {

@@ -42,7 +42,6 @@
     .checkbox input{width:auto}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
-    #jsonOutput{min-height:180px;margin-top:12px;font:12px/1.45 ui-monospace,monospace}
     .preview{position:sticky;top:16px}
     .preview-card{position:relative;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25)}
     .preview-card:before{content:"";position:absolute;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
@@ -65,7 +64,7 @@
     <a href="./">Public invitation</a>
   </header>
   <main>
-    <p class="notice">Edit the fields here and preview the invitation. When you're ready, copy your changes and publish them through GitHub.</p>
+    <p class="notice">Edit the fields, preview, then publish. Publishing needs a GitHub fine-grained token with access to this repository’s Contents. The token is used only in this tab and is never saved.</p>
     <div class="layout">
       <aside class="panel stack">
         <h1>Events</h1>
@@ -99,20 +98,16 @@
           <div class="actions">
             <button id="setFeatured" type="button">Set as main invitation</button>
             <button id="deleteEvent" type="button">Delete event</button>
-            <button id="copyEventLink" type="button">Copy guest link</button>
+            <a id="viewEventLink" class="button" target="_blank" rel="noopener">View guest link</a>
           </div>
-          <p id="status" role="status"></p>
-          <label id="jsonLabel" class="wide" hidden>Updated invitation data — copy and paste into GitHub
-            <textarea id="jsonOutput" readonly></textarea>
+          <label>GitHub publish token
+            <input id="githubToken" type="password" autocomplete="off" placeholder="Fine-grained token for this repository">
           </label>
-          <div id="publishStep" class="notice" hidden>
-            <strong>One last step:</strong> open GitHub, replace the invitation data with what you copied, then commit your changes.
-            <div class="actions">
-              <a class="button primary" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json" target="_blank" rel="noopener">Step 2: Save changes on GitHub</a>
-            </div>
-          </div>
+          <p class="theme-note">Create a token limited to this repository with Contents read/write access. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create fine-grained token</a></p>
+          <p id="status" role="status"></p>
           <div class="actions">
-            <button id="copyData" class="primary" type="button">Copy updated data</button>
+            <button id="previewButton" type="button">Preview</button>
+            <button id="publishButton" class="primary" type="button">Publish</button>
           </div>
         </form>
       </section>
