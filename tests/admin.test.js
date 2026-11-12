@@ -225,6 +225,22 @@ test('admin publishes a background design and a selected public-domain music tra
   assert.equal(savedEvent.musicUrl, '');
 });
 
+test('admin preview highlights the Islamic theme with its crescent-and-star mark', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'islamic' }]
+  };
+  const { elements } = await loadAdmin(data);
+
+  assert.equal(elements.get('previewThemeMark').hidden, false);
+  assert.match(elements.get('previewDecor').className, /islamic-decor/);
+
+  const theme = elements.get('eventForm').elements.find((field) => field.name === 'env');
+  theme.value = 'classic';
+  elements.get('eventForm').handlers.input({ target: theme });
+  assert.equal(elements.get('previewThemeMark').hidden, true);
+});
+
 test('admin uploads a custom song with the invitation', async () => {
   const data = {
     featured: 'wedding',

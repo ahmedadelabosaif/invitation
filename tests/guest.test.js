@@ -141,6 +141,8 @@ test('renders the Islamic wedding theme with its emerald and gold decor', async 
 
   assert.equal(elements.get('card').style.properties['--cbg'], '#153b35');
   assert.equal(elements.get('card').style.properties['--cacc'], '#d8b46a');
+  assert.equal(elements.get('themeMark').hidden, false);
+  assert.match(elements.get('decor').className, /islamic-decor/);
   assert.match(elements.get('decor').innerHTML, /☾/);
 });
 

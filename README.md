@@ -19,8 +19,8 @@ invitation update; GitHub Pages deploys it automatically.
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one
 event. Add an optional map URL to make a **Get directions** link appear on the
-public invitation. Choose **Islamic wedding** for an emerald-and-gold palette
-with subtle crescent-and-star animation. Separately, select any optional guest
+public invitation. Choose **Islamic wedding** for an emerald-and-gold palette,
+a crescent-and-star emblem, and subtle gold star animation. Separately, select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
 Choose one of four original background designs or upload a JPG, PNG, or WebP for

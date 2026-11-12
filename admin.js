@@ -133,7 +133,8 @@
   function drawPreviewDecor(theme) {
     var decor = $('previewDecor');
     decor.replaceChildren();
-    decor.className = 'preview-decor ' + theme.motion;
+    decor.className = 'preview-decor ' + theme.motion +
+      (theme === THEMES.islamic ? ' islamic-decor' : '');
     for (var i = 0; i < theme.count; i++) {
       var span = document.createElement('span');
       var duration = 9 + (i * 7) % 8;
@@ -170,6 +171,7 @@
     var event = selectedEvent();
     if (!event) return;
     var theme = THEMES[event.env] || THEMES.classic;
+    $('previewThemeMark').hidden = event.env !== 'islamic';
     $('previewCard').style.setProperty('--preview-bg', theme.bg);
     $('previewCard').style.setProperty('--preview-ink', theme.ink);
     $('previewCard').style.setProperty('--preview-accent', theme.accent);

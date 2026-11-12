@@ -61,11 +61,15 @@
     .preview-decor.fall span{top:-8%;animation:preview-fall 10s linear infinite}
     .preview-decor.rise span{bottom:-8%;animation:preview-rise 11s linear infinite}
     .preview-decor.twinkle span{animation:preview-twinkle 3s ease-in-out infinite}
+    .preview-decor.islamic-decor span{color:#d8b46a;text-shadow:0 0 8px rgba(216,180,106,.55)}
     @keyframes preview-arrive{from{transform:translateY(12px);opacity:.65}to{transform:translateY(0);opacity:1}}
     @keyframes preview-fall{0%{transform:translateY(0) rotate(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(24px,300px) rotate(120deg);opacity:0}}
     @keyframes preview-rise{0%{transform:translateY(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(18px,-300px);opacity:0}}
     @keyframes preview-twinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.85;transform:scale(1.2)}}
     .preview-emoji{font-size:1.8rem}
+    .preview-theme-mark{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 10px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:50%;color:var(--preview-accent,#d8c6ad);background:rgba(21,59,53,.78);box-shadow:0 0 0 4px rgba(216,180,106,.12),0 0 20px rgba(216,180,106,.2)}
+    .preview-theme-mark svg{width:27px;height:27px}
+    .preview-theme-mark .moon,.preview-theme-mark .star{fill:currentColor}
     .preview-kicker{margin:6px 0;color:#806b54;font-style:italic}
     .preview-names{margin:4px 0 12px;font:600 2.2rem/1.05 "Cormorant Garamond",Georgia,serif}
     .preview-date{font:600 1.2rem "Cormorant Garamond",Georgia,serif}
@@ -206,6 +210,12 @@
         <article id="previewCard" class="preview-card">
           <img id="previewCardBackground" class="preview-background" alt="" hidden>
           <div id="previewDecor" class="preview-decor" aria-hidden="true"></div>
+          <div class="preview-theme-mark" id="previewThemeMark" aria-hidden="true" hidden>
+            <svg viewBox="0 0 48 48" focusable="false">
+              <path class="moon" d="M29.8 5.7a18.7 18.7 0 1 0 12.5 31.7A16.2 16.2 0 0 1 29.8 5.7Z"/>
+              <path class="star" d="m37.5 8.2 1.8 4.1 4.2 1.7-4.2 1.8-1.8 4.1-1.7-4.1-4.2-1.8 4.2-1.7z"/>
+            </svg>
+          </div>
           <div id="previewEmoji" class="preview-emoji"></div>
           <p id="previewKicker" class="preview-kicker"></p>
           <h2 id="previewNames" class="preview-names"></h2>

@@ -26,6 +26,7 @@
     .decor.fall span{top:-8%;animation:fall linear infinite}
     .decor.rise span{bottom:-8%;animation:rise linear infinite}
     .decor.twinkle span{animation:twinkle ease-in-out infinite}
+    .decor.islamic-decor span{color:var(--cacc);text-shadow:0 0 9px rgba(216,180,106,.55)}
     .card{animation:card-arrive .9s cubic-bezier(.2,.75,.3,1) both}
     .icon:not(:empty){animation:icon-float 4s ease-in-out infinite}
     @keyframes card-arrive{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -36,6 +37,11 @@
     @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
     .inner{position:relative;z-index:3}
     .icon{font-size:2.2rem}
+    .theme-mark{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 12px;border:1px solid var(--cacc);border-radius:50%;color:var(--cacc);background:rgba(21,59,53,.72);box-shadow:0 0 0 5px rgba(216,180,106,.12),0 0 24px rgba(216,180,106,.18);animation:mark-glow 4s ease-in-out infinite}
+    .theme-mark svg{width:32px;height:32px;overflow:visible}
+    .theme-mark .moon{fill:currentColor}
+    .theme-mark .star{fill:currentColor}
+    @keyframes mark-glow{0%,100%{box-shadow:0 0 0 5px rgba(216,180,106,.12),0 0 18px rgba(216,180,106,.12)}50%{box-shadow:0 0 0 7px rgba(216,180,106,.18),0 0 26px rgba(216,180,106,.3)}}
     .card p:empty,.icon:empty{display:none}
     .kicker{margin:6px 0 4px;color:var(--cmut);font:italic 1.35rem "Cormorant Garamond",Georgia,serif}
     .card h1{margin:0 0 20px;font:500 clamp(2.6rem,10vw,4rem)/1.05 "Cormorant Garamond",Georgia,serif}
@@ -65,7 +71,7 @@
     .music-control:hover{border-color:var(--accent)}
     .music-control:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
     @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card{animation:none}}
-    @media(prefers-reduced-motion:reduce){#pageBackdrop,.icon:not(:empty){animation:none}}
+    @media(prefers-reduced-motion:reduce){#pageBackdrop,.icon:not(:empty),.theme-mark{animation:none}}
     @media(max-width:480px){.music-controls{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.music-control{padding:8px 11px;font-size:.82rem}}
   </style>
 </head>
@@ -78,6 +84,12 @@
       <img class="card-background" id="cardBackground" alt="" hidden>
       <div class="decor" id="decor" aria-hidden="true"></div>
       <div class="inner">
+        <div class="theme-mark" id="themeMark" aria-hidden="true" hidden>
+          <svg viewBox="0 0 48 48" focusable="false">
+            <path class="moon" d="M29.8 5.7a18.7 18.7 0 1 0 12.5 31.7A16.2 16.2 0 0 1 29.8 5.7Z"/>
+            <path class="star" d="m37.5 8.2 1.8 4.1 4.2 1.7-4.2 1.8-1.8 4.1-1.7-4.1-4.2-1.8 4.2-1.7z"/>
+          </svg>
+        </div>
         <div class="icon" id="icon"></div>
         <p class="kicker" id="kicker"></p>
         <h1 id="names"></h1>

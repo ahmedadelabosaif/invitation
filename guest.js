@@ -122,6 +122,7 @@
 
   function drawDecor(environment) {
     var html = '';
+    var islamic = environment === ENVS.islamic;
     for (var i = 0; i < environment.count; i++) {
       var left = (i * 97) % 100;
       var duration = 9 + (i * 7) % 8;
@@ -134,12 +135,13 @@
         (twinkle ? 3 + i % 4 : duration) + 's;animation-delay:' + delay + 's">' +
         environment.emojis[i % environment.emojis.length] + '</span>';
     }
-    $('decor').className = 'decor ' + environment.motion;
+    $('decor').className = 'decor ' + environment.motion + (islamic ? ' islamic-decor' : '');
     $('decor').innerHTML = html;
   }
 
   function renderEvent(event) {
     var environment = ENVS[event.env] || ENVS.classic;
+    $('themeMark').hidden = event.env !== 'islamic';
     document.title = event.names
       ? event.names.trim() + "'s wedding invitation"
       : 'Wedding invitation';
