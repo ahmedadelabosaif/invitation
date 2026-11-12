@@ -14,7 +14,12 @@
       "info": "Dress code: formal.\nParking is available at the venue.",
       "env": "garden",
       "locationUrl": "https://maps.app.goo.gl/e3MYX39vNpv5BS4s8",
-      "etiquette": ""
+      "etiquette": [
+        "modestDress",
+        "noMusic",
+        "noPhotos",
+        "separateSeating"
+      ]
     }
   ]
 }
