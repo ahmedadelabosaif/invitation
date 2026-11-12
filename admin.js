@@ -72,6 +72,15 @@
     }
   }
 
+  function normalizeInvitations(data) {
+    data.events.forEach(function (event) {
+      event.etiquette = Array.isArray(event.etiquette)
+        ? event.etiquette.filter(function (item) { return Object.prototype.hasOwnProperty.call(ETIQUETTE, item); })
+        : [];
+    });
+    return data;
+  }
+
   function drawPreviewDecor(theme) {
     var decor = $('previewDecor');
     decor.replaceChildren();
@@ -146,7 +155,7 @@
     $('previewInfo').textContent = event.info || '';
     var etiquette = $('previewEtiquette');
     etiquette.replaceChildren();
-    (event.etiquette || []).forEach(function (item) {
+    (Array.isArray(event.etiquette) ? event.etiquette : []).forEach(function (item) {
       var option = ETIQUETTE[item];
       if (!option) return;
       var note = document.createElement('p');
@@ -169,7 +178,7 @@
     if (!event) return;
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
       if (control.name === 'etiquette') {
-        control.checked = (event.etiquette || []).includes(control.value);
+        control.checked = Array.isArray(event.etiquette) && event.etiquette.includes(control.value);
       } else if (control.name) {
         control.value = event[control.name] || '';
       }
@@ -182,12 +191,12 @@
     setStatus('Unpublished changes.');
   }
 
-  $('eventForm').addEventListener('input', function (event) {
+  function updateField(event) {
     var invitation = selectedEvent();
     var control = event.target;
     if (!invitation || !control.name) return;
     if (control.name === 'etiquette') {
-      var choices = new Set(invitation.etiquette || []);
+      var choices = new Set(Array.isArray(invitation.etiquette) ? invitation.etiquette : []);
       if (control.checked) choices.add(control.value);
       else choices.delete(control.value);
       invitation.etiquette = Array.from(choices);
@@ -197,6 +206,13 @@
     markChanged();
     renderEvents();
     renderPreview();
+  }
+
+  $('eventForm').addEventListener('input', function (event) {
+    if (event.target.name !== 'etiquette') updateField(event);
+  });
+  $('eventForm').addEventListener('change', function (event) {
+    if (event.target.name === 'etiquette') updateField(event);
   });
 
   $('addEvent').addEventListener('click', function () {
@@ -366,12 +382,12 @@
           : (file.message || 'Could not load the invitation file from GitHub.'));
       }
 
-      var remoteData = JSON.parse(decodeBase64(file.content));
+      var remoteData = normalizeInvitations(JSON.parse(decodeBase64(file.content)));
       if (JSON.stringify(remoteData) !== JSON.stringify(originalData)) {
         throw new Error('The invitation changed on GitHub since you opened this page. Reload before publishing.');
       }
 
-      var content = JSON.stringify(invitations, null, 2) + '\n';
+      var content = JSON.stringify(normalizeInvitations(invitations), null, 2) + '\n';
       var saveResponse = await fetch(CONTENTS_URL, {
         method: 'PUT',
         headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
@@ -410,8 +426,8 @@
     })
     .then(function (data) {
       if (!Array.isArray(data.events) || !data.events.length) throw new Error('At least one invitation is required.');
-      invitations = data;
-      originalData = JSON.parse(JSON.stringify(data));
+      invitations = normalizeInvitations(data);
+      originalData = JSON.parse(JSON.stringify(invitations));
       selectedId = invitations.events.some(function (event) { return event.id === invitations.featured; })
         ? invitations.featured
         : invitations.events[0].id;

@@ -109,7 +109,7 @@ test('admin remembers the saved token and reuses it on later visits', async () =
       locationUrl: 'https://maps.example.test/event',
       message: 'Join us',
       info: '',
-      etiquette: [],
+      etiquette: '',
       env: 'garden'
     }]
   };
@@ -121,8 +121,9 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
   assert.ok(elements.get('previewDecor').children.length > 0);
   const noPhotos = fields.find((field) => field.value === 'noPhotos');
+  assert.equal(noPhotos.value, 'noPhotos');
   noPhotos.checked = true;
-  elements.get('eventForm').handlers.input({ target: noPhotos });
+  elements.get('eventForm').handlers.change({ target: noPhotos });
   assert.equal(elements.get('previewEtiquette').hidden, false);
   assert.equal(elements.get('previewEtiquette').children[0].textContent, '🚫📷 No photos or video, please');
 
@@ -144,7 +145,9 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const request = JSON.parse(saved[0].options.body);
   assert.equal(request.sha, 'original-sha');
   const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
-  assert.equal(JSON.parse(new TextDecoder().decode(bytes)).events[0].names, 'Sara & Ahmed’s wedding');
+  const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  assert.equal(savedEvent.names, 'Sara & Ahmed’s wedding');
+  assert.deepEqual(savedEvent.etiquette, ['noPhotos']);
   assert.match(elements.get('status').textContent, /Published/);
 
   const reopened = await loadAdmin(data, storage);

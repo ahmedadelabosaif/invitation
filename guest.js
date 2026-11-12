@@ -110,7 +110,7 @@
   function renderEtiquette(items) {
     var section = $('etiquette');
     section.replaceChildren();
-    items.forEach(function (item) {
+    (Array.isArray(items) ? items : []).forEach(function (item) {
       var option = ETIQUETTE[item];
       if (!option) return;
       var note = document.createElement('p');

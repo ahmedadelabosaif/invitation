@@ -136,6 +136,22 @@ test('shows only selected etiquette notes on the guest invitation', async () => 
   ]);
 });
 
+test('ignores legacy non-array etiquette data on the guest invitation', async () => {
+  const withLegacyEtiquette = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      etiquette: '',
+      env: 'islamic'
+    }]
+  };
+  const elements = await loadGuest('', withLegacyEtiquette);
+
+  assert.equal(elements.get('etiquette').hidden, true);
+  assert.equal(elements.get('etiquette').children.length, 0);
+});
+
 test('shows the featured event and links to other events', async () => {
   const elements = await loadGuest('', invitations);
   const links = elements.get('more').children.slice(1);
