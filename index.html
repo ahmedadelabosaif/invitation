@@ -6,6 +6,7 @@
   <title>Wedding invitation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Karla:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root{--bg:#eef1f5;--ink:#1f2a44;--surface:#fff;--line:#d5dbe6;--muted:#5c6780;--accent:#b4476b;--onacc:#fff;box-sizing:border-box;color-scheme:light}
     @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121826;--ink:#eaeeff;--surface:#1b2438;--line:#2c3750;--muted:#9aa6c0;--accent:#e58aa9;--onacc:#121826;color-scheme:dark}}
@@ -26,6 +27,37 @@
     #stage[data-theme=arabesque]:not([data-background=full]){background:radial-gradient(ellipse at 50% 22%,#fffdf7 0,#f0eadc 58%,#e6decb 100%)}
     .card[data-env=arabesque] .quran-verse{padding:16px 10px;border-block:3px double var(--cacc);font-size:1.2rem;line-height:2}
     .card[data-env=arabesque] .date{color:var(--cacc);letter-spacing:.04em}
+    #stage[data-theme=plum]{display:block;min-height:100vh;padding:0;background:radial-gradient(ellipse at 50% 0,#3a2650,#2a1a3a 72%);color:#f6ecf0}
+    #stage[data-theme=plum][data-background=full]{background:transparent}
+    #stage[data-theme=plum] #notice{margin:12px auto}
+    #pageBackdrop[data-theme=plum]::after{background:rgba(28,17,41,.5)}
+    .card[data-env=plum]{width:100%;max-width:none;min-height:100vh;padding:0;border-radius:0;background:transparent;color:var(--cink);box-shadow:none;font-family:Tajawal,Tahoma,sans-serif}
+    .card[data-env=plum]::before{display:none}
+    .card[data-env=plum]::after{content:"";display:block;width:min(560px,calc(100% - 36px));height:1px;margin:-1px auto 0;background:linear-gradient(90deg,transparent,var(--cacc),transparent)}
+    .card[data-env=plum] .inner{min-height:100vh}
+    .card[data-env=plum] #invitationContent{width:min(560px,100%);margin:0 auto;padding:24px 22px 54px}
+    .card[data-env=plum] #invitationContent>.layout-item{padding:32px 12px;border-bottom:1px solid color-mix(in srgb,var(--cacc) 30%,transparent)}
+    .card[data-env=plum] #invitationContent>.layout-item:last-child{border-bottom:0}
+    .card[data-env=plum] .icon{color:var(--cacc)}
+    .card[data-env=plum] .kicker,.card[data-env=plum] .intro-description,.card[data-env=plum] .wedding-hosts{font-family:Tajawal,Tahoma,sans-serif;color:var(--cmut)}
+    .card[data-env=plum] h1,.card[data-env=plum] .quran-verse,.card[data-env=plum] .date,.card[data-env=plum] .related-event h2{font-family:"Aref Ruqaa","Amiri",serif}
+    .card[data-env=plum] h1{font-size:clamp(2.4rem,10vw,4rem);line-height:1.35;color:var(--cink)}
+    .card[data-env=plum] .religious-opening,.card[data-env=plum] .quran-verse,.card[data-env=plum] .date,.card[data-env=plum] .related-event h2{color:var(--cacc)}
+    .card[data-env=plum] .quran-verse{border-block:1px solid color-mix(in srgb,var(--cacc) 65%,transparent);line-height:2.1}
+    .card[data-env=plum] #layout-date{display:inline-flex;flex-direction:column;align-items:center;margin:26px auto;padding:18px 34px;border:1px solid var(--cacc);border-radius:2px}
+    .card[data-env=plum] .date{font-size:1.55rem}
+    .card[data-env=plum] .time,.card[data-env=plum] .quran-reference{color:var(--cmut)}
+    .card[data-env=plum] .location-link{color:var(--cacc)}
+    .card[data-env=plum] .clock>div{padding:12px 4px;border:1px solid color-mix(in srgb,var(--cacc) 30%,transparent);border-radius:2px;background:rgba(255,255,255,.04)}
+    .card[data-env=plum] .related-event{border-top:0}
+    #stage[data-theme=plum] .more{width:min(560px,calc(100% - 32px));margin:0 auto 32px}
+    #stage[data-theme=plum] .more h2{color:#e2b79a}
+    #stage[data-theme=plum] .mrow{border-color:rgba(226,183,154,.35);background:rgba(255,255,255,.06);color:#f6ecf0}
+    .invitation-cover{position:fixed;inset:0;z-index:10;display:grid;align-content:center;justify-items:center;gap:14px;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));border:0;border-radius:0;background:radial-gradient(ellipse at 50% 30%,#3a2650,#1c1129);color:#f6ecf0;text-align:center;cursor:pointer;transition:transform .85s ease,opacity .85s ease}
+    .invitation-cover[data-theme=plum] .cover-title{color:#cdb9d4;font:1rem Tajawal,Tahoma,sans-serif}
+    .invitation-cover[data-theme=plum] .cover-names{font:700 clamp(2.4rem,11vw,3.8rem)/1.5 "Aref Ruqaa","Amiri",serif}
+    .invitation-cover[data-theme=plum] .cover-tap{margin-top:12px;padding:9px 24px;border:1px solid #e2b79a;border-radius:999px;color:#e2b79a;font-family:Tajawal,Tahoma,sans-serif}
+    .invitation-cover[data-open=true]{transform:translateY(-100%);opacity:0;pointer-events:none}
     .card-background{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;opacity:.82;pointer-events:none}
     .decor{position:absolute;z-index:2;inset:0;pointer-events:none}
     .decor span{position:absolute;opacity:0;line-height:1}
@@ -91,7 +123,7 @@
     .music-control{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.15);font:600 .9rem Karla,system-ui,sans-serif;cursor:pointer}
     .music-control:hover{border-color:var(--accent)}
     .music-control:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-    @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card{animation:none}}
+    @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card,.invitation-cover{animation:none;transition:none}}
     @media(prefers-reduced-motion:reduce){#pageBackdrop,.icon:not(:empty),.theme-mark{animation:none}}
     @media(max-width:480px){.music-controls{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.music-control{padding:8px 11px;font-size:.82rem}}
   </style>
@@ -99,6 +131,11 @@
 <body>
   <div id="pageBackdrop" hidden aria-hidden="true"><img id="pageBackgroundImage" alt=""></div>
   <audio id="backgroundMusic" autoplay preload="auto" loop hidden></audio>
+  <button id="invitationCover" class="invitation-cover" type="button" aria-label="Open invitation" hidden>
+    <span class="cover-title">دعوة خاصة</span>
+    <span id="coverNames" class="cover-names"></span>
+    <span class="cover-tap">اضغط لفتح الدعوة</span>
+  </button>
   <main id="stage">
     <p id="notice" role="status" hidden></p>
     <article class="card" id="card">
@@ -167,6 +204,6 @@
     <button id="musicToggle" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
   </div>
   <script src="./layout-config.js?v=layout-editor-v4"></script>
-  <script src="./guest.js?v=layout-editor-v5"></script>
+  <script src="./guest.js?v=layout-editor-v6"></script>
 </body>
 </html>

@@ -6,7 +6,8 @@
     sunset: { bg: '#fbe3d6', ink: '#4a2335', mut: '#7a5260', acc: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
     night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
     islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 },
-    arabesque: { bg: '#f7f2e7', ink: '#284238', mut: '#64776a', acc: '#b08a4d', motion: 'twinkle', emojis: ['✧', '❧', '✦'], count: 10 }
+    arabesque: { bg: '#f7f2e7', ink: '#284238', mut: '#64776a', acc: '#b08a4d', motion: 'twinkle', emojis: ['✧', '❧', '✦'], count: 10 },
+    plum: { bg: '#2a1a3a', ink: '#f6ecf0', mut: '#cdb9d4', acc: '#e2b79a', motion: 'twinkle', emojis: ['✧', '❧', '✦'], count: 8 }
   };
   var BACKGROUNDS = {
     roseGarden: './backgrounds/rose-garden.svg',
@@ -39,6 +40,7 @@
   var lastEnvironment = null;
   var currentMusicUrl = '';
   var musicStarted = false;
+  var coverOpened = false;
   var invitations = null;
 
   function $(id) {
@@ -196,6 +198,18 @@
   $('backgroundMusic').addEventListener('play', updateMusicControls);
   $('backgroundMusic').addEventListener('volumechange', updateMusicControls);
 
+  $('invitationCover').addEventListener('click', function () {
+    if (coverOpened) return;
+    coverOpened = true;
+    $('invitationCover').setAttribute('data-open', 'true');
+    $('invitationCover').setAttribute('aria-hidden', 'true');
+    $('invitationCover').setAttribute('tabindex', '-1');
+    if (currentMusicUrl && !musicStarted) startMusic();
+  });
+  $('invitationCover').addEventListener('transitionend', function (event) {
+    if (coverOpened && event.target === $('invitationCover')) $('invitationCover').hidden = true;
+  });
+
   function drawDecor(environment) {
     var html = '';
     var islamic = environment === ENVS.islamic;
@@ -287,10 +301,15 @@
     var environment = ENVS[event.env] || ENVS.classic;
     $('card').setAttribute('data-env', event.env || 'classic');
     $('stage').setAttribute('data-theme', event.env || 'classic');
+    $('pageBackdrop').setAttribute('data-theme', event.env || 'classic');
+    $('invitationCover').setAttribute('data-theme', event.env || 'classic');
     $('themeMark').hidden = event.env !== 'islamic';
     var eventType = EVENT_TYPE_LABELS[event.eventType] || 'wedding';
     var coupleNames = renderWeddingDetails(event);
     var names = coupleNames || event.names || '';
+    $('coverNames').textContent = plainText(names).trim();
+    $('invitationCover').setAttribute('aria-label', 'Open invitation for ' + plainText(names).trim());
+    $('invitationCover').hidden = event.env !== 'plum' || coverOpened;
     document.title = names ? plainText(names).trim() + "'s " + eventType + ' invitation' : 'Invitation';
     $('card').style.setProperty('--cbg', environment.bg);
     $('card').style.setProperty('--cink', environment.ink);

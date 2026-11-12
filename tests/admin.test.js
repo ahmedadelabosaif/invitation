@@ -440,6 +440,16 @@ test('shows the parchment and olive theme in the live editor preview', async () 
   assert.equal(elements.get('designCanvas').getAttribute('data-env'), 'arabesque');
 });
 
+test('shows the plum and rose gold theme in the live editor preview', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'plum' }]
+  };
+  const { elements } = await loadAdmin(data);
+
+  assert.equal(elements.get('designCanvas').getAttribute('data-env'), 'plum');
+});
+
 test('requires choosing an invitation type before creating an event', async () => {
   const data = {
     featured: 'wedding',

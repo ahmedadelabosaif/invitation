@@ -318,6 +318,32 @@ test('renders the parchment and olive theme on the public card and stage', async
   assert.equal(elements.get('themeMark').hidden, true);
 });
 
+test('renders a plum invitation cover and opens it on activation', async () => {
+  const elements = await loadGuest('', {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'أحمد & أمينة',
+      env: 'plum',
+      backgroundPreset: 'moonlitSky',
+      backgroundMode: 'full'
+    }]
+  });
+  const cover = elements.get('invitationCover');
+
+  assert.equal(cover.hidden, false);
+  assert.equal(elements.get('coverNames').textContent, 'أحمد & أمينة');
+  assert.equal(cover.attributes['data-theme'], 'plum');
+  assert.equal(elements.get('stage').attributes['data-background'], 'full');
+  assert.equal(elements.get('pageBackdrop').attributes['data-theme'], 'plum');
+  assert.equal(elements.get('pageBackdrop').hidden, false);
+  cover.handlers.click();
+  assert.equal(cover.attributes['data-open'], 'true');
+  assert.equal(cover.attributes['aria-hidden'], 'true');
+  cover.handlers.transitionend({ target: cover });
+  assert.equal(cover.hidden, true);
+});
+
 test('shows only selected etiquette notes on the guest invitation', async () => {
   const withEtiquette = {
     featured: 'wedding',

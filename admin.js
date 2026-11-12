@@ -18,7 +18,8 @@
     sunset: ['#fbe3d6', '#4a2335', '#7a5260', '#c2492f'],
     night: ['#1a2142', '#eef0ff', '#a9b1d6', '#f2c46d'],
     islamic: ['#153b35', '#fff8e9', '#e5d7b8', '#d8b46a'],
-    arabesque: ['#f7f2e7', '#284238', '#64776a', '#b08a4d']
+    arabesque: ['#f7f2e7', '#284238', '#64776a', '#b08a4d'],
+    plum: ['#2a1a3a', '#f6ecf0', '#cdb9d4', '#e2b79a']
   };
   var MUSIC_TRACKS = {
     beethovenAdagio: {
