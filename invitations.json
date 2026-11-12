@@ -3,7 +3,6 @@
   "events": [
     {
       "id": "wedding",
-      "public": true,
       "emoji": "💍",
       "kicker": "You’re invited to the wedding of",
       "names": "Sara & Ahmed",

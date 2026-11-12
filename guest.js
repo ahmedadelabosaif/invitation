@@ -110,9 +110,8 @@
     return new URLSearchParams(location.search).get('event') || location.hash.slice(1);
   }
 
-  function sortedPublicEvents() {
+  function sortedEvents() {
     return invitations.events
-      .filter(function (event) { return event.public !== false; })
       .slice()
       .sort(function (a, b) { return (a.date || '9999').localeCompare(b.date || '9999'); });
   }
@@ -120,7 +119,7 @@
   function renderMore() {
     var section = $('more');
     section.replaceChildren();
-    var others = sortedPublicEvents().filter(function (event) {
+    var others = sortedEvents().filter(function (event) {
       return event.id !== currentEvent.id;
     });
     section.hidden = others.length === 0;
@@ -150,7 +149,7 @@
   }
 
   function render() {
-    var events = sortedPublicEvents();
+    var events = sortedEvents();
     var id = requestedId();
     currentEvent = (id && events.find(function (event) { return event.id === id; })) ||
       events.find(function (event) { return event.id === invitations.featured; }) ||

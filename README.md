@@ -4,10 +4,13 @@
 - Admin page: https://ahmedadelabosaif.github.io/invitation/admin.html
 
 The admin page opens GitHub's editor for [`invitations.json`](https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json).
-Sign in to GitHub and commit your changes; only accounts with repository write
-access can save. GitHub Pages publishes the updated invitation at the same
-public link.
+Edit invitation fields in the visual editor, then click **Copy updated data**.
+Open **Publish on GitHub**, replace the file contents with the copied JSON, and
+commit. Only accounts with repository write access can publish changes.
+GitHub Pages updates the public invitation after the commit.
 
-To add an event, add another object to `events` with a unique `id`. Set
-`featured` to the ID shown at the main public link. An event's share link is
-`https://ahmedadelabosaif.github.io/invitation/?event=EVENT_ID`.
+Use **Add event** to create another invitation, **Set as main invitation** to
+choose what appears at the main link, and **Copy guest link** to share one
+event. Changes in the editor are drafts until copied and committed to GitHub.
+All event data in the public JSON file is visible to anyone, so don't put
+private details there.

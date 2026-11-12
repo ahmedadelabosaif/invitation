@@ -53,9 +53,8 @@ async function loadGuest(search, data) {
 const invitations = {
   featured: 'wedding',
   events: [
-    { id: 'wedding', public: true, names: 'Sara & Ahmed', env: 'garden' },
-    { id: 'party', public: true, names: 'Birthday party', env: 'classic' },
-    { id: 'private', public: false, names: 'Private event', env: 'classic' }
+    { id: 'wedding', names: 'Sara & Ahmed', env: 'garden' },
+    { id: 'party', names: 'Birthday party', env: 'classic' }
   ]
 };
 
@@ -65,7 +64,7 @@ test('shows the event selected by its public link', async () => {
   assert.equal(elements.get('names').textContent, 'Birthday party');
 });
 
-test('shows the featured event and only links to other public events', async () => {
+test('shows the featured event and links to other events', async () => {
   const elements = await loadGuest('', invitations);
   const links = elements.get('more').children.slice(1);
 

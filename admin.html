@@ -3,38 +3,131 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Invitation admin</title>
+  <title>Invitation editor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Karla:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root{font-family:Karla,system-ui,sans-serif;color:#1f2a44;background:#eef1f5;line-height:1.55}
+    :root{font-family:Karla,system-ui,sans-serif;color:#302b29;background:#f4f0e9;line-height:1.5}
     *{box-sizing:border-box}
     body{margin:0}
-    header{padding:14px 20px;background:#fff;border-bottom:1px solid #d5dbe6}
-    main{max-width:680px;margin:48px auto;padding:0 16px}
-    section{padding:24px;background:#fff;border:1px solid #d5dbe6;border-radius:14px}
-    h1{margin:0 0 8px;font:600 2rem "Cormorant Garamond",Georgia,serif}
-    p{color:#5c6780}
-    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
-    a.button{display:inline-block;padding:10px 16px;border:1px solid #d5dbe6;border-radius:8px;color:#1f2a44;text-decoration:none}
-    a.primary{background:#b4476b;border-color:#b4476b;color:#fff;font-weight:600}
-    code{padding:2px 5px;border-radius:4px;background:#eef1f5}
-    :focus-visible{outline:2px solid #b4476b;outline-offset:2px}
+    [hidden]{display:none!important}
+    button,input,select,textarea{font:inherit;color:inherit}
+    button,.button{border:1px solid #d5cbbd;border-radius:8px;background:#fff;padding:9px 13px;cursor:pointer;text-decoration:none}
+    button:hover,.button:hover{border-color:#9c7353}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    button.primary,.button.primary{color:#fff;background:#79563b;border-color:#79563b;font-weight:600}
+    :focus-visible{outline:2px solid #79563b;outline-offset:2px}
+    header{display:flex;align-items:center;gap:14px;padding:13px 20px;background:#fff;border-bottom:1px solid #e3dace}
+    header a{color:#60462f}
+    header strong{font:600 1.45rem "Cormorant Garamond",Georgia,serif}
+    header .spacer{flex:1}
+    main{max-width:1280px;margin:26px auto;padding:0 16px}
+    .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
+    .layout{display:grid;grid-template-columns:220px minmax(280px,1fr) minmax(240px,320px);gap:16px;align-items:start}
+    .panel{padding:18px;background:#fff;border:1px solid #e3dace;border-radius:13px}
+    h1,h2{font-family:"Cormorant Garamond",Georgia,serif}
+    h1{margin:0 0 12px;font-size:1.6rem}
+    h2{margin:0 0 12px;font-size:1.35rem}
+    #eventList{display:grid;gap:7px}
+    #eventList button{text-align:left}
+    #eventList button[aria-pressed=true]{border-color:#79563b;background:#faf6f0}
+    #eventList small{display:block;color:#766a5d}
+    .stack{display:grid;gap:12px}
+    .fields{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+    label{display:grid;gap:4px;margin:0 0 11px;color:#62584f;font-size:.9rem}
+    label.wide{grid-column:1/-1}
+    input,select,textarea{width:100%;padding:8px 10px;border:1px solid #d5cbbd;border-radius:7px;background:#fbfaf8}
+    textarea{min-height:75px;resize:vertical}
+    .checkbox{display:flex;align-items:center;gap:8px}
+    .checkbox input{width:auto}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
+    #jsonOutput{min-height:180px;margin-top:12px;font:12px/1.45 ui-monospace,monospace}
+    .preview{position:sticky;top:16px}
+    .preview-card{position:relative;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25)}
+    .preview-card:before{content:"";position:absolute;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
+    .preview-card>*{position:relative}
+    .preview-emoji{font-size:1.8rem}
+    .preview-kicker{margin:6px 0;color:#806b54;font-style:italic}
+    .preview-names{margin:4px 0 12px;font:600 2.2rem/1.05 "Cormorant Garamond",Georgia,serif}
+    .preview-date{font:600 1.2rem "Cormorant Garamond",Georgia,serif}
+    .preview-venue{margin:12px 0 0;font-weight:600}
+    .preview-message{white-space:pre-line}
+    .theme-note{color:#766a5d;font-size:.85rem}
+    @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}.preview{position:static;grid-column:1/-1}}
+    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.preview{grid-column:auto}}
   </style>
 </head>
 <body>
-  <header><a href="./">← Public invitation</a></header>
+  <header>
+    <strong>Invitation editor</strong>
+    <span class="spacer"></span>
+    <a href="./">Public invitation</a>
+    <a class="button" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json" target="_blank" rel="noopener">Publish on GitHub</a>
+  </header>
   <main>
-    <section>
-      <h1>Your invitation admin</h1>
-      <p>Edit the invitation data on GitHub. Sign in with the GitHub account that owns this repository; GitHub only lets that account save changes.</p>
-      <div class="actions">
-        <a class="button primary" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json">Edit invitations</a>
-        <a class="button" href="./">View public page</a>
-      </div>
-      <p>Change the event details in <code>invitations.json</code>, then choose <strong>Commit changes</strong>. To add another event, add an event object with a unique <code>id</code>. Set <code>"featured"</code> to the ID you want shown on the main link.</p>
-      <p>After GitHub Pages finishes publishing, your public link updates. Share the main link or use <code>?event=your-event-id</code> for a specific event.</p>
-    </section>
+    <p class="notice">Edit here, copy the updated data, then paste it into GitHub and commit. The public link updates after GitHub Pages publishes your change.</p>
+    <div class="layout">
+      <aside class="panel stack">
+        <h1>Events</h1>
+        <div id="eventList"></div>
+        <button id="addEvent" class="primary" type="button">＋ Add event</button>
+      </aside>
+
+      <section class="panel">
+        <form id="eventForm">
+          <h1 id="formTitle">Invitation details</h1>
+          <div class="fields">
+            <label>Names / heading<input name="names" maxlength="80" required></label>
+            <label>Emoji<input name="emoji" maxlength="8"></label>
+            <label class="wide">Intro line<input name="kicker" maxlength="100"></label>
+            <label>Date<input name="date" type="date"></label>
+            <label>Time<input name="time" type="time"></label>
+            <label class="wide">Venue<input name="venue" maxlength="160"></label>
+            <label class="wide">Message<textarea name="message" maxlength="500"></textarea></label>
+            <label class="wide">Extra details<textarea name="info" maxlength="800"></textarea></label>
+            <label>Calendar title<input name="event" maxlength="100"></label>
+            <label>Theme
+              <select name="env">
+                <option value="classic">Classic</option>
+                <option value="garden">Garden</option>
+                <option value="beach">Beach</option>
+                <option value="sunset">Sunset</option>
+                <option value="night">Night sky</option>
+              </select>
+            </label>
+          </div>
+          <div class="actions">
+            <button id="setFeatured" type="button">Set as main invitation</button>
+            <button id="deleteEvent" type="button">Delete event</button>
+            <button id="copyEventLink" type="button">Copy guest link</button>
+          </div>
+          <p id="status" role="status"></p>
+          <label id="jsonLabel" class="wide" hidden>Updated invitation data — copy and paste into GitHub
+            <textarea id="jsonOutput" readonly></textarea>
+          </label>
+          <div class="actions">
+            <button id="copyData" class="primary" type="button">Copy updated data</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="panel preview">
+        <h2>Live preview</h2>
+        <article id="previewCard" class="preview-card">
+          <div id="previewEmoji" class="preview-emoji"></div>
+          <p id="previewKicker" class="preview-kicker"></p>
+          <h2 id="previewNames" class="preview-names"></h2>
+          <div id="previewDate" class="preview-date"></div>
+          <p id="previewTime"></p>
+          <p id="previewVenue" class="preview-venue"></p>
+          <p id="previewMessage" class="preview-message"></p>
+          <p id="previewInfo" class="preview-message"></p>
+        </article>
+        <p id="featuredNote" class="theme-note"></p>
+      </aside>
+    </div>
   </main>
+  <script src="./admin.js"></script>
 </body>
 </html>
