@@ -17,7 +17,8 @@
     beach: ['#d9eef3', '#123b4a', '#3d6272', '#1b7f9a'],
     sunset: ['#fbe3d6', '#4a2335', '#7a5260', '#c2492f'],
     night: ['#1a2142', '#eef0ff', '#a9b1d6', '#f2c46d'],
-    islamic: ['#153b35', '#fff8e9', '#e5d7b8', '#d8b46a']
+    islamic: ['#153b35', '#fff8e9', '#e5d7b8', '#d8b46a'],
+    arabesque: ['#f7f2e7', '#284238', '#64776a', '#b08a4d']
   };
   var MUSIC_TRACKS = {
     beethovenAdagio: {
@@ -251,6 +252,7 @@
 
   function renderCanvas(event) {
     var theme = CANVAS_THEMES[event.env] || CANVAS_THEMES.classic;
+    $('designCanvas').setAttribute('data-env', event.env || 'classic');
     $('designCanvas').style.setProperty('--canvas-bg', theme[0]);
     $('designCanvas').style.setProperty('--canvas-ink', theme[1]);
     $('designCanvas').style.setProperty('--canvas-muted', theme[2]);

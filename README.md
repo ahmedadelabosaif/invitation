@@ -37,7 +37,9 @@ only when filled in. Add an optional map URL to make a **Get directions** link
 appear on the public invitation. Use **Intro description (optional)** to add a
 personal line beneath the intro and above the names. Choose **Islamic wedding**
 for an emerald-and-gold palette, a crescent-and-star emblem, and subtle gold
-star animation. Separately, select any optional guest
+star animation, or **Parchment and olive** for an arched ivory card with olive
+typography, gold detailing, and a softly framed Arabic verse. Separately,
+select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
 Text fields are multiline. For optional bold, italic, underline, bullets, or

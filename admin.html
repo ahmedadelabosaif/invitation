@@ -71,6 +71,9 @@
     .design-stage{min-height:400px;padding:20px 14px;border:1px solid #e3dace;border-radius:11px;background:radial-gradient(circle at 20% 15%,#f2dfcb,transparent 45%),linear-gradient(145deg,#e9e2d7,#d8d2c8)}
     .design-card{position:relative;overflow:hidden;min-height:360px;padding:28px 20px;border:1px solid var(--canvas-accent,#d8b46a);border-radius:14px;background-color:var(--canvas-bg,#153b35);background-size:cover;background-position:center;color:var(--canvas-ink,#fff8e9);box-shadow:0 12px 30px rgba(30,24,17,.22);text-align:center}
     .design-card:before{content:"";position:absolute;inset:8px;border:1px solid rgba(216,180,106,.55);border-radius:9px;pointer-events:none}
+    .design-card[data-env=arabesque]{padding-top:68px;border-radius:48% 48% 18px 18px/125px 125px 18px 18px;box-shadow:0 16px 38px rgba(40,54,43,.18)}
+    .design-card[data-env=arabesque]:before{inset:12px;border-color:var(--canvas-accent);border-radius:inherit;opacity:.72}
+    .design-card[data-env=arabesque]:after{content:"✧  ❧  ✧";position:absolute;z-index:3;top:17px;left:0;right:0;color:var(--canvas-accent);font:1.35rem "Cormorant Garamond",Georgia,serif;letter-spacing:.24em;pointer-events:none}
     .design-card>*{position:relative;z-index:1}
     .design-card .canvas-field{cursor:text;white-space:pre-wrap}
     .design-card .canvas-field:hover{outline:1px dashed rgba(216,180,106,.7);outline-offset:3px}
@@ -157,6 +160,7 @@
                 <option value="sunset">Sunset</option>
                 <option value="night">Midnight</option>
                 <option value="islamic">Emerald and gold</option>
+                <option value="arabesque">Parchment and olive</option>
               </select>
             </label>
             <label>Typography
@@ -372,6 +376,6 @@
     </div>
   </main>
   <script src="./layout-config.js?v=layout-editor-v4"></script>
-  <script src="./admin.js?v=layout-editor-v5"></script>
+  <script src="./admin.js?v=layout-editor-v6"></script>
 </body>
 </html>

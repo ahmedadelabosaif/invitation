@@ -430,6 +430,16 @@ test('editing changes appear immediately in the always-visible review', async ()
   assert.equal(elements.get('canvas-message').innerHTML, 'After');
 });
 
+test('shows the parchment and olive theme in the live editor preview', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'arabesque' }]
+  };
+  const { elements } = await loadAdmin(data);
+
+  assert.equal(elements.get('designCanvas').getAttribute('data-env'), 'arabesque');
+});
+
 test('requires choosing an invitation type before creating an event', async () => {
   const data = {
     featured: 'wedding',

@@ -5,7 +5,8 @@
     beach: { bg: '#d9eef3', ink: '#123b4a', mut: '#3d6272', acc: '#1b7f9a', motion: 'rise', emojis: ['🫧', '🐚'], count: 10 },
     sunset: { bg: '#fbe3d6', ink: '#4a2335', mut: '#7a5260', acc: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
     night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
-    islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
+    islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 },
+    arabesque: { bg: '#f7f2e7', ink: '#284238', mut: '#64776a', acc: '#b08a4d', motion: 'twinkle', emojis: ['✧', '❧', '✦'], count: 10 }
   };
   var BACKGROUNDS = {
     roseGarden: './backgrounds/rose-garden.svg',
@@ -284,6 +285,8 @@
 
   function renderEvent(event) {
     var environment = ENVS[event.env] || ENVS.classic;
+    $('card').setAttribute('data-env', event.env || 'classic');
+    $('stage').setAttribute('data-theme', event.env || 'classic');
     $('themeMark').hidden = event.env !== 'islamic';
     var eventType = EVENT_TYPE_LABELS[event.eventType] || 'wedding';
     var coupleNames = renderWeddingDetails(event);
@@ -298,6 +301,7 @@
     var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
       ? event.backgroundMode
       : '';
+    $('stage').setAttribute('data-background', imageMode || 'none');
     $('pageBackdrop').hidden = imageMode !== 'full';
     $('pageBackgroundImage').hidden = imageMode !== 'full';
     $('pageBackgroundImage').src = imageMode === 'full' ? imageUrl : '';

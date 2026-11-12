@@ -295,6 +295,29 @@ test('renders the Islamic wedding theme with its emerald and gold decor', async 
   assert.match(elements.get('decor').innerHTML, /☾/);
 });
 
+test('renders the parchment and olive theme on the public card and stage', async () => {
+  const arabesqueTheme = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      env: 'arabesque',
+      backgroundPreset: 'moonlitSky',
+      backgroundMode: 'full'
+    }]
+  };
+  const elements = await loadGuest('', arabesqueTheme);
+
+  assert.equal(elements.get('card').attributes['data-env'], 'arabesque');
+  assert.equal(elements.get('stage').attributes['data-theme'], 'arabesque');
+  assert.equal(elements.get('stage').attributes['data-background'], 'full');
+  assert.equal(elements.get('pageBackdrop').hidden, false);
+  assert.equal(elements.get('card').style.properties['--cbg'], '#f7f2e7');
+  assert.equal(elements.get('card').style.properties['--cink'], '#284238');
+  assert.equal(elements.get('card').style.properties['--cacc'], '#b08a4d');
+  assert.equal(elements.get('themeMark').hidden, true);
+});
+
 test('shows only selected etiquette notes on the guest invitation', async () => {
   const withEtiquette = {
     featured: 'wedding',
