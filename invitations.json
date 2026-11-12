@@ -19,7 +19,9 @@
         "noMusic",
         "noPhotos",
         "separateSeating"
-      ]
+      ],
+      "backgroundMode": "card",
+      "musicUrl": "https://www.youtube.com/watch?v=PJrfUKDy3E4"
     }
   ]
 }
