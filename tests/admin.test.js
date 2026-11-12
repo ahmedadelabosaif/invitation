@@ -319,7 +319,7 @@ test('the main invitation cannot be deleted accidentally', async () => {
   assert.equal(data.events[0].id, 'wedding');
 });
 
-test('shared layout and curated typography presets stay aligned across pages', async () => {
+test('admin can arrange its preview while the guest page uses the fixed reference layout', async () => {
   const layoutWindow = {};
   vm.runInNewContext(layoutConfigSource, { window: layoutWindow });
 
@@ -330,12 +330,15 @@ test('shared layout and curated typography presets stay aligned across pages', a
       new RegExp(`id="layout-${key}"[^>]*data-layout-item="${key}"[^>]*draggable="true"`),
       `admin preview section ${key} is not draggable`
     );
-    assert.match(guestHtml, new RegExp(`id="layout-${key}"`), `guest page is missing ${key}`);
   }
+  for (const id of ['cover', 'poem', 'verseSec', 'hennaSec', 'lunchSec', 'katb', 'cardsSec']) {
+    assert.match(guestHtml, new RegExp(`id="${id}"`), `guest page is missing ${id}`);
+  }
+  assert.doesNotMatch(guestHtml, /layout-config\.js|id="more"/);
   assert.doesNotMatch(adminHtml, /fieldStyleControls-|Style [^<]+<\/summary>/);
   assert.match(adminHtml, /<select name="typography">[\s\S]*Elegant serif[\s\S]*Classic[\s\S]*Modern sans-serif/);
   assert.ok(adminHtml.indexOf('layout-config.js') < adminHtml.indexOf('admin.js'));
-  assert.ok(guestHtml.indexOf('layout-config.js') < guestHtml.indexOf('guest.js'));
+  assert.doesNotMatch(guestHtml, /layout-config\.js/);
 
   const { elements, fields } = await loadAdmin({
     featured: 'wedding',

@@ -4,594 +4,284 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 
-const layoutConfigSource = fs.readFileSync(path.join(__dirname, '..', 'layout-config.js'), 'utf8');
 const guestSource = fs.readFileSync(path.join(__dirname, '..', 'guest.js'), 'utf8');
 const guestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
-async function loadGuest(search, data, blockFirstPlay = false) {
+function makeNode(id) {
+  const attributes = {};
+  const classes = new Set();
+  return {
+    id,
+    children: [],
+    hidden: false,
+    disabled: false,
+    paused: true,
+    muted: false,
+    textContent: '',
+    innerHTML: '',
+    href: '',
+    src: '',
+    alt: '',
+    handlers: {},
+    attributes,
+    playAttempts: 0,
+    style: {
+      properties: {},
+      setProperty(name, value) { this.properties[name] = value; }
+    },
+    classList: {
+      add(name) { classes.add(name); },
+      contains(name) { return classes.has(name); }
+    },
+    addEventListener(name, handler) { this.handlers[name] = handler; },
+    setAttribute(name, value) { attributes[name] = String(value); },
+    getAttribute(name) { return attributes[name] || null; },
+    removeAttribute(name) { delete attributes[name]; this[name] = ''; },
+    load() {},
+    play() {
+      this.playAttempts++;
+      this.paused = false;
+      return Promise.resolve();
+    },
+    pause() { this.paused = true; }
+  };
+}
+
+async function loadGuest(search, data) {
   const elements = new Map();
+  const timers = [];
   function getElementById(id) {
-    if (!elements.has(id)) {
-      elements.set(id, {
-        id,
-        children: [],
-        hidden: false,
-        disabled: false,
-        paused: true,
-        muted: false,
-        textContent: '',
-        innerHTML: '',
-        href: '',
-        className: '',
-        attributes: {},
-        handlers: {},
-        playAttempts: 0,
-        contentWindow: { messages: [], postMessage(message, origin) { this.messages.push({ message, origin }); } },
-        style: {
-          properties: {},
-          setProperty(name, value) { this.properties[name] = value; }
-        },
-        addEventListener(name, handler) { this.handlers[name] = handler; },
-        replaceChildren() { this.children = []; },
-        removeAttribute(name) { delete this.attributes[name]; this[name] = ''; },
-        setAttribute(name, value) { this.attributes[name] = value; },
-        appendChild(child) { this.children.push(child); },
-        append(...children) { this.children.push(...children); },
-        load() {},
-        play() {
-          this.playAttempts++;
-          if (blockFirstPlay && this.id === 'backgroundMusic' && this.playAttempts === 1) {
-            return Promise.reject(new Error('Autoplay blocked'));
-          }
-          this.paused = false;
-          if (this.handlers.play) this.handlers.play();
-          return Promise.resolve();
-        },
-        pause() { this.paused = true; if (this.handlers.pause) this.handlers.pause(); }
-      });
-    }
+    if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
+  const corners = ['tl', 'tr', 'bl', 'br'].map((name) => makeNode(name));
   const document = {
     title: 'Wedding invitation',
+    documentElement: { style: makeNode('root').style },
     getElementById,
-    createElement(tag) {
-      return {
-        tag,
-        children: [],
-        append(...children) { this.children.push(...children); }
-      };
-    }
+    querySelectorAll(selector) { return selector === '.corner' ? corners : []; }
   };
-  const context = {
+  const location = {
+    search,
+    hash: '',
+    href: 'https://ahmedadelabosaif.github.io/invitation/',
+    origin: 'https://ahmedadelabosaif.github.io'
+  };
+  const window = {
+    setInterval() {},
+    setTimeout(callback) { timers.push(callback); },
+    addEventListener() {}
+  };
+  vm.runInNewContext(guestSource, {
     document,
-    location: {
-      search,
-      hash: '',
-      href: 'https://ahmedadelabosaif.github.io/invitation/',
-      origin: 'https://ahmedadelabosaif.github.io'
-    },
-    URLSearchParams,
+    location,
+    window,
     URL,
+    URLSearchParams,
     Date,
     Math,
+    Intl,
     encodeURIComponent,
-    fetch: async () => ({ ok: true, json: async () => data }),
-    window: { setInterval() {}, addEventListener() {} }
-  };
-  vm.runInNewContext(layoutConfigSource, context);
-  vm.runInNewContext(guestSource, context);
+    fetch: async () => ({ ok: true, json: async () => data })
+  });
   await new Promise(setImmediate);
   elements.document = document;
+  elements.corners = corners;
+  elements.timers = timers;
   return elements;
 }
 
-const invitations = {
-  featured: 'wedding',
-  events: [
-    { id: 'wedding', names: 'Sara & Ahmed', env: 'garden' },
-    { id: 'party', names: 'Birthday party', env: 'classic' }
-  ]
-};
-
-test('shows the event selected by its public link', async () => {
-  const elements = await loadGuest('?event=party', invitations);
-
-  assert.equal(elements.get('names').textContent, 'Birthday party');
-  assert.equal(elements.get('musicControls').hidden, true);
-  assert.equal(elements.get('pageBackdrop').hidden, true);
+test('public page uses only the attached Arabic invitation layout', () => {
+  for (const id of [
+    'cover', 'poem', 'wreath', 'verseSec', 'hennaSec', 'lunchSec', 'cdD',
+    'mapBtn', 'katb', 'cardsSec', 'snd'
+  ]) {
+    assert.match(guestHtml, new RegExp(`id="${id}"`));
+  }
+  assert.doesNotMatch(guestHtml, /تخصيص الدعوة|id="fab"|id="panel"|id="more"/);
+  assert.doesNotMatch(guestHtml, /layout-config\.js|invitationContent|Guest etiquette/);
 });
 
-test('personalizes the browser title from the invitation names', async () => {
-  const eventData = {
+test('renders names, copy, date, and Arabic calendar link from the selected event', async () => {
+  const data = {
     featured: 'wedding',
-    events: [{ id: 'wedding', names: 'Ahmed & Amina' }]
+    events: [
+      { id: 'wedding', groomName: 'أحمد', brideName: 'أمينة', date: '2027-05-27', time: '20:00', venue: 'City Hall' },
+      { id: 'party', groomName: 'علي', brideName: 'نور', date: '2027-06-03', kicker: 'حفلة' }
+    ]
   };
-  const elements = await loadGuest('', eventData);
+  const elements = await loadGuest('?event=party', data);
 
-  assert.equal(elements.document.title, "Ahmed & Amina's wedding invitation");
+  assert.equal(elements.get('groom').textContent, 'علي');
+  assert.equal(elements.get('bride').textContent, 'نور');
+  assert.equal(elements.get('heading').textContent, 'حفلة');
+  assert.equal(elements.get('dWeek').textContent, 'الخميس');
+  assert.equal(elements.get('dDay').textContent, '٣');
+  assert.equal(elements.get('dMonth').textContent, 'يونيو');
+  assert.equal(elements.get('dYear').textContent, '٢٠٢٧');
+  assert.equal(elements.get('calBtn').hidden, false);
+  assert.match(elements.get('calBtn').href, /20270603T000000/);
+  assert.equal(elements.get('verseSec').hidden, false);
+  assert.equal(elements.document.title, 'دعوة زفاف علي ونور');
+  assert.ok(elements.get('wreath').innerHTML.includes('<path'));
+  assert.equal(elements.corners.length, 4);
 });
 
-test('shows an optional intro description beneath the invitation intro', async () => {
-  const withIntroDescription = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Ahmed & Amina',
-      kicker: 'You are invited',
-      introDescription: 'With our families, we invite you to celebrate this special day.'
-    }]
-  };
-  const elements = await loadGuest('', withIntroDescription);
-
-  assert.equal(elements.get('kicker').textContent, 'You are invited');
-  assert.equal(elements.get('introDescription').textContent, withIntroDescription.events[0].introDescription);
-});
-
-test('renders invitation sections in the saved layout order', async () => {
-  const arrangedInvitation = {
+test('falls back to legacy couple names and keeps invitation content as text', async () => {
+  const data = {
     featured: 'wedding',
     events: [{
       id: 'wedding',
-      names: 'Ahmed & Amina',
-      layout: ['message', 'names'],
-      message: 'Join us'
+      names: '<script>Ahmed & Amina</script>',
+      message: '<img src=x onerror=alert(1)>',
+      date: '2027-06-12'
     }]
   };
-  const elements = await loadGuest('', arrangedInvitation);
+  const elements = await loadGuest('', data);
 
-  assert.deepEqual(
-    elements.get('invitationContent').children.slice(0, 2).map((child) => child.id),
-    ['layout-message', 'layout-names']
-  );
+  assert.equal(elements.get('groom').textContent, '<script>Ahmed');
+  assert.equal(elements.get('bride').textContent, 'Amina</script>');
+  assert.equal(elements.get('invite').textContent, '<img src=x onerror=alert(1)>');
+  assert.equal(elements.get('invite').innerHTML, '');
 });
 
-test('applies only supported saved typography settings to guest sections', async () => {
-  const styledInvitation = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Ahmed & Amina',
-      message: 'Join us',
-      env: 'garden',
-      layoutStyles: {
-        message: { font: 'serif', size: '1.5rem', align: 'left', color: 'gold' },
-        names: { font: 'url(javascript:alert(1))', size: '99px', align: 'justify', color: 'hotpink' }
-      }
-    }]
-  };
-  const elements = await loadGuest('', styledInvitation);
-
-  assert.equal(elements.get('layout-message').style.fontFamily, '"Cormorant Garamond", Georgia, serif');
-  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
-  assert.equal(elements.get('layout-message').style.textAlign, 'left');
-  assert.equal(elements.get('layout-message').style.color, '#d8b46a');
-  assert.equal(elements.get('layout-names').style.fontFamily, '');
-  assert.equal(elements.get('layout-names').style.fontSize, '');
-});
-
-test('applies the selected global typography preset across the guest invitation', async () => {
-  const styledInvitation = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Ahmed & Amina',
-      message: 'Join us',
-      typography: 'modern',
-      layoutStyles: {
-        message: { font: 'serif', size: '1.5rem' }
-      }
-    }]
-  };
-  const elements = await loadGuest('', styledInvitation);
-
-  assert.equal(elements.get('layout-message').style.fontFamily, 'Karla, system-ui, sans-serif');
-  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
-  assert.equal(elements.get('layout-names').style.fontFamily, 'Karla, system-ui, sans-serif');
-});
-
-test('renders allowlisted text formatting while escaping user-provided HTML', async () => {
-  const formattedInvitation = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: '[b]Sara[/b] & Ahmed',
-      kicker: '[gold]You are invited[/gold]',
-      message: '[i]Join us[/i]\n<script>alert(1)</script>'
-    }]
-  };
-  const elements = await loadGuest('', formattedInvitation);
-
-  assert.equal(elements.get('names').innerHTML, '<strong>Sara</strong> &amp; Ahmed');
-  assert.equal(elements.get('kicker').innerHTML, '<span class="rich-gold">You are invited</span>');
-  assert.equal(elements.get('msg').innerHTML, '<em>Join us</em><br>&lt;script&gt;alert(1)&lt;/script&gt;');
-  assert.equal(elements.document.title, "Sara & Ahmed's wedding invitation");
-});
-
-test('renders structured wedding details, related gathering, and contract photo', async () => {
-  const wedding = {
+test('shows only enabled wedding sections and respects the verse toggle', async () => {
+  const data = {
     featured: 'wedding',
     events: [{
       id: 'wedding',
       eventType: 'wedding',
-      names: 'Abdelrahman & Omnia',
-      religiousOpening: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-      quranVerse: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ',
-      quranReference: 'سورة الروم – الآية ٢١',
-      hostNames: 'الأستاذ رضا والأستاذ ياسر',
-      groomTitle: 'م.',
-      groomName: 'عبدالرحمن',
-      brideTitle: 'د.',
-      brideName: 'أمنية',
-      preEventTitle: 'Wedding lunch',
-      preEventDate: '2026-11-19',
-      preEventTime: 'After Dhuhr prayer',
-      preEventVenue: 'Groom’s family home',
-      preEventLocationUrl: 'https://maps.example.test/lunch',
-      preEventDetails: 'Lunch before the wedding',
-      contractImageUrl: 'https://images.example.test/contract.jpg',
-      contractImageCaption: 'Alhamdulillah'
-    }]
-  };
-  const elements = await loadGuest('', wedding);
-
-  assert.equal(elements.document.title, "م. عبدالرحمن & د. أمنية's wedding invitation");
-  assert.equal(elements.get('names').textContent, 'م. عبدالرحمن & د. أمنية');
-  assert.equal(elements.get('religiousOpening').textContent, wedding.events[0].religiousOpening);
-  assert.equal(elements.get('quranReference').textContent, wedding.events[0].quranReference);
-  assert.equal(elements.get('hostNames').textContent, wedding.events[0].hostNames);
-  assert.equal(elements.get('relatedEvent').hidden, false);
-  assert.equal(elements.get('relatedEventTime').textContent, 'After Dhuhr prayer');
-  assert.equal(elements.get('relatedEventLocation').href, 'https://maps.example.test/lunch');
-  assert.match(elements.get('relatedEventCalendar').href, /20261119\/20261120/);
-  assert.equal(elements.get('contractPhoto').hidden, false);
-  assert.equal(elements.get('contractImage').src, wedding.events[0].contractImageUrl);
-  assert.equal(elements.get('contractCaption').textContent, 'Alhamdulillah');
-});
-
-test('renders optional wedding sections, privacy note, lunch calendar, and custom colors', async () => {
-  const wedding = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      eventType: 'wedding',
-      names: 'Amina & Omar',
-      env: 'garden',
+      groomName: 'Omar',
+      brideName: 'Amina',
       showVerse: false,
-      religiousOpening: 'Bismillah',
-      poem: 'A loving opening',
-      venueAddress: 'Near the city center',
-      showParents: true,
-      groomFather: 'Groom’s father',
-      brideFather: 'Bride’s father',
-      parentsInviteText: 'With pleasure, the families invite you',
-      groomFull: 'Engineer Omar',
-      brideFull: 'Doctor Amina',
-      inviteNames: 'Omar & Amina',
       showHenna: true,
+      showPrivacy: true,
+      privacyText: 'No photos, please',
+      showLunch: true,
+      lunchTitle: 'غداء العائلة',
+      lunchDate: '2027-05-26',
+      lunchPlace: 'منزل العائلة',
+      lunchTime: 'بعد الظهر',
+      showKatb: true,
+      katbText: 'الحمد لله',
+      showParents: true,
+      groomFather: 'الأستاذ رضا',
+      brideFather: 'الأستاذ ياسر',
+      parentsInviteText: 'يتشرفان بدعوتكم',
+      poem: 'أبيات الدعوة',
       hennaDate: '2027-05-25',
       hennaTime: '19:00',
-      hennaPlace: 'Family home',
-      hennaNote: 'Private gathering',
-      hennaVerse: 'A henna poem',
-      showPrivacy: true,
-      privacyText: 'Please do not take photos.',
-      showLunch: true,
-      lunchTitle: 'Wedding lunch',
-      lunchDate: '2027-05-26',
-      lunchPlace: 'Garden',
-      lunchTime: 'After noon prayer',
-      showKatb: true,
-      katbText: 'Alhamdulillah',
-      countdownNote: 'Until we celebrate',
-      closing: 'See you soon',
-      customBackgroundColor: '#fefefe',
-      customAccentColor: '#123456'
+      hennaPlace: 'في المنزل',
+      hennaNote: 'الدعوة خاصة',
+      hennaVerse: 'أبيات الحنة',
+      countdownNote: 'لحد ما نشوفكم',
+      closing: 'دمتم لنا فرحة'
     }]
   };
-  const elements = await loadGuest('', wedding);
+  const elements = await loadGuest('', data);
 
-  assert.equal(elements.get('weddingOpening').hidden, true);
-  assert.equal(elements.get('religiousOpening').textContent, '');
-  assert.equal(elements.get('quranBlock').hidden, true);
-  assert.equal(elements.get('poem').textContent, 'A loving opening');
-  assert.equal(elements.get('venueAddress').textContent, 'Near the city center');
-  assert.equal(elements.get('layout-henna').hidden, false);
-  assert.equal(elements.get('privacyNote').hidden, false);
-  assert.equal(elements.get('privacyText').textContent, 'Please do not take photos.');
-  assert.equal(elements.get('layout-lunch').hidden, false);
-  assert.match(elements.get('lunchCalendar').href, /20270526\/20270527/);
-  assert.equal(elements.get('layout-katb').hidden, false);
-  assert.equal(elements.get('layout-parents').hidden, false);
-  assert.equal(elements.get('groomFull').textContent, 'Engineer Omar');
-  assert.equal(elements.get('parentsInviteText').textContent, 'With pleasure, the families invite you');
-  assert.equal(elements.get('countdownNote').textContent, 'Until we celebrate');
-  assert.equal(elements.get('closing').textContent, 'See you soon');
-  assert.equal(elements.get('card').style.properties['--cbg'], '#fefefe');
-  assert.equal(elements.get('card').style.properties['--cacc'], '#123456');
+  assert.equal(elements.get('verseSec').hidden, true);
+  assert.equal(elements.get('hennaSec').hidden, false);
+  assert.equal(elements.get('privacy').hidden, false);
+  assert.equal(elements.get('lunchSec').hidden, false);
+  assert.equal(elements.get('katb').hidden, false);
+  assert.equal(elements.get('cardsSec').hidden, false);
+  assert.equal(elements.get('poem').textContent, 'أبيات الدعوة');
+  assert.equal(elements.get('parentsInviteText').textContent, 'يتشرفان بدعوتكم');
+  assert.equal(elements.get('hennaPlace').textContent, 'في المنزل');
+  assert.equal(elements.get('lunchTitle').textContent, 'غداء العائلة');
+  assert.equal(elements.get('katbText').textContent, 'الحمد لله');
+  assert.equal(elements.get('closing').textContent, 'دمتم لنا فرحة');
 });
 
-test('public invitation has no customization button', () => {
-  assert.doesNotMatch(guestHtml, /تخصيص الدعوة/);
-  assert.doesNotMatch(guestHtml, /id="fab"/);
-});
-
-test('shows a clickable map link when a valid location URL is provided', async () => {
-  const withMapLink = {
+test('hides optional sections when they are not selected', async () => {
+  const elements = await loadGuest('', {
     featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Sara & Ahmed',
-      venue: 'Venue name',
-      locationUrl: 'https://maps.example.test/venue',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withMapLink);
+    events: [{ id: 'wedding', names: 'Amina & Omar', showHenna: false, showLunch: false, showKatb: false, showParents: false }]
+  });
 
-  assert.equal(elements.get('venue').textContent, 'Venue name');
-  assert.equal(elements.get('locationLink').hidden, false);
-  assert.equal(elements.get('locationLink').href, 'https://maps.example.test/venue');
+  for (const id of ['hennaSec', 'lunchSec', 'katb', 'cardsSec']) assert.equal(elements.get(id).hidden, true);
+  assert.equal(elements.get('verseSec').hidden, false);
 });
 
-test('does not make unsafe location URLs clickable', async () => {
-  const withUnsafeLink = {
+test('only safe map and image URLs become clickable or loadable', async () => {
+  const unsafe = await loadGuest('', {
     featured: 'wedding',
     events: [{
       id: 'wedding',
       names: 'Sara & Ahmed',
       locationUrl: 'javascript:alert(1)',
-      env: 'garden'
+      contractImageUrl: 'javascript:alert(1)',
+      showKatb: true
     }]
-  };
-  const elements = await loadGuest('', withUnsafeLink);
+  });
+  assert.equal(unsafe.get('mapBtn').hidden, true);
+  assert.equal(unsafe.get('katbImg').hidden, true);
 
-  assert.equal(elements.get('locationLink').hidden, true);
-});
-
-test('renders the Islamic wedding theme with its emerald and gold decor', async () => {
-  const islamicTheme = {
-    featured: 'wedding',
-    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'islamic' }]
-  };
-  const elements = await loadGuest('', islamicTheme);
-
-  assert.equal(elements.get('card').style.properties['--cbg'], '#153b35');
-  assert.equal(elements.get('card').style.properties['--cacc'], '#d8b46a');
-  assert.equal(elements.get('themeMark').hidden, false);
-  assert.match(elements.get('decor').className, /islamic-decor/);
-  assert.match(elements.get('decor').innerHTML, /☾/);
-});
-
-test('renders the parchment and olive theme on the public card and stage', async () => {
-  const arabesqueTheme = {
+  const safe = await loadGuest('', {
     featured: 'wedding',
     events: [{
       id: 'wedding',
-      names: 'Amina & Omar',
-      env: 'arabesque',
-      backgroundPreset: 'moonlitSky',
-      backgroundMode: 'full'
+      names: 'Sara & Ahmed',
+      venue: 'Hall',
+      locationUrl: 'https://maps.example.test/hall',
+      contractImageUrl: 'https://images.example.test/katb.jpg',
+      contractImageCaption: 'Our contract',
+      showKatb: true
     }]
-  };
-  const elements = await loadGuest('', arabesqueTheme);
-
-  assert.equal(elements.get('card').attributes['data-env'], 'arabesque');
-  assert.equal(elements.get('stage').attributes['data-theme'], 'arabesque');
-  assert.equal(elements.get('stage').attributes['data-background'], 'full');
-  assert.equal(elements.get('pageBackdrop').hidden, false);
-  assert.equal(elements.get('card').style.properties['--cbg'], '#f7f2e7');
-  assert.equal(elements.get('card').style.properties['--cink'], '#284238');
-  assert.equal(elements.get('card').style.properties['--cacc'], '#b08a4d');
-  assert.equal(elements.get('themeMark').hidden, true);
+  });
+  assert.equal(safe.get('mapBtn').hidden, false);
+  assert.equal(safe.get('mapBtn').href, 'https://maps.example.test/hall');
+  assert.equal(safe.get('katbImg').hidden, false);
+  assert.equal(safe.get('katbImg').src, 'https://images.example.test/katb.jpg');
 });
 
-test('renders a plum invitation cover and opens it on activation', async () => {
+test('applies custom colors and Arabic countdown styling values', async () => {
   const elements = await loadGuest('', {
     featured: 'wedding',
     events: [{
       id: 'wedding',
-      names: 'أحمد & أمينة',
-      env: 'plum',
-      backgroundPreset: 'moonlitSky',
-      backgroundMode: 'full'
+      names: 'Omar & Amina',
+      date: '2027-05-27',
+      customBackgroundColor: '#fefefe',
+      customAccentColor: '#123456'
     }]
   });
-  const cover = elements.get('invitationCover');
 
-  assert.equal(cover.hidden, false);
-  assert.equal(elements.get('coverNames').textContent, 'أحمد & أمينة');
-  assert.equal(cover.attributes['data-theme'], 'plum');
-  assert.equal(elements.get('stage').attributes['data-background'], 'full');
-  assert.equal(elements.get('pageBackdrop').attributes['data-theme'], 'plum');
-  assert.equal(elements.get('pageBackdrop').hidden, false);
-  cover.handlers.click();
-  assert.equal(cover.attributes['data-open'], 'true');
-  assert.equal(cover.attributes['aria-hidden'], 'true');
-  cover.handlers.transitionend({ target: cover });
-  assert.equal(cover.hidden, true);
+  assert.equal(elements.document.documentElement.style.properties['--bg'], '#fefefe');
+  assert.equal(elements.document.documentElement.style.properties['--gold'], '#123456');
+  assert.match(elements.get('cdD').textContent, /^[٠-٩]+$/);
 });
 
-test('shows only selected etiquette notes on the guest invitation', async () => {
-  const withEtiquette = {
+test('opens the curtain and offers one mute toggle for the soundtrack', async () => {
+  const elements = await loadGuest('', {
     featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      etiquette: ['noPhotos', 'prayerSpace'],
-      env: 'islamic'
-    }]
-  };
-  const elements = await loadGuest('', withEtiquette);
-  const notes = elements.get('etiquette').children;
-
-  assert.equal(elements.get('etiquette').hidden, false);
-  assert.deepEqual(notes.map((note) => note.textContent), [
-    '🚫📷 No photos or video, please',
-    '🕌 Prayer space available'
-  ]);
-});
-
-test('ignores legacy non-array etiquette data on the guest invitation', async () => {
-  const withLegacyEtiquette = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      etiquette: '',
-      env: 'islamic'
-    }]
-  };
-  const elements = await loadGuest('', withLegacyEtiquette);
-
-  assert.equal(elements.get('etiquette').hidden, true);
-  assert.equal(elements.get('etiquette').children.length, 0);
-});
-
-test('autoplays a full-page invitation soundtrack and lets guests mute and unmute', async () => {
-  const withMedia = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      backgroundImage: 'images/wedding.jpg',
-      backgroundMode: 'full',
-      musicTrack: 'beethovenAdagio',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withMedia);
-  const backdrop = elements.get('pageBackdrop');
+    events: [{ id: 'wedding', names: 'Omar & Amina', musicTrack: 'beethovenAdagio' }]
+  });
+  const cover = elements.get('cover');
+  const sound = elements.get('snd');
   const audio = elements.get('backgroundMusic');
 
-  assert.equal(backdrop.hidden, false);
-  assert.match(elements.get('pageBackgroundImage').src, /images\/wedding\.jpg/);
-  assert.equal(elements.get('musicControls').hidden, false);
   assert.equal(audio.src, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg');
-  assert.equal(audio.paused, false);
-  assert.match(elements.get('musicToggle').textContent, /Mute music/);
-
-  elements.get('musicToggle').handlers.click();
-  assert.equal(audio.muted, true);
-  assert.match(elements.get('musicToggle').textContent, /Unmute music/);
-  assert.equal(audio.paused, false);
-
-  elements.get('musicToggle').handlers.click();
-  assert.equal(audio.muted, false);
-  assert.equal(audio.paused, false);
-
-  const cardImage = await loadGuest('', {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      backgroundImage: 'images/wedding.jpg',
-      backgroundMode: 'card',
-      env: 'garden'
-    }]
-  });
-  assert.equal(cardImage.get('pageBackdrop').hidden, true);
-  assert.match(cardImage.get('cardBackground').src, /images\/wedding\.jpg/);
-});
-
-test('offers play control when browser blocks automatic music playback', async () => {
-  const withMusic = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      musicTrack: 'beethovenAdagio',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withMusic, true);
-
-  assert.equal(elements.get('backgroundMusic').paused, true);
-  assert.match(elements.get('musicToggle').textContent, /Play music/);
-  assert.match(elements.get('notice').textContent, /Tap Play music/);
-
-  elements.get('musicToggle').handlers.click();
+  cover.handlers.click();
+  assert.equal(cover.classList.contains('open'), true);
+  elements.timers[0]();
   await new Promise(setImmediate);
-  assert.equal(elements.get('backgroundMusic').paused, false);
-  assert.match(elements.get('musicToggle').textContent, /Mute music/);
+  assert.equal(audio.playAttempts, 1);
+
+  sound.handlers.click();
+  assert.equal(audio.muted, true);
+  assert.equal(sound.textContent, '🔇');
+  assert.equal(sound.getAttribute('aria-pressed'), 'true');
+  sound.handlers.click();
+  assert.equal(audio.muted, false);
 });
 
-test('renders a selected background design and music preset', async () => {
-  const withPresets = {
+test('blocks unsafe audio sources', async () => {
+  const elements = await loadGuest('', {
     featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      backgroundPreset: 'goldenArch',
-      backgroundMode: 'full',
-      musicTrack: 'chopinRomance',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withPresets);
+    events: [{ id: 'wedding', names: 'Omar & Amina', musicUrl: 'javascript:alert(1)' }]
+  });
 
-  assert.equal(elements.get('pageBackdrop').hidden, false);
-  assert.match(elements.get('pageBackgroundImage').src, /golden-arch\.svg/);
-  assert.equal(elements.get('musicControls').hidden, false);
-  assert.match(elements.get('backgroundMusic').src, /Chopin_-_Piano_Concerto/);
-});
-
-test('does not render a video player or play a video-page URL as audio', async () => {
-  const withYoutube = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      musicUrl: 'https://www.youtube.com/watch?v=PJrfUKDy3E4',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withYoutube);
-
-  assert.equal(elements.get('musicControls').hidden, true);
-  assert.ok(!elements.get('backgroundMusic').src);
-});
-
-test('shows selected card background designs in a visible image layer', async () => {
-  const withBackground = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      backgroundPreset: 'roseGarden',
-      backgroundMode: 'card',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withBackground);
-
-  assert.equal(elements.get('cardBackground').hidden, false);
-  assert.match(elements.get('cardBackground').src, /rose-garden\.svg/);
-});
-
-test('does not use unsafe background or audio URLs', async () => {
-  const withUnsafeMedia = {
-    featured: 'wedding',
-    events: [{
-      id: 'wedding',
-      names: 'Amina & Omar',
-      backgroundImage: 'javascript:alert(1)',
-      backgroundMode: 'full',
-      musicUrl: 'javascript:alert(1)',
-      env: 'garden'
-    }]
-  };
-  const elements = await loadGuest('', withUnsafeMedia);
-
-  assert.equal(elements.get('pageBackdrop').hidden, true);
-  assert.equal(elements.get('musicControls').hidden, true);
-});
-
-test('shows the featured event and links to other events', async () => {
-  const elements = await loadGuest('', invitations);
-  const links = elements.get('more').children.slice(1);
-
-  assert.equal(elements.get('names').textContent, 'Sara & Ahmed');
-  assert.equal(links.length, 1);
-  assert.equal(links[0].href, '?event=party');
+  assert.equal(elements.get('backgroundMusic').src, '');
 });

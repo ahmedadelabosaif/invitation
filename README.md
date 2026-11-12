@@ -3,8 +3,9 @@
 - Public invitation: https://ahmedadelabosaif.github.io/invitation/
 - Visual editor: https://ahmedadelabosaif.github.io/invitation/admin.html
 
-The public page title is personalized from the invitation names (for example,
-“Ahmed & Amina's wedding invitation”).
+The public page uses the fixed Arabic wedding design and contains no admin or
+customization controls. The invitation title and displayed details are filled
+from the selected event.
 
 The visual editor opens directly at `/admin.html`. To publish without copying
 data, create a GitHub fine-grained personal access token limited to this
@@ -16,54 +17,27 @@ token on this device** to remove it. Only save it on a trusted device; browser
 storage is accessible to scripts running on this site. GitHub commits the
 invitation update; GitHub Pages deploys it automatically.
 Guests see only the published invitation; editing controls are available on
-the admin page, not on the public invite.
+the admin page, not on the public invite. Enabled wedding sections include the
+verse, henna and privacy note, lunch, marriage-contract photo, and parents’
+invitation. The invitation’s dates, names, copy, venue, safe map link, optional
+soundtrack, and custom colors are rendered from the selected event.
 
 The editor keeps the Events selector separate from the page header and protects
 the main invitation from deletion. Start with the couple’s names, date, time,
-venue, and message. Pick a color theme and one typography preset; both apply
-consistently across the invitation. The live preview stays beside the editor
-and updates as you type. Optional wedding details, personal touches, background,
-music, etiquette, and advanced text formatting are tucked into collapsible
-sections. Reorder content from the preview with drag-and-drop or the arrow
-controls. Design choices and order are saved with the invitation and used on
-its public guest page.
+venue, and message. The live editor preview stays beside the form and updates
+as you type. The public page follows its fixed reference design; editor preview
+arrangement and theme presets do not change that design.
 
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one
-event. Choose the invitation type before creating an event; existing events
-default to **Wedding**. Wedding invitations have optional structured fields for
-the opening invocation and Qur’anic verse, hosts, each partner’s title and
-name, a related gathering with its own date/time/location and calendar link, and
-a marriage-contract image URL or optimized photo upload plus caption. The
-additional reference-design section includes opening poetry, separate parent invitations, venue address,
-optional henna and lunch sections, a photography privacy note, a marriage
-contract caption, closing text, countdown note, and custom background/accent
-colors. The verse toggle controls the opening invocation and verse together,
-and the parents’ invitation wording can be edited. Optional sections appear on
-the public invitation only when enabled.
-Add an optional map URL to make a **Get directions** link
-appear on the public invitation. Use **Intro description (optional)** to add a
-personal line beneath the intro and above the names. Choose **Islamic wedding**
-for an emerald-and-gold palette, a crescent-and-star emblem, and subtle gold
-star animation, or **Parchment and olive** for an arched ivory card with olive
-typography, gold detailing, and a softly framed Arabic verse. Separately,
-choose **Plum and rose gold** for an Arabic-friendly, sectioned invitation with
-a tappable opening cover and muted rose-gold detailing. Separately, choose any
-optional guest etiquette notes (for example no photos or video, modest dress, separate
-seating, prayer space, halal food, or no music) to show them on the invitation.
-Text fields are multiline. For optional bold, italic, underline, bullets, or
-accent colors, open **Advanced text formatting**. Click text on the live
-invitation canvas to jump to its editor field.
-Choose one of four original background designs or upload a JPG, PNG, or WebP for
-the card/full-page background. Uploads are optimized and stored with the
-published site. Choose one of four public-domain/CC0
-classical tracks, add a direct HTTPS audio URL, or upload an MP3/OGG/WAV/M4A
-song up to 8 MB. Guests start the music with one button, then use that same
-button to mute/unmute. Music starts automatically when the browser permits it;
-if autoplay is blocked, guests can tap **Play music**. Video-page links such as YouTube
-are not played or embedded, because the editor cannot extract audio from them.
-Use a preset, direct audio URL, or upload an audio file for an audio-only
-soundtrack. Changes are drafts until published.
+event. Wedding events support optional reference-design sections, such as the
+opening verse, henna, lunch, parent invitation, and marriage-contract photo.
+Optional sections appear on the public invitation only when enabled. Add a map
+URL to show a directions link. Text fields support the editor’s formatting
+controls. A direct HTTPS audio URL or uploaded audio file can supply the
+soundtrack; video pages are not embedded or played. Guests use the single sound
+button to mute or unmute after opening the invitation. Changes are drafts until
+published.
 Uploaded images and event data are public, so only use content you want to
 share with guests.
 
