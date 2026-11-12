@@ -21,14 +21,16 @@ function makeNode(id) {
     appendChild(child) { this.children.push(child); },
     replaceChildren() { this.children = []; },
     setAttribute() {},
+    focus() {},
     scrollIntoView() {}
   };
 }
 
-async function loadAdmin(initialData) {
+async function loadAdmin(initialData, storage) {
   const elements = new Map();
   const saved = [];
   const remoteData = JSON.parse(JSON.stringify(initialData));
+  const tokenStorage = storage || new Map();
   function getElementById(id) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
@@ -40,10 +42,16 @@ async function loadAdmin(initialData) {
       return field;
     });
   getElementById('eventForm').elements = fields;
-  getElementById('githubToken').value = 'fine-grained-test-token';
-  const dataUrl = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
   const document = { getElementById, createElement: makeNode };
-  const window = { confirm: () => true, addEventListener() {} };
+  const window = {
+    confirm: () => true,
+    addEventListener() {},
+    localStorage: {
+      getItem(key) { return tokenStorage.get(key) || null; },
+      setItem(key, value) { tokenStorage.set(key, value); },
+      removeItem(key) { tokenStorage.delete(key); }
+    }
+  };
   async function fetch(url, options) {
     if (url === './invitations.json') {
       return { ok: true, json: async () => initialData };
@@ -53,6 +61,10 @@ async function loadAdmin(initialData) {
       return { ok: true, json: async () => ({ content: encoded, sha: 'original-sha' }) };
     }
     saved.push({ url, options });
+    const request = JSON.parse(options.body);
+    const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+    remoteData.events = JSON.parse(new TextDecoder().decode(bytes)).events;
+    remoteData.featured = JSON.parse(new TextDecoder().decode(bytes)).featured;
     return { ok: true, json: async () => ({ commit: { sha: 'published-sha' } }) };
   }
   vm.runInNewContext(adminSource, {
@@ -71,10 +83,10 @@ async function loadAdmin(initialData) {
     fetch
   });
   await new Promise(setImmediate);
-  return { elements, fields, saved };
+  return { elements, fields, saved, tokenStorage };
 }
 
-test('admin form previews edits and publishes them to GitHub without copying', async () => {
+test('admin remembers the saved token and reuses it on later visits', async () => {
   const data = {
     featured: 'wedding',
     events: [{
@@ -92,12 +104,19 @@ test('admin form previews edits and publishes them to GitHub without copying', a
       env: 'garden'
     }]
   };
-  const { elements, fields, saved } = await loadAdmin(data);
+  const storage = new Map();
+  const { elements, fields, saved, tokenStorage } = await loadAdmin(data, storage);
   const names = fields.find((field) => field.name === 'names');
 
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
   assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
   assert.ok(elements.get('previewDecor').children.length > 0);
+
+  elements.get('addToken').handlers.click();
+  elements.get('githubToken').value = 'fine-grained-test-token';
+  elements.get('saveToken').handlers.click();
+  assert.equal(tokenStorage.get('invitation.github.publish-token'), 'fine-grained-test-token');
+
   names.value = 'Sara & Ahmed’s wedding';
   elements.get('eventForm').handlers.input({ target: names });
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed’s wedding');
@@ -112,6 +131,14 @@ test('admin form previews edits and publishes them to GitHub without copying', a
   assert.equal(request.sha, 'original-sha');
   const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
   assert.equal(JSON.parse(new TextDecoder().decode(bytes)).events[0].names, 'Sara & Ahmed’s wedding');
-  assert.equal(elements.get('githubToken').value, 'fine-grained-test-token');
   assert.match(elements.get('status').textContent, /Published/);
+
+  const reopened = await loadAdmin(data, storage);
+  assert.equal(reopened.elements.get('tokenSaved').hidden, false);
+  const reopenedNames = reopened.fields.find((field) => field.name === 'names');
+  reopenedNames.value = 'Updated after reopening';
+  reopened.elements.get('eventForm').handlers.input({ target: reopenedNames });
+  await reopened.elements.get('publishButton').handlers.click();
+  assert.equal(reopened.saved[0].options.headers.Authorization, 'Bearer fine-grained-test-token');
+  assert.equal(reopened.elements.get('previewNames').textContent, 'Updated after reopening');
 });

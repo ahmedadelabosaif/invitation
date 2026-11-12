@@ -7,11 +7,14 @@
     night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 }
   };
   var CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
+  var TOKEN_KEY = 'invitation.github.publish-token';
   var invitations = null;
   var originalData = null;
   var selectedId = null;
   var changed = false;
   var previewTheme = null;
+  var savedToken = '';
+  var editingToken = false;
 
   function $(id) {
     return document.getElementById(id);
@@ -25,6 +28,25 @@
 
   function setStatus(message) {
     $('status').textContent = message;
+  }
+
+  function renderTokenControls() {
+    $('tokenSaved').hidden = !savedToken;
+    $('changeToken').hidden = !savedToken || editingToken;
+    $('removeToken').hidden = !savedToken || editingToken;
+    $('addToken').hidden = Boolean(savedToken) || editingToken;
+    $('tokenEditor').hidden = !editingToken;
+    $('saveToken').textContent = savedToken ? 'Save replacement token' : 'Save token in this browser';
+  }
+
+  function readSavedToken() {
+    try {
+      savedToken = window.localStorage.getItem(TOKEN_KEY) || '';
+    } catch (error) {
+      savedToken = '';
+      setStatus('This browser blocks local storage. Allow site storage to save your token between visits.');
+    }
+    renderTokenControls();
   }
 
   function linkFor(event) {
@@ -193,6 +215,57 @@
     render();
   });
 
+  $('addToken').addEventListener('click', function () {
+    editingToken = true;
+    $('githubToken').value = '';
+    renderTokenControls();
+    $('githubToken').focus();
+  });
+
+  $('changeToken').addEventListener('click', function () {
+    editingToken = true;
+    $('githubToken').value = '';
+    renderTokenControls();
+    $('githubToken').focus();
+  });
+
+  $('cancelToken').addEventListener('click', function () {
+    editingToken = false;
+    $('githubToken').value = '';
+    renderTokenControls();
+  });
+
+  $('saveToken').addEventListener('click', function () {
+    var token = $('githubToken').value.trim();
+    if (!token) {
+      setStatus('Paste your fine-grained GitHub token first.');
+      return;
+    }
+    try {
+      window.localStorage.setItem(TOKEN_KEY, token);
+      savedToken = token;
+      editingToken = false;
+      $('githubToken').value = '';
+      renderTokenControls();
+      setStatus('Token saved in this browser. You can publish without entering it again.');
+    } catch (error) {
+      setStatus('Could not save the token in this browser. Allow site storage and try again.');
+    }
+  });
+
+  $('removeToken').addEventListener('click', function () {
+    try {
+      window.localStorage.removeItem(TOKEN_KEY);
+      savedToken = '';
+      editingToken = false;
+      $('githubToken').value = '';
+      renderTokenControls();
+      setStatus('Saved token removed from this browser. Revoke it in GitHub too if you no longer need it.');
+    } catch (error) {
+      setStatus('Could not remove the saved token. Clear this site’s browser storage or revoke the token on GitHub.');
+    }
+  });
+
   $('previewButton').addEventListener('click', function () {
     renderPreview();
     $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -238,10 +311,11 @@
       setStatus('Choose a main invitation before publishing.');
       return;
     }
-    var tokenInput = $('githubToken');
-    var token = tokenInput.value.trim();
-    if (!token) {
-      setStatus('Enter your GitHub fine-grained token to publish.');
+    if (!savedToken) {
+      editingToken = true;
+      renderTokenControls();
+      $('githubToken').focus();
+      setStatus('Save your GitHub token once, then publish.');
       return;
     }
     var button = $('publishButton');
@@ -249,7 +323,7 @@
     setStatus('Publishing…');
     var headers = {
       Accept: 'application/vnd.github+json',
-      Authorization: 'Bearer ' + token,
+      Authorization: 'Bearer ' + savedToken,
       'X-GitHub-Api-Version': '2022-11-28'
     };
     try {
@@ -288,7 +362,6 @@
       setStatus(error.message);
     } finally {
       headers.Authorization = '';
-      token = '';
       button.disabled = false;
     }
   });
@@ -312,6 +385,7 @@
         ? invitations.featured
         : invitations.events[0].id;
       render();
+      readSavedToken();
     })
     .catch(function (error) {
       setStatus(error.message);

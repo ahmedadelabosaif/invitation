@@ -42,6 +42,8 @@
     .checkbox input{width:auto}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
+    .token-panel{margin-top:16px;padding:12px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
+    .token-panel>p{margin:8px 0}
     .preview{position:sticky;top:16px}
     .preview-card{position:relative;overflow:hidden;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25);animation:preview-arrive .8s ease both}
     .preview-card:before{content:"";position:absolute;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
@@ -76,7 +78,7 @@
     <a href="./">Public invitation</a>
   </header>
   <main>
-    <p class="notice">Edit the fields, preview, then publish. Publishing needs a GitHub fine-grained token with access to this repository’s Contents. The token is used only in this tab and is never saved.</p>
+    <p class="notice">Edit the fields, preview, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
     <div class="layout">
       <aside class="panel stack">
         <h1>Events</h1>
@@ -113,10 +115,23 @@
             <button id="deleteEvent" type="button">Delete event</button>
             <a id="viewEventLink" class="button" target="_blank" rel="noopener">View guest link</a>
           </div>
-          <label>GitHub publish token
-            <input id="githubToken" type="password" autocomplete="off" placeholder="Fine-grained token for this repository">
-          </label>
-          <p class="theme-note">Create a token limited to this repository with Contents read/write access. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create fine-grained token</a></p>
+          <section class="token-panel">
+            <strong>GitHub publishing</strong>
+            <p class="theme-note">Use a fine-grained token limited to this repository with Contents read/write access. It will be saved in this browser only. Anyone using this browser profile may be able to publish; revoke the token in GitHub if this device is shared or lost. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create token</a></p>
+            <p id="tokenSaved" role="status" hidden>Token saved in this browser.</p>
+            <button id="changeToken" type="button" hidden>Change token</button>
+            <button id="removeToken" type="button" hidden>Forget token on this device</button>
+            <div id="tokenEditor" hidden>
+              <label>Fine-grained token
+                <input id="githubToken" type="password" autocomplete="new-password" placeholder="github_pat_…" spellcheck="false">
+              </label>
+              <div class="actions">
+                <button id="saveToken" type="button">Save token in this browser</button>
+                <button id="cancelToken" type="button">Cancel</button>
+              </div>
+            </div>
+            <button id="addToken" type="button">Add GitHub token</button>
+          </section>
           <p id="status" role="status"></p>
           <div class="actions">
             <button id="previewButton" type="button">Preview</button>
