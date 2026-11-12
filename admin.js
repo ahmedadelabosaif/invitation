@@ -57,6 +57,7 @@
   var pendingImages = {};
   var pendingAudio = {};
   var activeTextControl = null;
+  var layoutStyleControls = {};
 
   function $(id) {
     return document.getElementById(id);
@@ -199,23 +200,25 @@
   function renderLayoutOrder(event) {
     var list = $('layoutOrder');
     list.replaceChildren();
-    var selectedKey = $('layoutStyleTarget').value || 'names';
     window.InvitationLayout.order(event).forEach(function (key, index, order) {
       var row = document.createElement('li');
       row.id = 'layout-order-' + key;
       row.setAttribute('tabindex', '-1');
       row.setAttribute('draggable', 'true');
       row.setAttribute('data-layout-order-key', key);
-      row.setAttribute('aria-current', key === selectedKey ? 'true' : 'false');
       var select = document.createElement('button');
       select.type = 'button';
       select.className = 'layout-grip';
       select.textContent = '⠿ ' + window.InvitationLayout.labels[key];
-      select.setAttribute('aria-label', 'Select ' + window.InvitationLayout.labels[key] + ' typography');
+      select.setAttribute('aria-label', 'Open style controls for ' + window.InvitationLayout.labels[key]);
       select.addEventListener('click', function () {
-        $('layoutStyleTarget').value = key;
-        renderLayoutControls(selectedEvent());
-        renderLayoutOrder(selectedEvent());
+        var stylePanel = $('fieldStyle-' + key);
+        var parent = stylePanel;
+        while (parent && parent !== $('eventForm')) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+          parent = parent.parentNode;
+        }
+        stylePanel.scrollIntoView({ block: 'center', behavior: 'smooth' });
       });
       var up = document.createElement('button');
       up.type = 'button';
@@ -240,40 +243,52 @@
 
   function renderLayoutControls(event) {
     if (!event) return;
-    var style = window.InvitationLayout.style(event, $('layoutStyleTarget').value || 'names');
-    $('layoutFont').value = style.font;
-    $('layoutFontSize').value = style.size;
-    $('layoutTextAlign').value = style.align;
-    $('layoutTextColor').value = style.color;
+    window.InvitationLayout.keys.forEach(function (key) {
+      var style = window.InvitationLayout.style(event, key);
+      var controls = layoutStyleControls[key];
+      controls.font.value = style.font;
+      controls.size.value = style.size;
+      controls.align.value = style.align;
+      controls.color.value = style.color;
+    });
   }
 
-  function initializeLayoutStyleTargets() {
-    var target = $('layoutStyleTarget');
-    target.replaceChildren();
+  function initializeLayoutStyleControls() {
+    var settings = [
+      { key: 'font', label: 'Font', choices: window.InvitationLayout.fontChoices },
+      { key: 'size', label: 'Size', choices: window.InvitationLayout.sizeChoices },
+      { key: 'align', label: 'Alignment', choices: window.InvitationLayout.alignments },
+      { key: 'color', label: 'Text color', choices: window.InvitationLayout.colorChoices }
+    ];
     window.InvitationLayout.keys.forEach(function (key) {
-      var option = document.createElement('option');
-      option.value = key;
-      option.textContent = window.InvitationLayout.labels[key];
-      target.appendChild(option);
-    });
-    target.value = 'names';
-    [
-      ['layoutFont', window.InvitationLayout.fontChoices],
-      ['layoutFontSize', window.InvitationLayout.sizeChoices],
-      ['layoutTextAlign', window.InvitationLayout.alignments],
-      ['layoutTextColor', window.InvitationLayout.colorChoices]
-    ].forEach(function (setting) {
-      var control = $(setting[0]);
-      control.replaceChildren();
-      var defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.textContent = 'Theme default';
-      control.appendChild(defaultOption);
-      setting[1].forEach(function (choice) {
-        var option = document.createElement('option');
-        option.value = choice.value;
-        option.textContent = choice.label;
-        control.appendChild(option);
+      var container = $('fieldStyleControls-' + key);
+      var reset = $('fieldStyleReset-' + key);
+      layoutStyleControls[key] = {};
+      settings.forEach(function (setting) {
+        var label = document.createElement('label');
+        label.textContent = setting.label;
+        var control = document.createElement('select');
+        control.id = 'fieldStyle-' + key + '-' + setting.key;
+        var defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Theme default';
+        control.appendChild(defaultOption);
+        setting.choices.forEach(function (choice) {
+          var option = document.createElement('option');
+          option.value = choice.value;
+          option.textContent = choice.label;
+          control.appendChild(option);
+        });
+        control.addEventListener('change', function () { updateLayoutStyle(key); });
+        label.appendChild(control);
+        container.appendChild(label);
+        layoutStyleControls[key][setting.key] = control;
+      });
+      reset.addEventListener('click', function () {
+        settings.forEach(function (setting) {
+          layoutStyleControls[key][setting.key].value = '';
+        });
+        updateLayoutStyle(key);
       });
     });
   }
@@ -460,21 +475,21 @@
     });
   }
 
-  function updateLayoutStyle() {
+  function updateLayoutStyle(key) {
     var event = selectedEvent();
     if (!event) return;
-    var key = $('layoutStyleTarget').value;
+    var controls = layoutStyleControls[key];
     var style = {
-      font: Object.prototype.hasOwnProperty.call(window.InvitationLayout.fonts, $('layoutFont').value)
-        ? $('layoutFont').value : '',
-      size: window.InvitationLayout.sizes.includes($('layoutFontSize').value)
-        ? $('layoutFontSize').value : '',
+      font: Object.prototype.hasOwnProperty.call(window.InvitationLayout.fonts, controls.font.value)
+        ? controls.font.value : '',
+      size: window.InvitationLayout.sizes.includes(controls.size.value)
+        ? controls.size.value : '',
       align: window.InvitationLayout.alignments.some(function (item) {
-        return item.value === $('layoutTextAlign').value;
+        return item.value === controls.align.value;
       })
-        ? $('layoutTextAlign').value : '',
-      color: window.InvitationLayout.colors.includes($('layoutTextColor').value)
-        ? $('layoutTextColor').value : ''
+        ? controls.align.value : '',
+      color: window.InvitationLayout.colors.includes(controls.color.value)
+        ? controls.color.value : ''
     };
     if (!style.font && !style.size && !style.align && !style.color) {
       if (event.layoutStyles) delete event.layoutStyles[key];
@@ -737,21 +752,6 @@
       moveCanvasItem(order[index], order[nextIndex], event.key === 'ArrowDown');
       $('layout-' + order[index]).focus();
     }
-  });
-
-  $('layoutStyleTarget').addEventListener('change', function () {
-    renderLayoutControls(selectedEvent());
-    renderLayoutOrder(selectedEvent());
-  });
-  ['layoutFont', 'layoutFontSize', 'layoutTextAlign', 'layoutTextColor'].forEach(function (id) {
-    $(id).addEventListener('change', updateLayoutStyle);
-  });
-  $('resetLayoutStyle').addEventListener('click', function () {
-    $('layoutFont').value = '';
-    $('layoutFontSize').value = '';
-    $('layoutTextAlign').value = '';
-    $('layoutTextColor').value = '';
-    updateLayoutStyle();
   });
 
   bindLayoutDragEvents($('layoutOrder'), layoutOrderItemFromTarget, 'data-layout-order-key');
@@ -1136,7 +1136,7 @@
     event.returnValue = '';
   });
 
-  initializeLayoutStyleTargets();
+  initializeLayoutStyleControls();
   fetch('./invitations.json', { cache: 'no-store' })
     .then(function (response) {
       if (!response.ok) throw new Error('Could not load invitations. Refresh and try again.');

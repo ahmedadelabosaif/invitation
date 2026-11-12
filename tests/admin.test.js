@@ -263,6 +263,9 @@ test('editor keeps Editing and Review visible in side-by-side columns', () => {
   assert.match(adminHtml, /<section class="panel editor-panel" id="editingPanel">/);
   assert.match(adminHtml, /<aside class="panel design-panel" id="reviewPanel">/);
   assert.match(adminHtml, /@media\(max-width:900px\)\{\.workspace\{grid-template-columns:minmax\(0,1fr\)\}/);
+  const review = adminHtml.match(/<aside class="panel design-panel" id="reviewPanel">([\s\S]*?)<\/aside>/);
+  assert.ok(review);
+  assert.doesNotMatch(review[1], /fieldStyle|layoutStyleTarget|Text color/);
 });
 
 test('editing form groups optional fields into collapsible sections', () => {
@@ -304,6 +307,7 @@ test('shared layout sections and style options stay aligned across pages', async
 
   for (const key of layoutWindow.InvitationLayout.keys) {
     assert.match(adminHtml, new RegExp(`id="layout-${key}"`), `admin preview is missing ${key}`);
+    assert.match(adminHtml, new RegExp(`id="fieldStyle-${key}"`), `editor is missing inline style controls for ${key}`);
     assert.match(
       adminHtml,
       new RegExp(`id="layout-${key}"[^>]*data-layout-item="${key}"[^>]*draggable="true"`),
@@ -318,9 +322,12 @@ test('shared layout sections and style options stay aligned across pages', async
     featured: 'wedding',
     events: [{ id: 'wedding', names: 'Sara & Ahmed' }]
   });
-  assert.equal(elements.get('layoutStyleTarget').children.length, layoutWindow.InvitationLayout.keys.length);
-  assert.equal(elements.get('layoutFont').children.length, layoutWindow.InvitationLayout.fontChoices.length + 1);
-  assert.equal(elements.get('layoutFontSize').children.length, layoutWindow.InvitationLayout.sizeChoices.length + 1);
+  for (const key of layoutWindow.InvitationLayout.keys) {
+    assert.equal(elements.get(`fieldStyleControls-${key}`).children.length, 4);
+  }
+  const messageControls = elements.get('fieldStyleControls-message').children.map((label) => label.children[0]);
+  assert.equal(messageControls[0].children.length, layoutWindow.InvitationLayout.fontChoices.length + 1);
+  assert.equal(messageControls[1].children.length, layoutWindow.InvitationLayout.sizeChoices.length + 1);
 });
 
 test('live review supports drag-and-drop section reordering', async () => {
@@ -362,12 +369,12 @@ test('live review supports drag-and-drop section reordering', async () => {
   assert.equal(data.events[0].layout[0], 'weddingOpening');
   assert.equal(data.events[0].layout[1], 'emoji');
 
-  elements.get('layoutStyleTarget').value = 'message';
-  elements.get('layoutFont').value = 'serif';
-  elements.get('layoutFontSize').value = '1.5rem';
-  elements.get('layoutTextAlign').value = 'left';
-  elements.get('layoutTextColor').value = 'gold';
-  elements.get('layoutFontSize').handlers.change();
+  const messageStyle = elements.get('fieldStyleControls-message').children.map((label) => label.children[0]);
+  messageStyle[0].value = 'serif';
+  messageStyle[1].value = '1.5rem';
+  messageStyle[2].value = 'left';
+  messageStyle[3].value = 'gold';
+  messageStyle[1].handlers.change();
 
   assert.equal(JSON.stringify(data.events[0].layoutStyles.message), JSON.stringify({
     font: 'serif',
