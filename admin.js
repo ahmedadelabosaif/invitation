@@ -201,6 +201,7 @@
     $('viewEventLink').href = linkFor(event);
     $('previewEmoji').textContent = event.emoji || '';
     $('previewKicker').textContent = event.kicker || '';
+    $('previewIntroDescription').textContent = event.introDescription || '';
     $('previewNames').textContent = event.names || 'Your names here';
     $('previewDate').textContent = event.date
       ? new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {

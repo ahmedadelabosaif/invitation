@@ -99,6 +99,22 @@ test('personalizes the browser title from the invitation names', async () => {
   assert.equal(elements.document.title, "Ahmed & Amina's wedding invitation");
 });
 
+test('shows an optional intro description beneath the invitation intro', async () => {
+  const withIntroDescription = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Ahmed & Amina',
+      kicker: 'You are invited',
+      introDescription: 'With our families, we invite you to celebrate this special day.'
+    }]
+  };
+  const elements = await loadGuest('', withIntroDescription);
+
+  assert.equal(elements.get('kicker').textContent, 'You are invited');
+  assert.equal(elements.get('introDescription').textContent, withIntroDescription.events[0].introDescription);
+});
+
 test('shows a clickable map link when a valid location URL is provided', async () => {
   const withMapLink = {
     featured: 'wedding',

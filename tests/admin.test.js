@@ -37,7 +37,7 @@ async function loadAdmin(initialData, storage) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
-  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'backgroundPreset', 'musicTrack', 'musicUrl']
+  const fields = ['names', 'emoji', 'kicker', 'introDescription', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'backgroundPreset', 'musicTrack', 'musicUrl']
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
@@ -133,9 +133,13 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const storage = new Map();
   const { elements, fields, saved, uploaded, tokenStorage } = await loadAdmin(data, storage);
   const names = fields.find((field) => field.name === 'names');
+  const introDescription = fields.find((field) => field.name === 'introDescription');
 
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
   assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
+  introDescription.value = 'With our families, we invite you to celebrate this special day.';
+  elements.get('eventForm').handlers.input({ target: introDescription });
+  assert.equal(elements.get('previewIntroDescription').textContent, introDescription.value);
   assert.ok(elements.get('previewDecor').children.length > 0);
   const backgroundMode = fields.find((field) => field.name === 'backgroundMode');
   backgroundMode.value = 'full';
@@ -176,6 +180,7 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
   const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
   assert.equal(savedEvent.names, 'Sara & Ahmed’s wedding');
+  assert.equal(savedEvent.introDescription, introDescription.value);
   assert.deepEqual(savedEvent.etiquette, ['noPhotos']);
   assert.equal(savedEvent.backgroundMode, 'full');
   assert.equal(savedEvent.musicUrl, 'https://media.example.test/music.mp3');

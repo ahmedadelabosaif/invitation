@@ -161,6 +161,7 @@
     $('cardBackground').src = imageMode === 'card' ? imageUrl : '';
     $('icon').textContent = event.emoji || '';
     $('kicker').textContent = event.kicker || '';
+    $('introDescription').textContent = event.introDescription || '';
     $('names').textContent = event.names || '';
     currentStart = dateTime(event);
     $('date').textContent = currentStart
