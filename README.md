@@ -20,6 +20,9 @@ public invitation. Choose **Islamic wedding** for an emerald-and-gold palette
 with subtle crescent-and-star animation. Separately, select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
-Changes are drafts until published.
-All event data in the public JSON file is visible to anyone, so don't put
-private details there.
+Upload a JPG, PNG, or WebP to add an optional card image or full-page background;
+the editor optimizes it and stores it with the published site. You can also add
+a direct HTTPS MP3/OGG URL. Guests control playback with play/pause and mute
+buttons; music never starts automatically. Changes are drafts until published.
+Uploaded images and event data are public, so only use content you want to
+share with guests.

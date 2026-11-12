@@ -18,6 +18,7 @@
   var currentStart = null;
   var currentEvent = null;
   var lastEnvironment = null;
+  var currentMusicUrl = '';
   var invitations = null;
 
   function $(id) {
@@ -50,6 +51,49 @@
     }
   }
 
+  function safeMediaUrl(value) {
+    if (!value) return '';
+    try {
+      var url = new URL(value, location.href);
+      return url.protocol === 'https:' ? url.href : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function updateMusicControls() {
+    var audio = $('backgroundMusic');
+    var play = $('musicPlay');
+    var mute = $('musicMute');
+    play.textContent = audio.paused ? '♫ Play music' : '❚❚ Pause music';
+    play.setAttribute('aria-pressed', audio.paused ? 'false' : 'true');
+    mute.textContent = audio.muted ? 'Unmute' : 'Mute';
+    mute.setAttribute('aria-pressed', audio.muted ? 'true' : 'false');
+  }
+
+  $('musicPlay').addEventListener('click', function () {
+    var audio = $('backgroundMusic');
+    if (audio.paused) {
+      audio.play().then(updateMusicControls).catch(function () {
+        $('notice').textContent = 'Music could not be played. Check the audio link and try again.';
+        $('notice').hidden = false;
+      });
+    } else {
+      audio.pause();
+      updateMusicControls();
+    }
+  });
+
+  $('musicMute').addEventListener('click', function () {
+    var audio = $('backgroundMusic');
+    audio.muted = !audio.muted;
+    updateMusicControls();
+  });
+
+  $('backgroundMusic').addEventListener('play', updateMusicControls);
+  $('backgroundMusic').addEventListener('pause', updateMusicControls);
+  $('backgroundMusic').addEventListener('volumechange', updateMusicControls);
+
   function drawDecor(environment) {
     var html = '';
     for (var i = 0; i < environment.count; i++) {
@@ -74,6 +118,20 @@
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
     $('card').style.setProperty('--cacc', environment.acc);
+    var imageUrl = safeMediaUrl(event.backgroundImage);
+    var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
+      ? event.backgroundMode
+      : '';
+    $('pageBackdrop').hidden = imageMode !== 'full';
+    $('pageBackdrop').style.backgroundImage = imageMode === 'full'
+      ? 'linear-gradient(rgba(18,24,38,.30),rgba(18,24,38,.30)),url("' + imageUrl + '")'
+      : '';
+    $('card').style.backgroundImage = imageMode === 'card'
+      ? 'linear-gradient(color-mix(in srgb,' + environment.bg + ' 84%,transparent),color-mix(in srgb,' +
+        environment.bg + ' 84%,transparent)),url("' + imageUrl + '")'
+      : '';
+    $('card').style.backgroundSize = 'cover';
+    $('card').style.backgroundPosition = 'center';
     $('icon').textContent = event.emoji || '';
     $('kicker').textContent = event.kicker || '';
     $('names').textContent = event.names || '';
@@ -91,6 +149,21 @@
     $('msg').textContent = event.message || '';
     $('info').textContent = event.info || '';
     renderEtiquette(event.etiquette || []);
+    var musicUrl = safeMediaUrl(event.musicUrl);
+    var audio = $('backgroundMusic');
+    if (musicUrl !== currentMusicUrl) {
+      audio.pause();
+      audio.muted = false;
+      currentMusicUrl = musicUrl;
+      if (musicUrl) {
+        audio.src = musicUrl;
+      } else {
+        audio.removeAttribute('src');
+      }
+      audio.load();
+    }
+    $('musicControls').hidden = !musicUrl;
+    updateMusicControls();
     $('cal').hidden = !currentStart;
     if (currentStart) {
       var end = new Date(currentStart.getTime() + 4 * 3600 * 1000);
@@ -205,6 +278,9 @@
       $('info').textContent = '';
       $('etiquette').replaceChildren();
       $('etiquette').hidden = true;
+      $('pageBackdrop').hidden = true;
+      $('musicControls').hidden = true;
+      $('backgroundMusic').pause();
       $('clock').replaceChildren();
       $('cal').hidden = true;
       $('more').hidden = true;

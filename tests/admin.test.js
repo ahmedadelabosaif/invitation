@@ -15,6 +15,7 @@ function makeNode(id) {
     disabled: false,
     textContent: '',
     value: '',
+    files: [],
     style: { setProperty() {} },
     handlers: {},
     addEventListener(name, handler) { this.handlers[name] = handler; },
@@ -29,13 +30,14 @@ function makeNode(id) {
 async function loadAdmin(initialData, storage) {
   const elements = new Map();
   const saved = [];
+  const uploaded = [];
   const remoteData = JSON.parse(JSON.stringify(initialData));
   const tokenStorage = storage || new Map();
   function getElementById(id) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
-  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env']
+  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'musicUrl']
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
@@ -50,7 +52,17 @@ async function loadAdmin(initialData, storage) {
       fields.push(field);
     });
   getElementById('eventForm').elements = fields;
-  const document = { getElementById, createElement: makeNode };
+  const document = {
+    getElementById,
+    createElement(tag) {
+      const element = makeNode(tag);
+      if (tag === 'canvas') {
+        element.getContext = () => ({ fillRect() {}, drawImage() {} });
+        element.toBlob = (callback, type) => callback(new Blob(['optimized-image'], { type }));
+      }
+      return element;
+    }
+  };
   const window = {
     confirm: () => true,
     addEventListener() {},
@@ -68,11 +80,15 @@ async function loadAdmin(initialData, storage) {
       const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(remoteData))));
       return { ok: true, json: async () => ({ content: encoded, sha: 'original-sha' }) };
     }
-    saved.push({ url, options });
     const request = JSON.parse(options.body);
-    const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
-    remoteData.events = JSON.parse(new TextDecoder().decode(bytes)).events;
-    remoteData.featured = JSON.parse(new TextDecoder().decode(bytes)).featured;
+    if (url.endsWith('/invitations.json')) {
+      saved.push({ url, options });
+      const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+      remoteData.events = JSON.parse(new TextDecoder().decode(bytes)).events;
+      remoteData.featured = JSON.parse(new TextDecoder().decode(bytes)).featured;
+    } else {
+      uploaded.push({ url, options });
+    }
     return { ok: true, json: async () => ({ commit: { sha: 'published-sha' } }) };
   }
   vm.runInNewContext(adminSource, {
@@ -86,12 +102,13 @@ async function loadAdmin(initialData, storage) {
     Uint8Array,
     TextEncoder,
     TextDecoder,
+    createImageBitmap: async () => ({ width: 100, height: 100, close() {} }),
     btoa,
     atob,
     fetch
   });
   await new Promise(setImmediate);
-  return { elements, fields, saved, tokenStorage };
+  return { elements, fields, saved, uploaded, tokenStorage };
 }
 
 test('admin remembers the saved token and reuses it on later visits', async () => {
@@ -114,12 +131,22 @@ test('admin remembers the saved token and reuses it on later visits', async () =
     }]
   };
   const storage = new Map();
-  const { elements, fields, saved, tokenStorage } = await loadAdmin(data, storage);
+  const { elements, fields, saved, uploaded, tokenStorage } = await loadAdmin(data, storage);
   const names = fields.find((field) => field.name === 'names');
 
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
   assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
   assert.ok(elements.get('previewDecor').children.length > 0);
+  const backgroundMode = fields.find((field) => field.name === 'backgroundMode');
+  backgroundMode.value = 'full';
+  elements.get('eventForm').handlers.input({ target: backgroundMode });
+  const musicUrl = fields.find((field) => field.name === 'musicUrl');
+  musicUrl.value = 'https://media.example.test/music.mp3';
+  elements.get('eventForm').handlers.input({ target: musicUrl });
+  const backgroundUpload = elements.get('backgroundUpload');
+  backgroundUpload.files = [{ name: 'photo.png', type: 'image/png' }];
+  await backgroundUpload.handlers.change({ target: backgroundUpload });
+  assert.match(elements.get('previewPanel').style.backgroundImage, /blob:/);
   const noPhotos = fields.find((field) => field.value === 'noPhotos');
   assert.equal(noPhotos.value, 'noPhotos');
   noPhotos.checked = true;
@@ -140,6 +167,8 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   await elements.get('publishButton').handlers.click();
 
   assert.equal(saved.length, 1, elements.get('status').textContent);
+  assert.equal(uploaded.length, 1);
+  assert.match(uploaded[0].url, /\/contents\/images\/wedding-/);
   assert.equal(saved[0].options.method, 'PUT');
   assert.equal(saved[0].options.headers.Authorization, 'Bearer fine-grained-test-token');
   const request = JSON.parse(saved[0].options.body);
@@ -148,6 +177,9 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
   assert.equal(savedEvent.names, 'Sara & Ahmed’s wedding');
   assert.deepEqual(savedEvent.etiquette, ['noPhotos']);
+  assert.equal(savedEvent.backgroundMode, 'full');
+  assert.equal(savedEvent.musicUrl, 'https://media.example.test/music.mp3');
+  assert.match(savedEvent.backgroundImage, /^images\/wedding-[a-z0-9]+\.jpg$/);
   assert.match(elements.get('status').textContent, /Published/);
 
   const reopened = await loadAdmin(data, storage);

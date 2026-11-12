@@ -73,6 +73,8 @@
     .preview-etiquette{display:grid;gap:5px;margin-top:12px}
     .preview-etiquette p{margin:0;padding:6px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:7px;font-size:.85rem}
     .theme-note{color:#766a5d;font-size:.85rem}
+    .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
+    .preview-music-note{margin:12px 0 0;color:#766a5d;font-size:.85rem}
     @media(prefers-reduced-motion:reduce){.preview-card{animation:none}.preview-decor span{animation:none!important;opacity:.5}}
     @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}.preview{position:static;grid-column:1/-1}}
     @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.preview{grid-column:auto}}
@@ -117,6 +119,20 @@
                 <option value="islamic">Islamic wedding</option>
               </select>
             </label>
+            <label class="wide">Add an image<input id="backgroundUpload" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <p class="field-note" id="imageStatus">Choose a JPG, PNG, or WebP. It will be optimized and uploaded with the invitation when you publish.</p>
+            <label class="wide">Image placement
+              <select name="backgroundMode">
+                <option value="">No image</option>
+                <option value="card">Inside the invitation card</option>
+                <option value="full">Full-page background</option>
+              </select>
+            </label>
+            <label class="wide">Background music link (optional)<input name="musicUrl" type="url" maxlength="500" placeholder="https://example.com/song.mp3"></label>
+            <p class="field-note">Use a direct HTTPS audio link (MP3 or OGG). Guests choose when to play or mute it; it never autoplay.</p>
+          </div>
+          <div class="actions">
+            <button id="removeImage" type="button">Remove image</button>
           </div>
           <fieldset class="wide">
             <legend>Optional guest etiquette</legend>
@@ -160,7 +176,7 @@
         </form>
       </section>
 
-      <aside class="panel preview">
+      <aside class="panel preview" id="previewPanel">
         <h2>Live preview</h2>
         <article id="previewCard" class="preview-card">
           <div id="previewDecor" class="preview-decor" aria-hidden="true"></div>
@@ -174,6 +190,7 @@
           <p id="previewMessage" class="preview-message"></p>
           <p id="previewInfo" class="preview-message"></p>
           <div id="previewEtiquette" class="preview-etiquette" hidden></div>
+          <p class="preview-music-note" id="previewMusicNote" hidden>♫ Music will be available to guests on request</p>
         </article>
         <p id="featuredNote" class="theme-note"></p>
       </aside>
