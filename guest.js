@@ -140,6 +140,9 @@
 
   function renderEvent(event) {
     var environment = ENVS[event.env] || ENVS.classic;
+    document.title = event.names
+      ? event.names.trim() + "'s wedding invitation"
+      : 'Wedding invitation';
     $('card').style.setProperty('--cbg', environment.bg);
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
@@ -290,6 +293,7 @@
       events[0] || null;
     if (!currentEvent) {
       currentStart = null;
+      document.title = 'Wedding invitation';
       $('names').textContent = 'Invitation unavailable';
       $('icon').textContent = '';
       $('kicker').textContent = '';

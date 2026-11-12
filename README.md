@@ -3,6 +3,9 @@
 - Public invitation: https://ahmedadelabosaif.github.io/invitation/
 - Visual editor: https://ahmedadelabosaif.github.io/invitation/admin.html
 
+The public page title is personalized from the invitation names (for example,
+“Ahmed & Amina's wedding invitation”).
+
 The visual editor opens directly at `/admin.html`. To publish without copying
 data, create a GitHub fine-grained personal access token limited to this
 repository with **Contents: read and write** permission. Enter the token in the

@@ -42,6 +42,7 @@ async function loadGuest(search, data) {
     return elements.get(id);
   }
   const document = {
+    title: 'Wedding invitation',
     getElementById,
     createElement(tag) {
       return {
@@ -68,6 +69,7 @@ async function loadGuest(search, data) {
     window: { setInterval() {}, addEventListener() {} }
   });
   await new Promise(setImmediate);
+  elements.document = document;
   return elements;
 }
 
@@ -85,6 +87,16 @@ test('shows the event selected by its public link', async () => {
   assert.equal(elements.get('names').textContent, 'Birthday party');
   assert.equal(elements.get('musicControls').hidden, true);
   assert.equal(elements.get('pageBackdrop').hidden, true);
+});
+
+test('personalizes the browser title from the invitation names', async () => {
+  const eventData = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Ahmed & Amina' }]
+  };
+  const elements = await loadGuest('', eventData);
+
+  assert.equal(elements.document.title, "Ahmed & Amina's wedding invitation");
 });
 
 test('shows a clickable map link when a valid location URL is provided', async () => {
