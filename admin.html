@@ -17,24 +17,31 @@
     button:disabled{opacity:.55;cursor:not-allowed}
     button.primary,.button.primary{color:#fff;background:#79563b;border-color:#79563b;font-weight:600}
     :focus-visible{outline:2px solid #79563b;outline-offset:2px}
-    header{display:flex;align-items:center;gap:14px;padding:13px 20px;background:#fff;border-bottom:1px solid #e3dace}
+    header{display:flex;align-items:center;gap:14px;padding:10px 20px;background:#fff;border-bottom:1px solid #e3dace}
     header a{color:#60462f}
     header strong{font:600 1.45rem "Cormorant Garamond",Georgia,serif}
     header .spacer{flex:1}
+    .header-events{position:relative;display:flex;align-items:center;gap:8px;min-width:0;max-width:65vw}
+    .events-label{font-size:.82rem;font-weight:600;color:#766a5d}
+    #eventList{display:flex;align-items:center;gap:6px;min-width:0;max-width:50vw;flex:1;overflow-x:auto;padding:2px}
+    #eventList button{flex:0 1 200px;min-width:110px;overflow:hidden;padding:7px 10px;text-align:left;text-overflow:ellipsis;white-space:nowrap}
+    #eventList button[aria-pressed=true]{border-color:#79563b;background:#faf6f0}
+    #eventList small{display:block;overflow:hidden;color:#766a5d;font-size:.7rem;text-overflow:ellipsis}
+    #addEvent{flex:0 0 auto;padding:7px 10px}
+    #newEventPanel{position:absolute;top:calc(100% + 8px);right:0;z-index:5;width:min(320px,90vw);box-shadow:0 8px 24px rgba(30,24,17,.16)}
     main{max-width:1280px;margin:26px auto;padding:0 16px}
     .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
-    .layout{display:grid;grid-template-columns:220px minmax(340px,1fr) minmax(280px,360px);gap:16px;align-items:start}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
     .panel{padding:18px;background:#fff;border:1px solid #e3dace;border-radius:13px}
     h1,h2{font-family:"Cormorant Garamond",Georgia,serif}
     h1{margin:0 0 12px;font-size:1.6rem}
     h2{margin:0 0 12px;font-size:1.35rem}
-    #eventList{display:grid;gap:7px}
-    #eventList button{text-align:left}
-    #eventList button[aria-pressed=true]{border-color:#79563b;background:#faf6f0}
-    #eventList small{display:block;color:#766a5d}
     .stack{display:grid;gap:12px}
     .fields{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
     fieldset{margin:8px 0 14px;padding:12px;border:1px solid #e3dace;border-radius:9px}
+    .form-section{margin:8px 0 14px;padding:12px;border:1px solid #e3dace;border-radius:9px}
+    .form-section>summary{cursor:pointer;font-weight:600}
+    .form-section[open]>summary{margin-bottom:12px}
     legend{padding:0 6px;font-weight:600}
     .etiquette-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
     .etiquette-option{display:flex;align-items:flex-start;gap:8px;margin:0;padding:8px;border:1px solid #e3dace;border-radius:8px;background:#fcfaf7;color:#50483f}
@@ -56,6 +63,10 @@
     .rich-text-toolbar .color-swatch{width:24px;min-width:24px;height:24px;padding:0;border-radius:50%}
     .fields textarea{min-height:86px}
     .fields textarea[name=names]{min-height:54px}
+    .workspace{min-width:0}
+    .editor-tabs{display:flex;gap:8px;margin-bottom:12px}
+    .editor-tabs [aria-selected=true]{border-color:#79563b;background:#faf6f0;font-weight:600}
+    .editor-panel{min-width:0}
     .design-panel{position:sticky;top:16px}
     .design-hint{margin:-4px 0 12px;color:#766a5d;font-size:.85rem}
     .design-stage{min-height:400px;padding:20px 14px;border:1px solid #e3dace;border-radius:11px;background:radial-gradient(circle at 20% 15%,#f2dfcb,transparent 45%),linear-gradient(145deg,#e9e2d7,#d8d2c8)}
@@ -64,6 +75,24 @@
     .design-card>*{position:relative;z-index:1}
     .design-card .canvas-field{cursor:text;white-space:pre-wrap}
     .design-card .canvas-field:hover{outline:1px dashed rgba(216,180,106,.7);outline-offset:3px}
+    .canvas-item{position:relative;cursor:grab}
+    .canvas-item:active{cursor:grabbing}
+    .canvas-item::before{content:"⠿";position:absolute;top:0;right:0;z-index:2;padding:0 4px;border-radius:4px;background:rgba(0,0,0,.2);color:var(--canvas-ink,#fff8e9);font-size:.8rem;line-height:1.2;opacity:0;pointer-events:none}
+    .canvas-item:hover::before,.canvas-item:focus-visible::before{opacity:.9}
+    .canvas-item[aria-grabbed=true]{opacity:.55}
+    .canvas-item[data-drop-target=true]{outline:2px dashed var(--canvas-accent,#d8b46a);outline-offset:4px}
+    .canvas-item[hidden]{display:none!important}
+    .move-hint{margin:0 0 12px;color:#766a5d;font-size:.85rem}
+    .review-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+    .review-tools label{margin:0}
+    .review-tools .wide{grid-column:1/-1}
+    .layout-order{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+    .layout-order li{display:flex;align-items:center;gap:6px;padding:5px;border:1px solid #e3dace;border-radius:8px;background:#fcfaf7}
+    .layout-order li[aria-current=true]{border-color:#79563b;background:#faf6f0}
+    .layout-order li[data-drop-target=true]{outline:2px dashed #79563b;outline-offset:2px}
+    .layout-order .layout-grip{flex:1;min-width:0;border:0;background:transparent;text-align:left;cursor:grab}
+    .layout-order .layout-move{padding:5px 9px}
+    .layout-heading{margin:14px 0 6px;font-weight:600}
     .canvas-mark{color:var(--canvas-accent,#d8b46a);font-size:1.6rem}
     .canvas-kicker{color:var(--canvas-muted,#e5d7b8);font:italic 1.05rem "Cormorant Garamond",Georgia,serif}
     .canvas-names{margin:10px 0;font:500 clamp(2rem,4vw,2.7rem)/1.1 "Cormorant Garamond",Georgia,serif}
@@ -73,45 +102,53 @@
     .canvas-detail{margin:11px 0;color:var(--canvas-muted,#e5d7b8)}
     .canvas-copy{margin:12px auto;max-width:38ch;line-height:1.55}
     .canvas-related{margin:16px auto 0;padding-top:12px;border-top:1px solid var(--canvas-accent,#d8b46a)}
-    .text-gold{color:#d8b46a}.text-rose{color:#f0a8b9}.text-emerald{color:#72c6a0}
+    .canvas-contract-image{display:block;max-width:100%;max-height:180px;margin:8px auto;border-radius:8px}
+    .canvas-etiquette{margin:12px auto;padding:9px;border:1px solid var(--canvas-accent,#d8b46a);border-radius:8px}
+    .canvas-calendar{display:inline-block;margin:12px;padding:7px 12px;border:1px solid var(--canvas-accent,#d8b46a);border-radius:999px}
+    .text-gold{color:#d8b46a}.text-rose{color:#d86d8d}.text-emerald{color:#27815f}
     .format-hint{margin:-7px 0 12px;color:#766a5d;font-size:.84rem}
     .theme-note{color:#766a5d;font-size:.85rem}
     .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
-    @media(max-width:1180px){.layout{grid-template-columns:200px minmax(0,1fr)}.design-panel{position:static;grid-column:2}}
-    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.design-panel{grid-column:auto}}
+    @media(max-width:1180px){.design-panel{position:static}}
+    @media(max-width:900px){header{flex-wrap:wrap}.header-events{order:3;flex:1 0 100%;max-width:none}.header-events #eventList{max-width:none;flex:1}}
+    @media(max-width:640px){header{padding:10px 12px}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.header-events{gap:6px}.events-label{display:none}.header-events #eventList button{min-width:100px}}
   </style>
 </head>
 <body>
   <header>
     <strong>Invitation editor</strong>
+    <div class="header-events" aria-label="Events">
+      <span class="events-label">Events</span>
+      <div id="eventList" role="group" aria-label="Choose an invitation"></div>
+      <button id="addEvent" class="primary" type="button">＋ Add event</button>
+      <section id="newEventPanel" class="event-type-picker" hidden>
+        <label>What kind of invitation?
+          <select id="newEventType">
+            <option value="wedding">Wedding</option>
+            <option value="engagement">Engagement</option>
+            <option value="birthday">Birthday</option>
+            <option value="gathering">Other gathering</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button id="createEvent" class="primary" type="button">Continue</button>
+          <button id="cancelNewEvent" type="button">Cancel</button>
+        </div>
+      </section>
+    </div>
     <span class="spacer"></span>
     <a href="./">Public invitation</a>
   </header>
   <main>
     <p class="notice">Edit the fields, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
     <div class="layout">
-      <aside class="panel stack">
-        <h1>Events</h1>
-        <div id="eventList"></div>
-        <button id="addEvent" class="primary" type="button">＋ Add event</button>
-        <section id="newEventPanel" class="event-type-picker" hidden>
-          <label>What kind of invitation?
-            <select id="newEventType">
-              <option value="wedding">Wedding</option>
-              <option value="engagement">Engagement</option>
-              <option value="birthday">Birthday</option>
-              <option value="gathering">Other gathering</option>
-            </select>
-          </label>
-          <div class="actions">
-            <button id="createEvent" class="primary" type="button">Continue</button>
-            <button id="cancelNewEvent" type="button">Cancel</button>
-          </div>
-        </section>
-      </aside>
-
-      <section class="panel">
-        <form id="eventForm">
+      <div class="workspace">
+        <nav class="editor-tabs" role="tablist" aria-label="Invitation workspace">
+          <button id="editingTab" type="button" role="tab" aria-controls="editingPanel" aria-selected="true">Editing</button>
+          <button id="reviewTab" type="button" role="tab" aria-controls="reviewPanel" aria-selected="false">Review</button>
+        </nav>
+        <section class="panel editor-panel" id="editingPanel" role="tabpanel" aria-labelledby="editingTab">
+          <form id="eventForm">
           <h1 id="formTitle">Invitation details</h1>
           <div id="richTextToolbar" class="rich-text-toolbar" role="toolbar" aria-label="Text formatting">
             <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
@@ -123,6 +160,8 @@
             <button type="button" class="color-swatch text-emerald" data-format="emerald" aria-label="Emerald text">●</button>
           </div>
           <p class="format-hint">Select text in a writing area, then choose a format. Formatting is preserved in the guest invitation.</p>
+          <details class="form-section" open>
+            <summary>Invitation details</summary>
           <div class="fields">
             <label>Names / heading<textarea name="names" maxlength="160" required></textarea></label>
             <label>Emoji<input name="emoji" maxlength="8"></label>
@@ -145,8 +184,10 @@
                 <option value="islamic">Islamic wedding</option>
               </select>
             </label>
-            <fieldset id="weddingFields" class="wide">
-              <legend>Wedding details (optional)</legend>
+          </div>
+          </details>
+          <details id="weddingFields" class="form-section wide">
+              <summary>Wedding details (optional)</summary>
               <div class="fields">
                 <label class="wide">Opening invocation<textarea name="religiousOpening" maxlength="400" placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"></textarea></label>
                 <label class="wide">Qur’anic verse<textarea name="quranVerse" maxlength="600" placeholder="وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ ..."></textarea></label>
@@ -165,7 +206,10 @@
                 <label class="wide">Marriage-contract photo URL<input name="contractImageUrl" type="url" maxlength="500" placeholder="https://..."></label>
                 <label class="wide">Photo caption<textarea name="contractImageCaption" maxlength="400" placeholder="e.g. 23 October 2026 · Alhamdulillah"></textarea></label>
               </div>
-            </fieldset>
+          </details>
+          <details class="form-section wide">
+            <summary>Background and music</summary>
+            <div class="fields">
             <label class="wide">Background design
               <select name="backgroundPreset">
                 <option value="">No preset background</option>
@@ -198,12 +242,13 @@
             <label class="wide">Or upload your own song<input id="musicUpload" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a"></label>
             <p class="field-note" id="musicStatus">Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.</p>
             <p class="field-note">Preset instrumentals are public domain / CC0. Video-page links such as YouTube cannot be played as audio only. Upload an audio file or provide a direct audio URL. Music starts automatically where the guest’s browser permits it; guests can mute or unmute with one button.</p>
-          </div>
           <div class="actions">
             <button id="removeImage" type="button">Remove background image</button>
           </div>
-          <fieldset class="wide">
-            <legend>Optional guest etiquette</legend>
+            </div>
+          </details>
+          <details class="form-section wide">
+            <summary>Guest etiquette (optional)</summary>
             <p class="theme-note">Choose only the notes you want guests to see. These are separate from the visual theme.</p>
             <div class="etiquette-list">
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="noPhotos"> 🚫📷 No photos or video, please</label>
@@ -213,7 +258,7 @@
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="halalFood"> 🍽️ Halal food served</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="noMusic"> 🔇 No music</label>
             </div>
-          </fieldset>
+          </details>
           <div class="actions">
             <button id="setFeatured" type="button">Set as main invitation</button>
             <button id="deleteEvent" type="button">Delete event</button>
@@ -240,20 +285,52 @@
           <div class="actions">
             <button id="publishButton" class="primary" type="button">Publish</button>
           </div>
-        </form>
-      </section>
+          </form>
+        </section>
 
-      <aside class="panel design-panel">
-        <h2>Invitation canvas</h2>
-        <p class="design-hint">Click any text on the canvas to edit it. Your changes appear here as you type.</p>
+        <aside class="panel design-panel" id="reviewPanel" role="tabpanel" aria-labelledby="reviewTab" hidden>
+        <h2>Review invitation</h2>
+        <p class="design-hint">Adjust a section’s typography, then arrange sections with the controls or by dragging them on the preview.</p>
+        <div class="review-tools" aria-label="Section typography controls">
+          <label class="wide">Section to style
+            <select id="layoutStyleTarget"></select>
+          </label>
+          <label>Font
+            <select id="layoutFont"><option value="">Theme default</option></select>
+          </label>
+          <label>Size
+            <select id="layoutFontSize"><option value="">Theme default</option></select>
+          </label>
+          <label>Alignment
+            <select id="layoutTextAlign"><option value="">Theme default</option></select>
+          </label>
+          <label>Text color
+            <select id="layoutTextColor"><option value="">Theme default</option></select>
+          </label>
+          <div class="actions wide">
+            <button id="resetLayoutStyle" type="button">Reset section style</button>
+          </div>
+        </div>
+        <p class="layout-heading">Section order</p>
+        <p class="move-hint">Drag the handle, use ↑/↓, or focus a preview section and press the arrow keys. Click preview text to edit it.</p>
+        <ol id="layoutOrder" class="layout-order" aria-label="Invitation section order"></ol>
         <div class="design-stage">
           <article class="design-card" id="designCanvas" aria-label="Live invitation design">
-            <div id="canvas-emoji" class="canvas-mark canvas-field"></div>
-            <p id="canvas-religiousOpening" class="canvas-kicker canvas-field"></p>
-            <p id="canvas-quranVerse" class="canvas-copy canvas-field"></p>
-            <p id="canvas-quranReference" class="canvas-detail canvas-field"></p>
-            <p id="canvas-kicker" class="canvas-kicker canvas-field"></p>
-            <p id="canvas-hostNames" class="canvas-detail canvas-field"></p>
+            <div id="layout-emoji" class="canvas-item" data-layout-item="emoji" draggable="true" tabindex="0" aria-label="Invitation icon">
+              <div id="canvas-emoji" class="canvas-mark canvas-field"></div>
+            </div>
+            <div id="layout-weddingOpening" class="canvas-item" data-layout-item="weddingOpening" draggable="true" tabindex="0" aria-label="Wedding opening">
+              <p id="canvas-religiousOpening" class="canvas-kicker canvas-field"></p>
+              <p id="canvas-quranVerse" class="canvas-copy canvas-field"></p>
+              <p id="canvas-quranReference" class="canvas-detail canvas-field"></p>
+            </div>
+            <div id="layout-kicker" class="canvas-item" data-layout-item="kicker" draggable="true" tabindex="0" aria-label="Invitation intro">
+              <p id="canvas-kicker" class="canvas-kicker canvas-field"></p>
+            </div>
+            <div id="layout-hostNames" class="canvas-item" data-layout-item="hostNames" draggable="true" tabindex="0" aria-label="Hosts">
+              <p id="canvas-hostNames" class="canvas-detail canvas-field"></p>
+            </div>
+            <div id="layout-names" class="canvas-item" data-layout-item="names" draggable="true" tabindex="0" aria-label="Invitation names">
             <h2 class="canvas-names">
               <span id="canvas-groomTitle" class="canvas-field"></span>
               <span id="canvas-groomName" class="canvas-field"></span>
@@ -261,26 +338,52 @@
               <span id="canvas-brideTitle" class="canvas-field"></span>
               <span id="canvas-brideName" class="canvas-field"></span>
             </h2>
-            <p id="canvas-date" class="canvas-date canvas-field"></p>
-            <p id="canvas-time" class="canvas-detail canvas-field"></p>
-            <p id="canvas-introDescription" class="canvas-copy canvas-field"></p>
-            <p id="canvas-venue" class="canvas-detail canvas-field"></p>
-            <p id="canvas-message" class="canvas-copy canvas-field"></p>
-            <p id="canvas-info" class="canvas-copy canvas-field"></p>
-            <section id="canvas-relatedEvent" class="canvas-related">
+            </div>
+            <div id="layout-date" class="canvas-item" data-layout-item="date" draggable="true" tabindex="0" aria-label="Date and time">
+              <p id="canvas-date" class="canvas-date canvas-field"></p>
+              <p id="canvas-time" class="canvas-detail canvas-field"></p>
+            </div>
+            <div id="layout-introDescription" class="canvas-item" data-layout-item="introDescription" draggable="true" tabindex="0" aria-label="Intro description">
+              <p id="canvas-introDescription" class="canvas-copy canvas-field"></p>
+            </div>
+            <div id="layout-venue" class="canvas-item" data-layout-item="venue" draggable="true" tabindex="0" aria-label="Venue">
+              <p id="canvas-venue" class="canvas-detail canvas-field"></p>
+              <p id="canvas-locationLink" class="canvas-detail" hidden>Get directions ↗</p>
+            </div>
+            <div id="layout-message" class="canvas-item" data-layout-item="message" draggable="true" tabindex="0" aria-label="Invitation message">
+              <p id="canvas-message" class="canvas-copy canvas-field"></p>
+            </div>
+            <div id="layout-info" class="canvas-item" data-layout-item="info" draggable="true" tabindex="0" aria-label="Extra details">
+              <p id="canvas-info" class="canvas-copy canvas-field"></p>
+            </div>
+            <section id="layout-etiquette" class="canvas-item canvas-etiquette" data-layout-item="etiquette" draggable="true" tabindex="0" aria-label="Guest etiquette">
+              <p id="canvas-etiquette"></p>
+            </section>
+            <section id="layout-relatedEvent" class="canvas-item canvas-related" data-layout-item="relatedEvent" draggable="true" tabindex="0" aria-label="Related gathering">
               <p id="canvas-preEventTitle" class="canvas-detail canvas-field"></p>
               <p id="canvas-preEventDate" class="canvas-date canvas-field"></p>
               <p id="canvas-preEventTime" class="canvas-detail canvas-field"></p>
               <p id="canvas-preEventVenue" class="canvas-detail canvas-field"></p>
               <p id="canvas-preEventDetails" class="canvas-copy canvas-field"></p>
             </section>
-            <p id="canvas-contractImageCaption" class="canvas-detail canvas-field"></p>
-            <div class="canvas-mark">❧</div>
+            <div id="layout-contractPhoto" class="canvas-item" data-layout-item="contractPhoto" draggable="true" tabindex="0" aria-label="Photo caption">
+              <img id="canvas-contractImage" class="canvas-contract-image" alt="" hidden>
+              <p id="canvas-contractImageCaption" class="canvas-detail canvas-field"></p>
+            </div>
+            <div id="layout-countdown" class="canvas-item" data-layout-item="countdown" draggable="true" tabindex="0" aria-label="Countdown">
+              <p id="canvas-countdown" class="canvas-date"></p>
+            </div>
+            <div id="layout-calendar" class="canvas-item" data-layout-item="calendar" draggable="true" tabindex="0" aria-label="Calendar link">
+              <p id="canvas-calendar" class="canvas-calendar">Add to Google Calendar</p>
+            </div>
+            <div id="layout-ornament" class="canvas-item canvas-mark" data-layout-item="ornament" draggable="true" tabindex="0" aria-label="Invitation ornament">❧</div>
           </article>
         </div>
-      </aside>
+        </aside>
+      </div>
     </div>
   </main>
-  <script src="./admin.js?v=canvas-formatting"></script>
+  <script src="./layout-config.js?v=layout-editor-v3"></script>
+  <script src="./admin.js?v=layout-editor-v3"></script>
 </body>
 </html>

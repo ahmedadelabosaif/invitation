@@ -58,7 +58,7 @@
     .contract-photo img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px}
     .contract-photo figcaption{margin-top:8px;color:var(--cmut);font-size:.88rem}
     .wedding-arabic{direction:rtl;unicode-bidi:plaintext}
-    .rich-gold{color:var(--cacc)}.rich-rose{color:#d86d8d}.rich-emerald{color:#27815f}
+    .rich-gold{color:#d8b46a}.rich-rose{color:#d86d8d}.rich-emerald{color:#27815f}
     .card h1{margin:0 0 20px;font:500 clamp(2.6rem,10vw,4rem)/1.05 "Cormorant Garamond",Georgia,serif}
     .date{margin:0;font:600 1.6rem "Cormorant Garamond",Georgia,serif}
     .time{margin:2px 0 0;color:var(--cmut)}
@@ -105,40 +105,54 @@
             <path class="star" d="m37.5 8.2 1.8 4.1 4.2 1.7-4.2 1.8-1.8 4.1-1.7-4.1-4.2-1.8 4.2-1.7z"/>
           </svg>
         </div>
-        <div class="icon" id="icon"></div>
-        <section id="weddingOpening" class="wedding-opening" hidden>
-          <p id="religiousOpening" class="religious-opening wedding-arabic" dir="auto"></p>
-          <blockquote id="quranBlock" class="quran-verse wedding-arabic" hidden>
-            <span id="quranVerse" dir="auto"></span>
-            <cite id="quranReference" class="quran-reference" dir="auto"></cite>
-          </blockquote>
-        </section>
-        <p class="kicker" id="kicker" dir="auto"></p>
-        <p class="intro-description" id="introDescription" dir="auto"></p>
-        <p id="hostNames" class="wedding-hosts" dir="auto" hidden></p>
-        <h1 id="names" dir="auto"></h1>
-        <p class="date" id="date"></p>
-        <p class="time" id="time"></p>
-        <p class="venue" id="venue" dir="auto"></p>
-        <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
-        <p class="msg" id="msg" dir="auto"></p>
-        <p class="info" id="info" dir="auto"></p>
-        <section id="relatedEvent" class="related-event" hidden>
-          <h2 id="relatedEventTitle" dir="auto"></h2>
-          <p id="relatedEventDate"></p>
-          <p id="relatedEventTime"></p>
-          <p id="relatedEventVenue"></p>
-          <a id="relatedEventLocation" class="location-link" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
-          <p id="relatedEventDetails" dir="auto"></p>
-          <a id="relatedEventCalendar" class="related-calendar" hidden target="_blank" rel="noopener">Add to calendar</a>
-        </section>
-        <figure id="contractPhoto" class="contract-photo" hidden>
-          <img id="contractImage" alt="">
-          <figcaption id="contractCaption"></figcaption>
-        </figure>
-        <section class="etiquette" id="etiquette" aria-label="Guest etiquette" hidden></section>
-        <div id="clock" role="timer"></div>
-        <a class="btn" id="cal" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
+        <div id="invitationContent">
+          <div id="layout-emoji" class="layout-item"><div class="icon" id="icon"></div></div>
+          <section id="layout-weddingOpening" class="layout-item">
+            <section id="weddingOpening" class="wedding-opening" hidden>
+              <p id="religiousOpening" class="religious-opening wedding-arabic" dir="auto"></p>
+              <blockquote id="quranBlock" class="quran-verse wedding-arabic" hidden>
+                <span id="quranVerse" dir="auto"></span>
+                <cite id="quranReference" class="quran-reference" dir="auto"></cite>
+              </blockquote>
+            </section>
+          </section>
+          <div id="layout-kicker" class="layout-item"><p class="kicker" id="kicker" dir="auto"></p></div>
+          <div id="layout-introDescription" class="layout-item"><p class="intro-description" id="introDescription" dir="auto"></p></div>
+          <div id="layout-hostNames" class="layout-item"><p id="hostNames" class="wedding-hosts" dir="auto" hidden></p></div>
+          <div id="layout-names" class="layout-item"><h1 id="names" dir="auto"></h1></div>
+          <div id="layout-date" class="layout-item">
+            <p class="date" id="date"></p>
+            <p class="time" id="time"></p>
+          </div>
+          <div id="layout-venue" class="layout-item">
+            <p class="venue" id="venue" dir="auto"></p>
+            <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
+          </div>
+          <div id="layout-message" class="layout-item"><p class="msg" id="msg" dir="auto"></p></div>
+          <div id="layout-info" class="layout-item"><p class="info" id="info" dir="auto"></p></div>
+          <div id="layout-etiquette" class="layout-item">
+            <section class="etiquette" id="etiquette" aria-label="Guest etiquette" hidden></section>
+          </div>
+          <section id="layout-relatedEvent" class="layout-item">
+            <section id="relatedEvent" class="related-event" hidden>
+              <h2 id="relatedEventTitle" dir="auto"></h2>
+              <p id="relatedEventDate"></p>
+              <p id="relatedEventTime"></p>
+              <p id="relatedEventVenue"></p>
+              <a id="relatedEventLocation" class="location-link" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
+              <p id="relatedEventDetails" dir="auto"></p>
+              <a id="relatedEventCalendar" class="related-calendar" hidden target="_blank" rel="noopener">Add to calendar</a>
+            </section>
+          </section>
+          <div id="layout-contractPhoto" class="layout-item">
+            <figure id="contractPhoto" class="contract-photo" hidden>
+              <img id="contractImage" alt="">
+              <figcaption id="contractCaption"></figcaption>
+            </figure>
+          </div>
+          <div id="layout-countdown" class="layout-item"><div id="clock" role="timer"></div></div>
+          <div id="layout-calendar" class="layout-item"><a class="btn" id="cal" href="#" target="_blank" rel="noopener">Add to Google Calendar</a></div>
+        </div>
       </div>
     </article>
     <section class="more" id="more" hidden></section>
@@ -146,6 +160,7 @@
   <div id="musicControls" class="music-controls" hidden>
     <button id="musicToggle" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
   </div>
-  <script src="./guest.js?v=canvas-formatting"></script>
+  <script src="./layout-config.js?v=layout-editor-v3"></script>
+  <script src="./guest.js?v=layout-editor-v3"></script>
 </body>
 </html>

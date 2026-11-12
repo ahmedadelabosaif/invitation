@@ -16,6 +16,15 @@ token on this device** to remove it. Only save it on a trusted device; browser
 storage is accessible to scripts running on this site. GitHub commits the
 invitation update; GitHub Pages deploys it automatically.
 
+The editor separates **Editing** from **Review**. In Review, choose a section
+to adjust its font, size, alignment, or color. Reorder sections with the
+up/down buttons, drag handles, or the arrow keys; drag items directly on the
+invitation preview as well. Typography and order are saved with the invitation
+and used on its public guest page.
+
+The Editing form groups invitation details, wedding details, background/music,
+and guest etiquette into collapsible sections.
+
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one
 event. Choose the invitation type before creating an event; existing events

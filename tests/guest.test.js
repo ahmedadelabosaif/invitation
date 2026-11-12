@@ -4,6 +4,7 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 
+const layoutConfigSource = fs.readFileSync(path.join(__dirname, '..', 'layout-config.js'), 'utf8');
 const guestSource = fs.readFileSync(path.join(__dirname, '..', 'guest.js'), 'utf8');
 
 async function loadGuest(search, data, blockFirstPlay = false) {
@@ -61,7 +62,7 @@ async function loadGuest(search, data, blockFirstPlay = false) {
       };
     }
   };
-  vm.runInNewContext(guestSource, {
+  const context = {
     document,
     location: {
       search,
@@ -76,7 +77,9 @@ async function loadGuest(search, data, blockFirstPlay = false) {
     encodeURIComponent,
     fetch: async () => ({ ok: true, json: async () => data }),
     window: { setInterval() {}, addEventListener() {} }
-  });
+  };
+  vm.runInNewContext(layoutConfigSource, context);
+  vm.runInNewContext(guestSource, context);
   await new Promise(setImmediate);
   elements.document = document;
   return elements;
@@ -122,6 +125,48 @@ test('shows an optional intro description beneath the invitation intro', async (
 
   assert.equal(elements.get('kicker').textContent, 'You are invited');
   assert.equal(elements.get('introDescription').textContent, withIntroDescription.events[0].introDescription);
+});
+
+test('renders invitation sections in the saved layout order', async () => {
+  const arrangedInvitation = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Ahmed & Amina',
+      layout: ['message', 'names'],
+      message: 'Join us'
+    }]
+  };
+  const elements = await loadGuest('', arrangedInvitation);
+
+  assert.deepEqual(
+    elements.get('invitationContent').children.slice(0, 2).map((child) => child.id),
+    ['layout-message', 'layout-names']
+  );
+});
+
+test('applies only supported saved typography settings to guest sections', async () => {
+  const styledInvitation = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Ahmed & Amina',
+      message: 'Join us',
+      env: 'garden',
+      layoutStyles: {
+        message: { font: 'serif', size: '1.5rem', align: 'left', color: 'gold' },
+        names: { font: 'url(javascript:alert(1))', size: '99px', align: 'justify', color: 'hotpink' }
+      }
+    }]
+  };
+  const elements = await loadGuest('', styledInvitation);
+
+  assert.equal(elements.get('layout-message').style.fontFamily, '"Cormorant Garamond", Georgia, serif');
+  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
+  assert.equal(elements.get('layout-message').style.textAlign, 'left');
+  assert.equal(elements.get('layout-message').style.color, '#d8b46a');
+  assert.equal(elements.get('layout-names').style.fontFamily, '');
+  assert.equal(elements.get('layout-names').style.fontSize, '');
 });
 
 test('renders allowlisted text formatting while escaping user-provided HTML', async () => {

@@ -177,6 +177,116 @@
       .replace(/\n/g, '<br>');
   }
 
+  function applyLayoutStyle(item, style, theme) {
+    var targets = [item];
+    if (item.querySelectorAll) {
+      targets = targets.concat(Array.prototype.slice.call(item.querySelectorAll('.canvas-field')));
+    }
+    targets.forEach(function (target) {
+      target.style.fontFamily = window.InvitationLayout.fonts[style.font] || '';
+      target.style.fontSize = style.size || '';
+      target.style.textAlign = style.align || '';
+      target.style.color = window.InvitationLayout.color(style.color, theme[3], theme[1]);
+    });
+  }
+
+  function renderLayoutOrder(event) {
+    var list = $('layoutOrder');
+    list.replaceChildren();
+    var selectedKey = $('layoutStyleTarget').value || 'names';
+    window.InvitationLayout.order(event).forEach(function (key, index, order) {
+      var row = document.createElement('li');
+      row.id = 'layout-order-' + key;
+      row.setAttribute('tabindex', '-1');
+      row.setAttribute('draggable', 'true');
+      row.setAttribute('data-layout-order-key', key);
+      row.setAttribute('aria-current', key === selectedKey ? 'true' : 'false');
+      var select = document.createElement('button');
+      select.type = 'button';
+      select.className = 'layout-grip';
+      select.textContent = '⠿ ' + window.InvitationLayout.labels[key];
+      select.setAttribute('aria-label', 'Select ' + window.InvitationLayout.labels[key] + ' typography');
+      select.addEventListener('click', function () {
+        $('layoutStyleTarget').value = key;
+        renderLayoutControls(selectedEvent());
+        renderLayoutOrder(selectedEvent());
+      });
+      var up = document.createElement('button');
+      up.type = 'button';
+      up.className = 'layout-move';
+      up.textContent = '↑';
+      up.setAttribute('aria-label', 'Move ' + window.InvitationLayout.labels[key] + ' up');
+      up.disabled = index === 0;
+      up.addEventListener('click', function () { moveLayoutItemBy(key, -1); });
+      var down = document.createElement('button');
+      down.type = 'button';
+      down.className = 'layout-move';
+      down.textContent = '↓';
+      down.setAttribute('aria-label', 'Move ' + window.InvitationLayout.labels[key] + ' down');
+      down.disabled = index === order.length - 1;
+      down.addEventListener('click', function () { moveLayoutItemBy(key, 1); });
+      row.appendChild(select);
+      row.appendChild(up);
+      row.appendChild(down);
+      list.appendChild(row);
+    });
+  }
+
+  function renderLayoutControls(event) {
+    if (!event) return;
+    var style = window.InvitationLayout.style(event, $('layoutStyleTarget').value || 'names');
+    $('layoutFont').value = style.font;
+    $('layoutFontSize').value = style.size;
+    $('layoutTextAlign').value = style.align;
+    $('layoutTextColor').value = style.color;
+  }
+
+  function initializeLayoutStyleTargets() {
+    var target = $('layoutStyleTarget');
+    target.replaceChildren();
+    window.InvitationLayout.keys.forEach(function (key) {
+      var option = document.createElement('option');
+      option.value = key;
+      option.textContent = window.InvitationLayout.labels[key];
+      target.appendChild(option);
+    });
+    target.value = 'names';
+    [
+      ['layoutFont', window.InvitationLayout.fontChoices],
+      ['layoutFontSize', window.InvitationLayout.sizeChoices],
+      ['layoutTextAlign', window.InvitationLayout.alignments],
+      ['layoutTextColor', window.InvitationLayout.colorChoices]
+    ].forEach(function (setting) {
+      var control = $(setting[0]);
+      control.replaceChildren();
+      var defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Theme default';
+      control.appendChild(defaultOption);
+      setting[1].forEach(function (choice) {
+        var option = document.createElement('option');
+        option.value = choice.value;
+        option.textContent = choice.label;
+        control.appendChild(option);
+      });
+    });
+  }
+
+  function applyCanvasLayout(event) {
+    window.InvitationLayout.order(event).forEach(function (key) {
+      var item = $('layout-' + key);
+      if (item) {
+        $('designCanvas').appendChild(item);
+        applyLayoutStyle(item, window.InvitationLayout.style(event, key),
+          CANVAS_THEMES[event.env] || CANVAS_THEMES.classic);
+      }
+    });
+    var ornament = $('layout-ornament');
+    if (ornament) $('designCanvas').appendChild(ornament);
+    renderLayoutControls(event);
+    renderLayoutOrder(event);
+  }
+
   function renderCanvas(event) {
     var theme = CANVAS_THEMES[event.env] || CANVAS_THEMES.classic;
     $('designCanvas').style.setProperty('--canvas-bg', theme[0]);
@@ -192,10 +302,16 @@
       else field.textContent = text;
       field.hidden = !text;
     }
+    function setLayoutVisible(name, visible) {
+      $('layout-' + name).hidden = !visible;
+    }
     setCanvasField('emoji', event.emoji, false);
     setCanvasField('religiousOpening', isWedding && event.religiousOpening, true);
     setCanvasField('quranVerse', isWedding && event.quranVerse, true);
     setCanvasField('quranReference', isWedding && event.quranReference, true);
+    setLayoutVisible('emoji', Boolean(event.emoji));
+    setLayoutVisible('weddingOpening', Boolean(isWedding &&
+      (event.religiousOpening || event.quranVerse || event.quranReference)));
     setCanvasField('kicker', event.kicker, true);
     setCanvasField('hostNames', isWedding && event.hostNames, true);
     setCanvasField('groomTitle', weddingNames && event.groomName && event.groomTitle, true);
@@ -203,20 +319,38 @@
     setCanvasField('brideTitle', weddingNames && event.brideName && event.brideTitle, true);
     setCanvasField('brideName', weddingNames && event.brideName, true);
     setCanvasField('names', weddingNames ? '' : event.names, true);
+    setLayoutVisible('kicker', Boolean(event.kicker));
+    setLayoutVisible('hostNames', Boolean(isWedding && event.hostNames));
+    setLayoutVisible('names', Boolean(weddingNames || event.names));
     $('canvas-date').textContent = event.date
       ? new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       })
       : 'Date to be announced';
     setCanvasField('time', event.time, false);
+    setLayoutVisible('date', true);
     setCanvasField('introDescription', event.introDescription, true);
     setCanvasField('venue', event.venue, true);
+    $('canvas-locationLink').hidden = !safeLocationUrl(event.locationUrl);
+    setLayoutVisible('introDescription', Boolean(event.introDescription));
+    setLayoutVisible('venue', Boolean(event.venue));
     setCanvasField('message', event.message, true);
     setCanvasField('info', event.info, true);
+    setLayoutVisible('message', Boolean(event.message));
+    setLayoutVisible('info', Boolean(event.info));
+    var etiquette = Array.isArray(event.etiquette) ? event.etiquette : [];
+    $('canvas-etiquette').textContent = etiquette.map(function (item) {
+      return ETIQUETTE[item] ? ETIQUETTE[item].icon + ' ' + ETIQUETTE[item].label : '';
+    }).filter(Boolean).join(' · ');
+    $('layout-etiquette').hidden = !$('canvas-etiquette').textContent;
+    $('canvas-countdown').textContent = event.date ? 'Countdown to your event' : '';
+    $('layout-countdown').hidden = !event.date;
+    $('layout-calendar').hidden = !event.date;
     var relatedFields = isWedding && [
       event.preEventTitle, event.preEventDate, event.preEventTime, event.preEventVenue, event.preEventDetails
     ].some(Boolean);
     $('canvas-relatedEvent').hidden = !relatedFields;
+    $('layout-relatedEvent').hidden = !relatedFields;
     setCanvasField('preEventTitle', relatedFields && event.preEventTitle, true);
     setCanvasField('preEventDate', relatedFields && event.preEventDate
       ? new Date(event.preEventDate + 'T00:00:00').toLocaleDateString(undefined, {
@@ -226,12 +360,133 @@
     setCanvasField('preEventTime', relatedFields && event.preEventTime, true);
     setCanvasField('preEventVenue', relatedFields && event.preEventVenue, true);
     setCanvasField('preEventDetails', relatedFields && event.preEventDetails, true);
+    var contractImageUrl = isWedding ? safeMediaUrl(event.contractImageUrl) : '';
+    $('canvas-contractImage').src = contractImageUrl;
+    $('canvas-contractImage').alt = isWedding ? event.contractImageCaption || 'Marriage contract photo' : '';
+    $('canvas-contractImage').hidden = !contractImageUrl;
     setCanvasField('contractImageCaption', isWedding && event.contractImageCaption, true);
+    $('layout-contractPhoto').hidden = !(contractImageUrl || (isWedding && event.contractImageCaption));
     var backgroundUrl = safeMediaUrl(event.backgroundImage) ||
       safeMediaUrl(BACKGROUNDS[event.backgroundPreset]);
     $('designCanvas').style.backgroundImage = backgroundUrl
       ? 'linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.58)),url("' + backgroundUrl + '")'
       : '';
+    applyCanvasLayout(event);
+  }
+
+  function setWorkspaceTab(tab) {
+    var reviewing = tab === 'review';
+    $('editingTab').setAttribute('aria-selected', reviewing ? 'false' : 'true');
+    $('reviewTab').setAttribute('aria-selected', reviewing ? 'true' : 'false');
+    $('editingPanel').hidden = reviewing;
+    $('reviewPanel').hidden = !reviewing;
+  }
+
+  function layoutItemFromTarget(target) {
+    while (target && target !== $('designCanvas')) {
+      if (target.getAttribute && target.getAttribute('data-layout-item')) return target;
+      target = target.parentNode;
+    }
+    return null;
+  }
+
+  function moveCanvasItem(sourceKey, targetKey, afterTarget) {
+    if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+    var event = selectedEvent();
+    if (!event) return;
+    var order = window.InvitationLayout.order(event);
+    var sourceIndex = order.indexOf(sourceKey);
+    var targetIndex = order.indexOf(targetKey);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    order.splice(sourceIndex, 1);
+    targetIndex = order.indexOf(targetKey) + (afterTarget ? 1 : 0);
+    order.splice(targetIndex, 0, sourceKey);
+    event.layout = order;
+    markChanged();
+    renderCanvas(event);
+  }
+
+  function moveLayoutItemBy(key, distance) {
+    var order = window.InvitationLayout.order(selectedEvent() || {});
+    var index = order.indexOf(key);
+    var targetIndex = index + distance;
+    if (index < 0 || targetIndex < 0 || targetIndex >= order.length) return;
+    moveCanvasItem(key, order[targetIndex], distance > 0);
+  }
+
+  function layoutOrderItemFromTarget(target) {
+    while (target && target !== $('layoutOrder')) {
+      if (target.getAttribute && target.getAttribute('data-layout-order-key')) return target;
+      target = target.parentNode;
+    }
+    return null;
+  }
+
+  function bindLayoutDragEvents(container, resolveItem, keyAttribute) {
+    container.addEventListener('dragstart', function (event) {
+      draggedLayoutItem = resolveItem(event.target);
+      if (!draggedLayoutItem) return;
+      draggedLayoutKey = draggedLayoutItem.getAttribute(keyAttribute);
+      draggedLayoutItem.setAttribute('aria-grabbed', 'true');
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedLayoutKey);
+      }
+    });
+    container.addEventListener('dragover', function (event) {
+      var item = resolveItem(event.target);
+      if (!item || !draggedLayoutKey || item.getAttribute(keyAttribute) === draggedLayoutKey) return;
+      event.preventDefault();
+      item.setAttribute('data-drop-target', 'true');
+    });
+    container.addEventListener('dragleave', function (event) {
+      var item = resolveItem(event.target);
+      if (item) item.removeAttribute('data-drop-target');
+    });
+    container.addEventListener('drop', function (event) {
+      var item = resolveItem(event.target);
+      if (!item || !draggedLayoutKey) return;
+      event.preventDefault();
+      var targetKey = item.getAttribute(keyAttribute);
+      var rect = item.getBoundingClientRect();
+      moveCanvasItem(draggedLayoutKey, targetKey, event.clientY > rect.top + rect.height / 2);
+      item.removeAttribute('data-drop-target');
+      draggedLayoutItem.setAttribute('aria-grabbed', 'false');
+      draggedLayoutItem = null;
+      draggedLayoutKey = '';
+    });
+    container.addEventListener('dragend', function () {
+      if (draggedLayoutItem) draggedLayoutItem.setAttribute('aria-grabbed', 'false');
+      draggedLayoutItem = null;
+      draggedLayoutKey = '';
+    });
+  }
+
+  function updateLayoutStyle() {
+    var event = selectedEvent();
+    if (!event) return;
+    var key = $('layoutStyleTarget').value;
+    var style = {
+      font: Object.prototype.hasOwnProperty.call(window.InvitationLayout.fonts, $('layoutFont').value)
+        ? $('layoutFont').value : '',
+      size: window.InvitationLayout.sizes.includes($('layoutFontSize').value)
+        ? $('layoutFontSize').value : '',
+      align: window.InvitationLayout.alignments.some(function (item) {
+        return item.value === $('layoutTextAlign').value;
+      })
+        ? $('layoutTextAlign').value : '',
+      color: window.InvitationLayout.colors.includes($('layoutTextColor').value)
+        ? $('layoutTextColor').value : ''
+    };
+    if (!style.font && !style.size && !style.align && !style.color) {
+      if (event.layoutStyles) delete event.layoutStyles[key];
+      if (event.layoutStyles && !Object.keys(event.layoutStyles).length) delete event.layoutStyles;
+    } else {
+      if (!event.layoutStyles || typeof event.layoutStyles !== 'object') event.layoutStyles = {};
+      event.layoutStyles[key] = style;
+    }
+    markChanged();
+    renderCanvas(event);
   }
 
   function render() {
@@ -465,10 +720,56 @@
       return item.name === fieldName;
     });
     if (control) {
+      setWorkspaceTab('editing');
       control.focus();
       activeTextControl = control.tagName === 'TEXTAREA' ? control : null;
     }
   });
+
+  var draggedLayoutKey = '';
+  var draggedLayoutItem = null;
+  bindLayoutDragEvents($('designCanvas'), layoutItemFromTarget, 'data-layout-item');
+  $('designCanvas').addEventListener('keydown', function (event) {
+    var item = layoutItemFromTarget(event.target);
+    if (!item || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+    event.preventDefault();
+    var order = window.InvitationLayout.order(selectedEvent() || {});
+    var index = order.indexOf(item.getAttribute('data-layout-item'));
+    var nextIndex = index + (event.key === 'ArrowUp' ? -1 : 1);
+    if (index >= 0 && nextIndex >= 0 && nextIndex < order.length) {
+      moveCanvasItem(order[index], order[nextIndex], event.key === 'ArrowDown');
+      $('layout-' + order[index]).focus();
+    }
+  });
+
+  $('layoutStyleTarget').addEventListener('change', function () {
+    renderLayoutControls(selectedEvent());
+    renderLayoutOrder(selectedEvent());
+  });
+  ['layoutFont', 'layoutFontSize', 'layoutTextAlign', 'layoutTextColor'].forEach(function (id) {
+    $(id).addEventListener('change', updateLayoutStyle);
+  });
+  $('resetLayoutStyle').addEventListener('click', function () {
+    $('layoutFont').value = '';
+    $('layoutFontSize').value = '';
+    $('layoutTextAlign').value = '';
+    $('layoutTextColor').value = '';
+    updateLayoutStyle();
+  });
+
+  bindLayoutDragEvents($('layoutOrder'), layoutOrderItemFromTarget, 'data-layout-order-key');
+  $('layoutOrder').addEventListener('keydown', function (event) {
+    var row = layoutOrderItemFromTarget(event.target);
+    if (!row || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+    event.preventDefault();
+    var key = row.getAttribute('data-layout-order-key');
+    moveLayoutItemBy(key, event.key === 'ArrowUp' ? -1 : 1);
+    var updatedRow = $('layout-order-' + key);
+    if (updatedRow) updatedRow.focus();
+  });
+
+  $('editingTab').addEventListener('click', function () { setWorkspaceTab('editing'); });
+  $('reviewTab').addEventListener('click', function () { setWorkspaceTab('review'); });
 
   $('richTextToolbar').addEventListener('mousedown', function (event) {
     event.preventDefault();
@@ -837,6 +1138,7 @@
     event.returnValue = '';
   });
 
+  initializeLayoutStyleTargets();
   fetch('./invitations.json', { cache: 'no-store' })
     .then(function (response) {
       if (!response.ok) throw new Error('Could not load invitations. Refresh and try again.');

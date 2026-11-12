@@ -102,6 +102,46 @@
     }
   }
 
+  function applyGuestLayoutStyle(event, key) {
+    var item = $('layout-' + key);
+    if (!item) return;
+    var style = window.InvitationLayout.style(event, key);
+    var environment = ENVS[event.env] || ENVS.classic;
+    var color = window.InvitationLayout.color(style.color, environment.acc, environment.ink);
+    var font = window.InvitationLayout.fonts[style.font] || '';
+    var size = style.size || '';
+    var align = style.align || '';
+    item.style.fontFamily = font;
+    item.style.fontSize = size;
+    item.style.textAlign = align;
+    item.style.color = color;
+    if (item.querySelectorAll) {
+      Array.prototype.forEach.call(item.querySelectorAll('p,h1,h2,h3,a,span,b,strong,em,blockquote,cite,figure,figcaption'), function (child) {
+        child.style.fontFamily = font;
+        child.style.fontSize = size;
+        child.style.textAlign = align;
+        var formatted = false;
+        var ancestor = child;
+        while (ancestor && ancestor !== item) {
+          if (/(?:^|\s)rich-(?:gold|rose|emerald)(?:\s|$)/.test(ancestor.className || '')) {
+            formatted = true;
+            break;
+          }
+          ancestor = ancestor.parentNode;
+        }
+        if (!formatted) child.style.color = color;
+      });
+    }
+  }
+
+  function applyInvitationLayout(event) {
+    var content = $('invitationContent');
+    window.InvitationLayout.order(event).forEach(function (key) {
+      content.appendChild($('layout-' + key));
+      applyGuestLayoutStyle(event, key);
+    });
+  }
+
   function isVideoPageUrl(value) {
     if (!value) return false;
     try {
@@ -313,6 +353,7 @@
     }
     $('notice').hidden = true;
     updateCountdown();
+    applyInvitationLayout(event);
   }
 
   function renderEtiquette(items) {
@@ -332,11 +373,13 @@
   function updateCountdown() {
     if (!currentStart) {
       $('clock').replaceChildren();
+      if (currentEvent) applyGuestLayoutStyle(currentEvent, 'countdown');
       return;
     }
     var difference = currentStart.getTime() - Date.now();
     if (difference <= 0) {
       $('clock').innerHTML = '<p class="done">Thank you for celebrating with us.</p>';
+      applyGuestLayoutStyle(currentEvent, 'countdown');
       return;
     }
     var seconds = Math.floor(difference / 1000);
@@ -349,6 +392,7 @@
     $('clock').innerHTML = '<div class="clock">' + values.map(function (value) {
       return '<div><b>' + value[0] + '</b><span>' + value[1] + '</span></div>';
     }).join('') + '</div>';
+    applyGuestLayoutStyle(currentEvent, 'countdown');
   }
 
   function requestedId() {

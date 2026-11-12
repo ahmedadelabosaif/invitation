@@ -5,24 +5,38 @@ const test = require('node:test');
 const { TextDecoder, TextEncoder } = require('node:util');
 const vm = require('node:vm');
 
+const layoutConfigSource = fs.readFileSync(path.join(__dirname, '..', 'layout-config.js'), 'utf8');
 const adminSource = fs.readFileSync(path.join(__dirname, '..', 'admin.js'), 'utf8');
 const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
+const guestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
 function makeNode(id) {
+  const attributes = {};
   return {
     id,
     children: [],
+    parentNode: null,
     hidden: false,
     disabled: false,
     textContent: '',
     value: '',
     files: [],
     style: { setProperty() {} },
+    dataset: {},
     handlers: {},
     addEventListener(name, handler) { this.handlers[name] = handler; },
-    appendChild(child) { this.children.push(child); },
+    appendChild(child) {
+      if (child.parentNode) {
+        child.parentNode.children = child.parentNode.children.filter((item) => item !== child);
+      }
+      this.children.push(child);
+      child.parentNode = this;
+    },
     replaceChildren() { this.children = []; },
-    setAttribute() {},
+    setAttribute(name, value) { attributes[name] = String(value); },
+    getAttribute(name) { return attributes[name] || null; },
+    removeAttribute(name) { delete attributes[name]; },
+    getBoundingClientRect() { return { top: 0, height: 100 }; },
     focus() { this.focused = true; },
     setSelectionRange(start, end) { this.selectionStart = start; this.selectionEnd = end; },
     scrollIntoView() {}
@@ -108,7 +122,7 @@ async function loadAdmin(initialData, storage) {
     }
     return { ok: true, json: async () => ({ commit: { sha: 'published-sha' } }) };
   }
-  vm.runInNewContext(adminSource, {
+  const context = {
     document,
     location: { href: 'https://ahmedadelabosaif.github.io/invitation/admin.html' },
     window,
@@ -123,7 +137,9 @@ async function loadAdmin(initialData, storage) {
     btoa,
     atob,
     fetch
-  });
+  };
+  vm.runInNewContext(layoutConfigSource, context);
+  vm.runInNewContext(adminSource, context);
   await new Promise(setImmediate);
   return { elements, fields, saved, uploaded, tokenStorage };
 }
@@ -239,9 +255,117 @@ test('admin publishes a background design and a selected public-domain music tra
   assert.equal(savedEvent.musicUrl, '');
 });
 
-test('editor no longer renders a live preview panel or preview button', () => {
+test('editor separates Editing and Review into tabs', () => {
   assert.doesNotMatch(adminHtml, /id="previewPanel"/);
   assert.doesNotMatch(adminHtml, /id="previewButton"/);
+  assert.match(adminHtml, /id="editingTab"[^>]*>Editing/);
+  assert.match(adminHtml, /id="reviewTab"[^>]*>Review/);
+});
+
+test('editing form groups optional fields into collapsible sections', () => {
+  assert.match(adminHtml, /<details class="form-section" open>\s*<summary>Invitation details<\/summary>/);
+  assert.match(adminHtml, /<details id="weddingFields" class="form-section wide">[\s\S]*?<summary>Wedding details \(optional\)<\/summary>/);
+  assert.match(adminHtml, /<summary>Background and music<\/summary>/);
+  assert.match(adminHtml, /<summary>Guest etiquette \(optional\)<\/summary>/);
+});
+
+test('event selector is housed in the page header instead of taking a content row', () => {
+  const header = adminHtml.match(/<header>([\s\S]*?)<\/header>/);
+  assert.ok(header);
+  assert.match(header[1], /class="header-events"[\s\S]*id="eventList"[\s\S]*id="addEvent"/);
+  assert.doesNotMatch(adminHtml, /class="panel event-panel"/);
+});
+
+test('shared layout sections and style options stay aligned across pages', async () => {
+  const layoutWindow = {};
+  vm.runInNewContext(layoutConfigSource, { window: layoutWindow });
+
+  for (const key of layoutWindow.InvitationLayout.keys) {
+    assert.match(adminHtml, new RegExp(`id="layout-${key}"`), `admin preview is missing ${key}`);
+    assert.match(
+      adminHtml,
+      new RegExp(`id="layout-${key}"[^>]*data-layout-item="${key}"[^>]*draggable="true"`),
+      `admin preview section ${key} is not draggable`
+    );
+    assert.match(guestHtml, new RegExp(`id="layout-${key}"`), `guest page is missing ${key}`);
+  }
+  assert.ok(adminHtml.indexOf('layout-config.js') < adminHtml.indexOf('admin.js'));
+  assert.ok(guestHtml.indexOf('layout-config.js') < guestHtml.indexOf('guest.js'));
+
+  const { elements } = await loadAdmin({
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Sara & Ahmed' }]
+  });
+  assert.equal(elements.get('layoutStyleTarget').children.length, layoutWindow.InvitationLayout.keys.length);
+  assert.equal(elements.get('layoutFont').children.length, layoutWindow.InvitationLayout.fontChoices.length + 1);
+  assert.equal(elements.get('layoutFontSize').children.length, layoutWindow.InvitationLayout.sizeChoices.length + 1);
+});
+
+test('review tab supports drag-and-drop section reordering', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', eventType: 'wedding', names: 'Sara & Ahmed', env: 'garden' }]
+  };
+  const { elements, saved } = await loadAdmin(data, new Map([
+    ['invitation.github.publish-token', 'fine-grained-test-token']
+  ]));
+  elements.get('reviewTab').handlers.click();
+  assert.equal(elements.get('editingPanel').hidden, true);
+  assert.equal(elements.get('reviewPanel').hidden, false);
+
+  const message = elements.get('layout-message');
+  const venue = elements.get('layout-venue');
+  message.setAttribute('data-layout-item', 'message');
+  venue.setAttribute('data-layout-item', 'venue');
+  elements.get('designCanvas').handlers.dragstart({ target: message });
+  let prevented = false;
+  elements.get('designCanvas').handlers.drop({
+    target: venue,
+    clientY: 90,
+    preventDefault() { prevented = true; }
+  });
+
+  assert.equal(prevented, true);
+  assert.equal(message.getAttribute('aria-grabbed'), 'false');
+  assert.equal(data.events[0].layout.indexOf('message'), data.events[0].layout.indexOf('venue') + 1);
+  const previewOrder = elements.get('designCanvas').children.map((item) => item.id);
+  assert.equal(previewOrder.indexOf('layout-message'), previewOrder.indexOf('layout-venue') + 1);
+  let keyboardPrevented = false;
+  elements.get('designCanvas').handlers.keydown({
+    target: message,
+    key: 'ArrowDown',
+    preventDefault() { keyboardPrevented = true; }
+  });
+  assert.equal(keyboardPrevented, true);
+  assert.equal(data.events[0].layout.indexOf('message'), data.events[0].layout.indexOf('info') + 1);
+  const firstLayoutRow = elements.get('layoutOrder').children[0];
+  firstLayoutRow.children[2].handlers.click();
+  assert.equal(data.events[0].layout[0], 'weddingOpening');
+  assert.equal(data.events[0].layout[1], 'emoji');
+
+  elements.get('layoutStyleTarget').value = 'message';
+  elements.get('layoutFont').value = 'serif';
+  elements.get('layoutFontSize').value = '1.5rem';
+  elements.get('layoutTextAlign').value = 'left';
+  elements.get('layoutTextColor').value = 'gold';
+  elements.get('layoutFontSize').handlers.change();
+
+  assert.equal(JSON.stringify(data.events[0].layoutStyles.message), JSON.stringify({
+    font: 'serif',
+    size: '1.5rem',
+    align: 'left',
+    color: 'gold'
+  }));
+  assert.equal(elements.get('layout-message').style.fontFamily, '"Cormorant Garamond", Georgia, serif');
+  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
+  assert.equal(elements.get('layout-message').style.color, '#d8b46a');
+
+  await elements.get('publishButton').handlers.click();
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const published = JSON.parse(new TextDecoder().decode(bytes));
+  assert.equal(JSON.stringify(published.events[0].layout), JSON.stringify(data.events[0].layout));
+  assert.equal(published.events[0].layoutStyles.message.color, 'gold');
 });
 
 test('formats selected invitation text and updates the clickable canvas', async () => {
@@ -263,8 +387,11 @@ test('formats selected invitation text and updates the clickable canvas', async 
   assert.equal(data.events[0].message, '[gold]Join us[/gold]');
   assert.equal(elements.get('canvas-message').innerHTML, '<span class="text-gold">Join us</span>');
 
+  elements.get('reviewTab').handlers.click();
   elements.get('designCanvas').handlers.click({ target: elements.get('canvas-message') });
   assert.equal(message.focused, true);
+  assert.equal(elements.get('editingPanel').hidden, false);
+  assert.equal(elements.get('reviewPanel').hidden, true);
 });
 
 test('requires choosing an invitation type before creating an event', async () => {
