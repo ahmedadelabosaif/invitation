@@ -70,6 +70,28 @@
     }
   }
 
+  function formattedText(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+      .replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>')
+      .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+      .replace(/\[(gold|rose|emerald)\]([\s\S]*?)\[\/\1\]/g, '<span class="rich-$1">$2</span>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function plainText(value) {
+    return String(value || '')
+      .replace(/\[\/?(?:b|i|u|gold|rose|emerald)\]/g, '');
+  }
+
+  function setFormattedText(id, value) {
+    if (/\[(?:b|i|u|gold|rose|emerald)\]/.test(String(value || ''))) {
+      $(id).innerHTML = formattedText(value);
+    } else {
+      $(id).textContent = value || '';
+    }
+  }
+
   function safeMediaUrl(value) {
     if (!value) return '';
     try {
@@ -156,15 +178,15 @@
     var religiousOpening = isWedding ? event.religiousOpening || '' : '';
     var quranVerse = isWedding ? event.quranVerse || '' : '';
     var quranReference = isWedding ? event.quranReference || '' : '';
-    $('religiousOpening').textContent = religiousOpening;
+    setFormattedText('religiousOpening', religiousOpening);
     $('religiousOpening').hidden = !religiousOpening;
-    $('quranVerse').textContent = quranVerse;
-    $('quranReference').textContent = quranReference;
+    setFormattedText('quranVerse', quranVerse);
+    setFormattedText('quranReference', quranReference);
     $('quranBlock').hidden = !quranVerse && !quranReference;
     $('weddingOpening').hidden = !religiousOpening && !quranVerse && !quranReference;
 
     var hosts = isWedding ? event.hostNames || '' : '';
-    $('hostNames').textContent = hosts;
+    setFormattedText('hostNames', hosts);
     $('hostNames').hidden = !hosts;
 
     var relatedFields = isWedding && [
@@ -177,15 +199,15 @@
     ].some(Boolean);
     $('relatedEvent').hidden = !relatedFields;
     if (relatedFields) {
-      $('relatedEventTitle').textContent = event.preEventTitle || 'Related gathering';
+      setFormattedText('relatedEventTitle', event.preEventTitle || 'Related gathering');
       $('relatedEventDate').textContent = event.preEventDate
         ? new Date(event.preEventDate + 'T00:00:00').toLocaleDateString(undefined, {
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         })
         : '';
-      $('relatedEventTime').textContent = event.preEventTime || '';
-      $('relatedEventVenue').textContent = event.preEventVenue || '';
-      $('relatedEventDetails').textContent = event.preEventDetails || '';
+      setFormattedText('relatedEventTime', event.preEventTime || '');
+      setFormattedText('relatedEventVenue', event.preEventVenue || '');
+      setFormattedText('relatedEventDetails', event.preEventDetails || '');
       var relatedLocation = safeLocationUrl(event.preEventLocationUrl);
       $('relatedEventLocation').hidden = !relatedLocation;
       if (relatedLocation) $('relatedEventLocation').href = relatedLocation;
@@ -196,9 +218,9 @@
         var endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1);
         var details = [event.preEventTime, event.preEventDetails].filter(Boolean).join('\n');
         calendar.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
-          encodeURIComponent(event.preEventTitle || 'Related gathering') + '&dates=' +
+          encodeURIComponent(plainText(event.preEventTitle || 'Related gathering')) + '&dates=' +
           calendarTime(startDate).slice(0, 8) + '/' + calendarTime(endDate).slice(0, 8) +
-          '&details=' + encodeURIComponent(details) +
+          '&details=' + encodeURIComponent(plainText(details)) +
           '&location=' + encodeURIComponent(event.preEventVenue || event.preEventLocationUrl || '');
       }
     } else {
@@ -210,7 +232,7 @@
     $('contractPhoto').hidden = !contractUrl;
     $('contractImage').src = contractUrl;
     $('contractImage').alt = isWedding ? event.contractImageCaption || 'Marriage contract photo' : '';
-    $('contractCaption').textContent = isWedding ? event.contractImageCaption || '' : '';
+    setFormattedText('contractCaption', isWedding ? event.contractImageCaption || '' : '');
 
     var groomName = isWedding ? event.groomName || '' : '';
     var brideName = isWedding ? event.brideName || '' : '';
@@ -225,7 +247,7 @@
     var eventType = EVENT_TYPE_LABELS[event.eventType] || 'wedding';
     var coupleNames = renderWeddingDetails(event);
     var names = coupleNames || event.names || '';
-    document.title = names ? names.trim() + "'s " + eventType + ' invitation' : 'Invitation';
+    document.title = names ? plainText(names).trim() + "'s " + eventType + ' invitation' : 'Invitation';
     $('card').style.setProperty('--cbg', environment.bg);
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
@@ -241,9 +263,9 @@
     $('cardBackground').hidden = imageMode !== 'card';
     $('cardBackground').src = imageMode === 'card' ? imageUrl : '';
     $('icon').textContent = event.emoji || '';
-    $('kicker').textContent = event.kicker || '';
-    $('introDescription').textContent = event.introDescription || '';
-    $('names').textContent = names;
+    setFormattedText('kicker', event.kicker || '');
+    setFormattedText('introDescription', event.introDescription || '');
+    setFormattedText('names', names);
     currentStart = dateTime(event);
     $('date').textContent = currentStart
       ? currentStart.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -251,12 +273,12 @@
     $('time').textContent = currentStart && event.time
       ? 'at ' + currentStart.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
-    $('venue').textContent = event.venue || '';
+    setFormattedText('venue', event.venue || '');
     var locationUrl = safeLocationUrl(event.locationUrl);
     $('locationLink').hidden = !locationUrl;
     if (locationUrl) $('locationLink').href = locationUrl;
-    $('msg').textContent = event.message || '';
-    $('info').textContent = event.info || '';
+    setFormattedText('msg', event.message || '');
+    setFormattedText('info', event.info || '');
     renderEtiquette(event.etiquette || []);
     var linkedMusicUrl = safeMediaUrl(event.musicUrl);
     var musicUrl = MUSIC_TRACKS[event.musicTrack] || (isVideoPageUrl(linkedMusicUrl) ? '' : linkedMusicUrl);
@@ -280,9 +302,10 @@
     if (currentStart) {
       var end = new Date(currentStart.getTime() + 4 * 3600 * 1000);
       $('cal').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
-        encodeURIComponent(event.event || event.names || 'Event') + '&dates=' +
+        encodeURIComponent(plainText(event.event || event.names || 'Event')) + '&dates=' +
         calendarTime(currentStart) + '/' + calendarTime(end) + '&details=' +
-        encodeURIComponent(event.message || '') + '&location=' + encodeURIComponent(event.venue || '');
+        encodeURIComponent(plainText(event.message || '')) + '&location=' +
+        encodeURIComponent(plainText(event.venue || ''));
     }
     if (event.env !== lastEnvironment) {
       lastEnvironment = event.env;
@@ -358,7 +381,7 @@
       icon.textContent = event.emoji || '✨';
       var details = document.createElement('span');
       var title = document.createElement('b');
-      title.textContent = event.names || event.event || 'Event';
+      title.textContent = plainText(event.names || event.event || 'Event');
       var date = document.createElement('small');
       var starts = dateTime(event);
       date.textContent = starts

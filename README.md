@@ -30,6 +30,9 @@ for an emerald-and-gold palette, a crescent-and-star emblem, and subtle gold
 star animation. Separately, select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
+Text fields are multiline. Select text and use the formatting toolbar for bold,
+italic, underline, bullets, or accent colors; click text on the live invitation
+canvas to jump to its editor field.
 Choose one of four original background designs or upload a JPG, PNG, or WebP for
 the card/full-page background. Uploads are optimized and stored with the
 published site. Choose one of four public-domain/CC0

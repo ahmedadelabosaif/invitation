@@ -124,6 +124,24 @@ test('shows an optional intro description beneath the invitation intro', async (
   assert.equal(elements.get('introDescription').textContent, withIntroDescription.events[0].introDescription);
 });
 
+test('renders allowlisted text formatting while escaping user-provided HTML', async () => {
+  const formattedInvitation = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: '[b]Sara[/b] & Ahmed',
+      kicker: '[gold]You are invited[/gold]',
+      message: '[i]Join us[/i]\n<script>alert(1)</script>'
+    }]
+  };
+  const elements = await loadGuest('', formattedInvitation);
+
+  assert.equal(elements.get('names').innerHTML, '<strong>Sara</strong> &amp; Ahmed');
+  assert.equal(elements.get('kicker').innerHTML, '<span class="rich-gold">You are invited</span>');
+  assert.equal(elements.get('msg').innerHTML, '<em>Join us</em><br>&lt;script&gt;alert(1)&lt;/script&gt;');
+  assert.equal(elements.document.title, "Sara & Ahmed's wedding invitation");
+});
+
 test('renders structured wedding details, related gathering, and contract photo', async () => {
   const wedding = {
     featured: 'wedding',

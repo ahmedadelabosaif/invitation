@@ -23,7 +23,8 @@ function makeNode(id) {
     appendChild(child) { this.children.push(child); },
     replaceChildren() { this.children = []; },
     setAttribute() {},
-    focus() {},
+    focus() { this.focused = true; },
+    setSelectionRange(start, end) { this.selectionStart = start; this.selectionEnd = end; },
     scrollIntoView() {}
   };
 }
@@ -49,6 +50,12 @@ async function loadAdmin(initialData, storage) {
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
+      if ([
+        'names', 'kicker', 'introDescription', 'venue', 'message', 'info', 'event',
+        'religiousOpening', 'quranVerse', 'quranReference', 'hostNames', 'groomTitle',
+        'groomName', 'brideTitle', 'brideName', 'preEventTitle', 'preEventTime',
+        'preEventVenue', 'preEventDetails', 'contractImageCaption'
+      ].includes(name)) field.tagName = 'TEXTAREA';
       return field;
     });
   ['noPhotos', 'modestDress', 'separateSeating', 'prayerSpace', 'halalFood', 'noMusic']
@@ -235,6 +242,29 @@ test('admin publishes a background design and a selected public-domain music tra
 test('editor no longer renders a live preview panel or preview button', () => {
   assert.doesNotMatch(adminHtml, /id="previewPanel"/);
   assert.doesNotMatch(adminHtml, /id="previewButton"/);
+});
+
+test('formats selected invitation text and updates the clickable canvas', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', eventType: 'wedding', names: 'Sara & Ahmed', env: 'islamic' }]
+  };
+  const { elements, fields } = await loadAdmin(data);
+  const message = fields.find((field) => field.name === 'message');
+  message.value = 'Join us';
+  message.selectionStart = 0;
+  message.selectionEnd = message.value.length;
+  elements.get('eventForm').handlers.focusin({ target: message });
+  elements.get('richTextToolbar').handlers.click({
+    target: { getAttribute(name) { return name === 'data-format' ? 'gold' : null; } }
+  });
+
+  assert.equal(message.value, '[gold]Join us[/gold]');
+  assert.equal(data.events[0].message, '[gold]Join us[/gold]');
+  assert.equal(elements.get('canvas-message').innerHTML, '<span class="text-gold">Join us</span>');
+
+  elements.get('designCanvas').handlers.click({ target: elements.get('canvas-message') });
+  assert.equal(message.focused, true);
 });
 
 test('requires choosing an invitation type before creating an event', async () => {

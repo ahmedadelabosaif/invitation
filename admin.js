@@ -11,6 +11,14 @@
     moonlitSky: './backgrounds/moonlit-sky.svg',
     blushOrnament: './backgrounds/blush-ornament.svg'
   };
+  var CANVAS_THEMES = {
+    classic: ['#fff', '#1f2a44', '#5c6780', '#b4476b'],
+    garden: ['#ddebdd', '#1e3a2a', '#4f6b58', '#3f7a55'],
+    beach: ['#d9eef3', '#123b4a', '#3d6272', '#1b7f9a'],
+    sunset: ['#fbe3d6', '#4a2335', '#7a5260', '#c2492f'],
+    night: ['#1a2142', '#eef0ff', '#a9b1d6', '#f2c46d'],
+    islamic: ['#153b35', '#fff8e9', '#e5d7b8', '#d8b46a']
+  };
   var MUSIC_TRACKS = {
     beethovenAdagio: {
       title: 'Beethoven · Adagio cantabile',
@@ -48,6 +56,7 @@
   var editingToken = false;
   var pendingImages = {};
   var pendingAudio = {};
+  var activeTextControl = null;
 
   function $(id) {
     return document.getElementById(id);
@@ -159,6 +168,72 @@
     $('viewEventLink').href = linkFor(event);
   }
 
+  function formattedText(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+      .replace(/\[i\]([\s\S]*?)\[\/i\]/g, '<em>$1</em>')
+      .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+      .replace(/\[(gold|rose|emerald)\]([\s\S]*?)\[\/\1\]/g, '<span class="text-$1">$2</span>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function renderCanvas(event) {
+    var theme = CANVAS_THEMES[event.env] || CANVAS_THEMES.classic;
+    $('designCanvas').style.setProperty('--canvas-bg', theme[0]);
+    $('designCanvas').style.setProperty('--canvas-ink', theme[1]);
+    $('designCanvas').style.setProperty('--canvas-muted', theme[2]);
+    $('designCanvas').style.setProperty('--canvas-accent', theme[3]);
+    var isWedding = !event.eventType || event.eventType === 'wedding';
+    var weddingNames = isWedding && (event.groomName || event.brideName);
+    function setCanvasField(name, value, isFormatted) {
+      var field = $('canvas-' + name);
+      var text = value || '';
+      if (isFormatted) field.innerHTML = formattedText(text);
+      else field.textContent = text;
+      field.hidden = !text;
+    }
+    setCanvasField('emoji', event.emoji, false);
+    setCanvasField('religiousOpening', isWedding && event.religiousOpening, true);
+    setCanvasField('quranVerse', isWedding && event.quranVerse, true);
+    setCanvasField('quranReference', isWedding && event.quranReference, true);
+    setCanvasField('kicker', event.kicker, true);
+    setCanvasField('hostNames', isWedding && event.hostNames, true);
+    setCanvasField('groomTitle', weddingNames && event.groomName && event.groomTitle, true);
+    setCanvasField('groomName', weddingNames && event.groomName, true);
+    setCanvasField('brideTitle', weddingNames && event.brideName && event.brideTitle, true);
+    setCanvasField('brideName', weddingNames && event.brideName, true);
+    setCanvasField('names', weddingNames ? '' : event.names, true);
+    $('canvas-date').textContent = event.date
+      ? new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      })
+      : 'Date to be announced';
+    setCanvasField('time', event.time, false);
+    setCanvasField('introDescription', event.introDescription, true);
+    setCanvasField('venue', event.venue, true);
+    setCanvasField('message', event.message, true);
+    setCanvasField('info', event.info, true);
+    var relatedFields = isWedding && [
+      event.preEventTitle, event.preEventDate, event.preEventTime, event.preEventVenue, event.preEventDetails
+    ].some(Boolean);
+    $('canvas-relatedEvent').hidden = !relatedFields;
+    setCanvasField('preEventTitle', relatedFields && event.preEventTitle, true);
+    setCanvasField('preEventDate', relatedFields && event.preEventDate
+      ? new Date(event.preEventDate + 'T00:00:00').toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      })
+      : '', false);
+    setCanvasField('preEventTime', relatedFields && event.preEventTime, true);
+    setCanvasField('preEventVenue', relatedFields && event.preEventVenue, true);
+    setCanvasField('preEventDetails', relatedFields && event.preEventDetails, true);
+    setCanvasField('contractImageCaption', isWedding && event.contractImageCaption, true);
+    var backgroundUrl = safeMediaUrl(event.backgroundImage) ||
+      safeMediaUrl(BACKGROUNDS[event.backgroundPreset]);
+    $('designCanvas').style.backgroundImage = backgroundUrl
+      ? 'linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.58)),url("' + backgroundUrl + '")'
+      : '';
+  }
+
   function render() {
     renderEvents();
     var event = selectedEvent();
@@ -173,6 +248,7 @@
         control.value = event[control.name] || '';
       }
     });
+    renderCanvas(event);
     var pendingImage = pendingImages[event.id];
     $('imageStatus').textContent = pendingImage
       ? (pendingImage.uploadedPath ? 'Image uploaded; publish to apply it.' : 'Image ready. It will upload when you publish.')
@@ -367,13 +443,71 @@
     markChanged();
     renderEvents();
     updateEventMetadata(invitation);
+    renderCanvas(invitation);
   }
 
+  $('eventForm').addEventListener('focusin', function (event) {
+    if (event.target.tagName === 'TEXTAREA') activeTextControl = event.target;
+  });
   $('eventForm').addEventListener('input', function (event) {
     if (event.target.name !== 'etiquette') updateField(event);
   });
   $('eventForm').addEventListener('change', function (event) {
     if (event.target.name === 'etiquette' || event.target.tagName === 'SELECT') updateField(event);
+  });
+
+  $('designCanvas').addEventListener('click', function (event) {
+    var target = event.target;
+    while (target && !(target.id && target.id.startsWith('canvas-'))) target = target.parentNode;
+    if (!target) return;
+    var fieldName = target.id.slice('canvas-'.length);
+    var control = Array.prototype.find.call($('eventForm').elements, function (item) {
+      return item.name === fieldName;
+    });
+    if (control) {
+      control.focus();
+      activeTextControl = control.tagName === 'TEXTAREA' ? control : null;
+    }
+  });
+
+  $('richTextToolbar').addEventListener('mousedown', function (event) {
+    event.preventDefault();
+  });
+  $('richTextToolbar').addEventListener('click', function (event) {
+    var button = event.target;
+    while (button && (!button.getAttribute || !button.getAttribute('data-format'))) button = button.parentNode;
+    if (!button || !activeTextControl || activeTextControl.tagName !== 'TEXTAREA') return;
+    var control = activeTextControl;
+    var format = button.getAttribute('data-format');
+    var start = control.selectionStart || 0;
+    var end = control.selectionEnd || 0;
+    var selected = control.value.slice(start, end);
+    var before = control.value.slice(0, start);
+    var after = control.value.slice(end);
+    var open = { bold: '[b]', italic: '[i]', underline: '[u]', gold: '[gold]', rose: '[rose]', emerald: '[emerald]' }[format];
+    var close = { bold: '[/b]', italic: '[/i]', underline: '[/u]', gold: '[/gold]', rose: '[/rose]', emerald: '[/emerald]' }[format];
+    var nextValue;
+    var selectionStart;
+    var selectionEnd;
+    if (format === 'bullet') {
+      var lines = selected || '';
+      var bulletText = lines.split('\n').map(function (line) {
+        return line ? '• ' + line : '• ';
+      }).join('\n');
+      nextValue = before + bulletText + after;
+      selectionStart = start;
+      selectionEnd = start + bulletText.length;
+    } else if (open) {
+      nextValue = before + open + selected + close + after;
+      selectionStart = start + open.length;
+      selectionEnd = selectionStart + selected.length;
+    } else {
+      return;
+    }
+    control.value = nextValue;
+    control.setSelectionRange(selectionStart, selectionEnd);
+    updateField({ target: control });
+    control.focus();
   });
 
   $('addEvent').addEventListener('click', function () {

@@ -23,7 +23,7 @@
     header .spacer{flex:1}
     main{max-width:1280px;margin:26px auto;padding:0 16px}
     .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
-    .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+    .layout{display:grid;grid-template-columns:220px minmax(340px,1fr) minmax(280px,360px);gap:16px;align-items:start}
     .panel{padding:18px;background:#fff;border:1px solid #e3dace;border-radius:13px}
     h1,h2{font-family:"Cormorant Garamond",Georgia,serif}
     h1{margin:0 0 12px;font-size:1.6rem}
@@ -51,10 +51,34 @@
     .token-panel>p{margin:8px 0}
     .event-type-picker{margin-top:8px;padding:12px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
     .event-type-picker .actions{margin-top:0}
+    .rich-text-toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px;padding:9px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
+    .rich-text-toolbar button{min-width:38px;padding:6px 9px}
+    .rich-text-toolbar .color-swatch{width:24px;min-width:24px;height:24px;padding:0;border-radius:50%}
+    .fields textarea{min-height:86px}
+    .fields textarea[name=names]{min-height:54px}
+    .design-panel{position:sticky;top:16px}
+    .design-hint{margin:-4px 0 12px;color:#766a5d;font-size:.85rem}
+    .design-stage{min-height:400px;padding:20px 14px;border:1px solid #e3dace;border-radius:11px;background:radial-gradient(circle at 20% 15%,#f2dfcb,transparent 45%),linear-gradient(145deg,#e9e2d7,#d8d2c8)}
+    .design-card{position:relative;overflow:hidden;min-height:360px;padding:28px 20px;border:1px solid var(--canvas-accent,#d8b46a);border-radius:14px;background-color:var(--canvas-bg,#153b35);background-size:cover;background-position:center;color:var(--canvas-ink,#fff8e9);box-shadow:0 12px 30px rgba(30,24,17,.22);text-align:center}
+    .design-card:before{content:"";position:absolute;inset:8px;border:1px solid rgba(216,180,106,.55);border-radius:9px;pointer-events:none}
+    .design-card>*{position:relative;z-index:1}
+    .design-card .canvas-field{cursor:text;white-space:pre-wrap}
+    .design-card .canvas-field:hover{outline:1px dashed rgba(216,180,106,.7);outline-offset:3px}
+    .canvas-mark{color:var(--canvas-accent,#d8b46a);font-size:1.6rem}
+    .canvas-kicker{color:var(--canvas-muted,#e5d7b8);font:italic 1.05rem "Cormorant Garamond",Georgia,serif}
+    .canvas-names{margin:10px 0;font:500 clamp(2rem,4vw,2.7rem)/1.1 "Cormorant Garamond",Georgia,serif}
+    #canvas-groomTitle:not(:empty):after,#canvas-brideTitle:not(:empty):after{content:" "}
+    #canvas-groomName:not(:empty):after{content:" & "}
+    .canvas-date{margin:14px 0;color:var(--canvas-muted,#e5d7b8)}
+    .canvas-detail{margin:11px 0;color:var(--canvas-muted,#e5d7b8)}
+    .canvas-copy{margin:12px auto;max-width:38ch;line-height:1.55}
+    .canvas-related{margin:16px auto 0;padding-top:12px;border-top:1px solid var(--canvas-accent,#d8b46a)}
+    .text-gold{color:#d8b46a}.text-rose{color:#f0a8b9}.text-emerald{color:#72c6a0}
+    .format-hint{margin:-7px 0 12px;color:#766a5d;font-size:.84rem}
     .theme-note{color:#766a5d;font-size:.85rem}
     .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
-    @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}}
-    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}}
+    @media(max-width:1180px){.layout{grid-template-columns:200px minmax(0,1fr)}.design-panel{position:static;grid-column:2}}
+    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.design-panel{grid-column:auto}}
   </style>
 </head>
 <body>
@@ -89,18 +113,28 @@
       <section class="panel">
         <form id="eventForm">
           <h1 id="formTitle">Invitation details</h1>
+          <div id="richTextToolbar" class="rich-text-toolbar" role="toolbar" aria-label="Text formatting">
+            <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
+            <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
+            <button type="button" data-format="underline" aria-label="Underline"><u>U</u></button>
+            <button type="button" data-format="bullet" aria-label="Bullet list">• List</button>
+            <button type="button" class="color-swatch text-gold" data-format="gold" aria-label="Gold text">●</button>
+            <button type="button" class="color-swatch text-rose" data-format="rose" aria-label="Rose text">●</button>
+            <button type="button" class="color-swatch text-emerald" data-format="emerald" aria-label="Emerald text">●</button>
+          </div>
+          <p class="format-hint">Select text in a writing area, then choose a format. Formatting is preserved in the guest invitation.</p>
           <div class="fields">
-            <label>Names / heading<input name="names" maxlength="80" required></label>
+            <label>Names / heading<textarea name="names" maxlength="160" required></textarea></label>
             <label>Emoji<input name="emoji" maxlength="8"></label>
-            <label class="wide">Intro line<input name="kicker" maxlength="100"></label>
-            <label class="wide">Intro description (optional)<input name="introDescription" maxlength="160" placeholder="A short personal line beneath your invitation intro"></label>
+            <label class="wide">Intro line<textarea name="kicker" maxlength="240"></textarea></label>
+            <label class="wide">Intro description (optional)<textarea name="introDescription" maxlength="600" placeholder="A personal paragraph beneath your invitation intro"></textarea></label>
             <label>Date<input name="date" type="date"></label>
             <label>Time<input name="time" type="time"></label>
-            <label class="wide">Venue<input name="venue" maxlength="160"></label>
+            <label class="wide">Venue<textarea name="venue" maxlength="240"></textarea></label>
             <label class="wide">Map / location link (optional)<input name="locationUrl" type="url" placeholder="https://maps.google.com/..."></label>
             <label class="wide">Message<textarea name="message" maxlength="500"></textarea></label>
             <label class="wide">Extra details<textarea name="info" maxlength="800"></textarea></label>
-            <label>Calendar title<input name="event" maxlength="100"></label>
+            <label>Calendar title<textarea name="event" maxlength="160"></textarea></label>
             <label>Theme
               <select name="env">
                 <option value="classic">Classic</option>
@@ -114,22 +148,22 @@
             <fieldset id="weddingFields" class="wide">
               <legend>Wedding details (optional)</legend>
               <div class="fields">
-                <label class="wide">Opening invocation<input name="religiousOpening" maxlength="160" placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"></label>
+                <label class="wide">Opening invocation<textarea name="religiousOpening" maxlength="400" placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"></textarea></label>
                 <label class="wide">Qur’anic verse<textarea name="quranVerse" maxlength="600" placeholder="وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ ..."></textarea></label>
-                <label class="wide">Verse reference<input name="quranReference" maxlength="100" placeholder="سورة الروم – الآية ٢١"></label>
-                <label class="wide">Families / hosts<input name="hostNames" maxlength="240" placeholder="Names of the families inviting guests"></label>
-                <label>Groom’s title<input name="groomTitle" maxlength="50" placeholder="م. / المهندس"></label>
-                <label>Groom’s name<input name="groomName" maxlength="100"></label>
-                <label>Bride’s title<input name="brideTitle" maxlength="50" placeholder="د. / الدكتورة"></label>
-                <label>Bride’s name<input name="brideName" maxlength="100"></label>
-                <label class="wide">Related gathering title<input name="preEventTitle" maxlength="120" placeholder="e.g. Wedding lunch"></label>
+                <label class="wide">Verse reference<textarea name="quranReference" maxlength="180" placeholder="سورة الروم – الآية ٢١"></textarea></label>
+                <label class="wide">Families / hosts<textarea name="hostNames" maxlength="500" placeholder="Names of the families inviting guests"></textarea></label>
+                <label>Groom’s title<textarea name="groomTitle" maxlength="80" placeholder="م. / المهندس"></textarea></label>
+                <label>Groom’s name<textarea name="groomName" maxlength="160"></textarea></label>
+                <label>Bride’s title<textarea name="brideTitle" maxlength="80" placeholder="د. / الدكتورة"></textarea></label>
+                <label>Bride’s name<textarea name="brideName" maxlength="160"></textarea></label>
+                <label class="wide">Related gathering title<textarea name="preEventTitle" maxlength="240" placeholder="e.g. Wedding lunch"></textarea></label>
                 <label>Date<input name="preEventDate" type="date"></label>
-                <label>Time / time note<input name="preEventTime" maxlength="80" placeholder="e.g. After Dhuhr prayer"></label>
-                <label class="wide">Location<input name="preEventVenue" maxlength="160"></label>
+                <label>Time / time note<textarea name="preEventTime" maxlength="180" placeholder="e.g. After Dhuhr prayer"></textarea></label>
+                <label class="wide">Location<textarea name="preEventVenue" maxlength="240"></textarea></label>
                 <label class="wide">Map / location link<input name="preEventLocationUrl" type="url" placeholder="https://maps.google.com/..."></label>
                 <label class="wide">Gathering details<textarea name="preEventDetails" maxlength="400"></textarea></label>
                 <label class="wide">Marriage-contract photo URL<input name="contractImageUrl" type="url" maxlength="500" placeholder="https://..."></label>
-                <label class="wide">Photo caption<input name="contractImageCaption" maxlength="180" placeholder="e.g. 23 October 2026 · Alhamdulillah"></label>
+                <label class="wide">Photo caption<textarea name="contractImageCaption" maxlength="400" placeholder="e.g. 23 October 2026 · Alhamdulillah"></textarea></label>
               </div>
             </fieldset>
             <label class="wide">Background design
@@ -209,8 +243,44 @@
         </form>
       </section>
 
+      <aside class="panel design-panel">
+        <h2>Invitation canvas</h2>
+        <p class="design-hint">Click any text on the canvas to edit it. Your changes appear here as you type.</p>
+        <div class="design-stage">
+          <article class="design-card" id="designCanvas" aria-label="Live invitation design">
+            <div id="canvas-emoji" class="canvas-mark canvas-field"></div>
+            <p id="canvas-religiousOpening" class="canvas-kicker canvas-field"></p>
+            <p id="canvas-quranVerse" class="canvas-copy canvas-field"></p>
+            <p id="canvas-quranReference" class="canvas-detail canvas-field"></p>
+            <p id="canvas-kicker" class="canvas-kicker canvas-field"></p>
+            <p id="canvas-hostNames" class="canvas-detail canvas-field"></p>
+            <h2 class="canvas-names">
+              <span id="canvas-groomTitle" class="canvas-field"></span>
+              <span id="canvas-groomName" class="canvas-field"></span>
+              <span id="canvas-names" class="canvas-field"></span>
+              <span id="canvas-brideTitle" class="canvas-field"></span>
+              <span id="canvas-brideName" class="canvas-field"></span>
+            </h2>
+            <p id="canvas-date" class="canvas-date canvas-field"></p>
+            <p id="canvas-time" class="canvas-detail canvas-field"></p>
+            <p id="canvas-introDescription" class="canvas-copy canvas-field"></p>
+            <p id="canvas-venue" class="canvas-detail canvas-field"></p>
+            <p id="canvas-message" class="canvas-copy canvas-field"></p>
+            <p id="canvas-info" class="canvas-copy canvas-field"></p>
+            <section id="canvas-relatedEvent" class="canvas-related">
+              <p id="canvas-preEventTitle" class="canvas-detail canvas-field"></p>
+              <p id="canvas-preEventDate" class="canvas-date canvas-field"></p>
+              <p id="canvas-preEventTime" class="canvas-detail canvas-field"></p>
+              <p id="canvas-preEventVenue" class="canvas-detail canvas-field"></p>
+              <p id="canvas-preEventDetails" class="canvas-copy canvas-field"></p>
+            </section>
+            <p id="canvas-contractImageCaption" class="canvas-detail canvas-field"></p>
+            <div class="canvas-mark">❧</div>
+          </article>
+        </div>
+      </aside>
     </div>
   </main>
-  <script src="./admin.js?v=invitation-types"></script>
+  <script src="./admin.js?v=canvas-formatting"></script>
 </body>
 </html>
