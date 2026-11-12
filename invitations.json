@@ -20,10 +20,11 @@
         "noPhotos",
         "separateSeating"
       ],
-      "backgroundMode": "card",
-      "backgroundPreset": "roseGarden",
+      "backgroundMode": "full",
+      "backgroundPreset": "moonlitSky",
       "musicUrl": "",
-      "musicTrack": "beethovenVariations"
+      "musicTrack": "beethovenVariations",
+      "backgroundImage": ""
     }
   ]
 }
