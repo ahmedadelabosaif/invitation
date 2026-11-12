@@ -124,6 +124,47 @@ test('shows an optional intro description beneath the invitation intro', async (
   assert.equal(elements.get('introDescription').textContent, withIntroDescription.events[0].introDescription);
 });
 
+test('renders structured wedding details, related gathering, and contract photo', async () => {
+  const wedding = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      eventType: 'wedding',
+      names: 'Abdelrahman & Omnia',
+      religiousOpening: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+      quranVerse: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ',
+      quranReference: 'سورة الروم – الآية ٢١',
+      hostNames: 'الأستاذ رضا والأستاذ ياسر',
+      groomTitle: 'م.',
+      groomName: 'عبدالرحمن',
+      brideTitle: 'د.',
+      brideName: 'أمنية',
+      preEventTitle: 'Wedding lunch',
+      preEventDate: '2026-11-19',
+      preEventTime: 'After Dhuhr prayer',
+      preEventVenue: 'Groom’s family home',
+      preEventLocationUrl: 'https://maps.example.test/lunch',
+      preEventDetails: 'Lunch before the wedding',
+      contractImageUrl: 'https://images.example.test/contract.jpg',
+      contractImageCaption: 'Alhamdulillah'
+    }]
+  };
+  const elements = await loadGuest('', wedding);
+
+  assert.equal(elements.document.title, "م. عبدالرحمن & د. أمنية's wedding invitation");
+  assert.equal(elements.get('names').textContent, 'م. عبدالرحمن & د. أمنية');
+  assert.equal(elements.get('religiousOpening').textContent, wedding.events[0].religiousOpening);
+  assert.equal(elements.get('quranReference').textContent, wedding.events[0].quranReference);
+  assert.equal(elements.get('hostNames').textContent, wedding.events[0].hostNames);
+  assert.equal(elements.get('relatedEvent').hidden, false);
+  assert.equal(elements.get('relatedEventTime').textContent, 'After Dhuhr prayer');
+  assert.equal(elements.get('relatedEventLocation').href, 'https://maps.example.test/lunch');
+  assert.match(elements.get('relatedEventCalendar').href, /20261119\/20261120/);
+  assert.equal(elements.get('contractPhoto').hidden, false);
+  assert.equal(elements.get('contractImage').src, wedding.events[0].contractImageUrl);
+  assert.equal(elements.get('contractCaption').textContent, 'Alhamdulillah');
+});
+
 test('shows a clickable map link when a valid location URL is provided', async () => {
   const withMapLink = {
     featured: 'wedding',

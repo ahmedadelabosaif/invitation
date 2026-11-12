@@ -38,7 +38,14 @@ async function loadAdmin(initialData, storage) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
-  const fields = ['names', 'emoji', 'kicker', 'introDescription', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'backgroundPreset', 'musicTrack', 'musicUrl']
+  const fields = [
+    'names', 'emoji', 'kicker', 'introDescription', 'date', 'time', 'venue', 'locationUrl',
+    'message', 'info', 'event', 'env', 'religiousOpening', 'quranVerse', 'quranReference',
+    'hostNames', 'groomTitle', 'groomName', 'brideTitle', 'brideName', 'preEventTitle',
+    'preEventDate', 'preEventTime', 'preEventVenue', 'preEventLocationUrl',
+    'preEventDetails', 'contractImageUrl', 'contractImageCaption', 'backgroundMode',
+    'backgroundPreset', 'musicTrack', 'musicUrl'
+  ]
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
@@ -64,6 +71,8 @@ async function loadAdmin(initialData, storage) {
       return element;
     }
   };
+  getElementById('newEventType').value = 'wedding';
+  getElementById('newEventPanel').hidden = true;
   const window = {
     confirm: () => true,
     addEventListener() {},
@@ -226,6 +235,103 @@ test('admin publishes a background design and a selected public-domain music tra
 test('editor no longer renders a live preview panel or preview button', () => {
   assert.doesNotMatch(adminHtml, /id="previewPanel"/);
   assert.doesNotMatch(adminHtml, /id="previewButton"/);
+});
+
+test('requires choosing an invitation type before creating an event', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar' }]
+  };
+  const { elements } = await loadAdmin(data);
+
+  assert.equal(elements.get('weddingFields').hidden, false);
+  elements.get('addEvent').handlers.click();
+  assert.equal(elements.get('newEventPanel').hidden, false);
+  assert.equal(elements.get('eventList').children.length, 1);
+  elements.get('newEventType').value = '';
+  elements.get('createEvent').handlers.click();
+  assert.equal(elements.get('eventList').children.length, 1);
+  elements.get('newEventType').value = 'wedding';
+  elements.get('createEvent').handlers.click();
+
+  assert.equal(elements.get('eventList').children.length, 2);
+  assert.equal(elements.get('newEventPanel').hidden, true);
+  assert.equal(elements.get('weddingFields').hidden, false);
+  assert.equal(elements.get('formTitle').textContent, 'New wedding invitation');
+});
+
+test('creates non-wedding invitations using the type selected first', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar' }]
+  };
+  const { elements } = await loadAdmin(data);
+
+  elements.get('addEvent').handlers.click();
+  elements.get('newEventType').value = 'birthday';
+  elements.get('createEvent').handlers.click();
+
+  assert.equal(data.events[1].eventType, 'birthday');
+  assert.equal(elements.get('weddingFields').hidden, true);
+  assert.equal(elements.get('formTitle').textContent, 'New birthday invitation');
+});
+
+test('admin creates an invitation with structured wedding details', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Abdelrahman & Omnia' }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, fields, saved } = await loadAdmin(data, storage);
+  const values = {
+    religiousOpening: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+    quranVerse: 'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ',
+    quranReference: 'سورة الروم – الآية ٢١',
+    hostNames: 'الأستاذ رضا والأستاذ ياسر',
+    groomTitle: 'م.',
+    groomName: 'عبدالرحمن',
+    brideTitle: 'د.',
+    brideName: 'أمنية',
+    preEventTitle: 'Wedding lunch',
+    preEventDate: '2026-11-19',
+    preEventTime: 'After Dhuhr prayer',
+    preEventVenue: 'Groom’s family home',
+    preEventLocationUrl: 'https://maps.example.test/lunch',
+    preEventDetails: 'Lunch before the wedding',
+    contractImageUrl: 'https://images.example.test/contract.jpg',
+    contractImageCaption: 'Alhamdulillah'
+  };
+  Object.entries(values).forEach(([name, value]) => {
+    const field = fields.find((item) => item.name === name);
+    field.value = value;
+    elements.get('eventForm').handlers.input({ target: field });
+  });
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(saved.length, 1, elements.get('status').textContent);
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  assert.equal(savedEvent.eventType, 'wedding');
+  Object.entries(values).forEach(([name, value]) => assert.equal(savedEvent[name], value));
+});
+
+test('admin rejects unsafe links in structured wedding fields', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Abdelrahman & Omnia',
+      preEventLocationUrl: 'javascript:alert(1)'
+    }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, saved } = await loadAdmin(data, storage);
+
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(saved.length, 0);
+  assert.match(elements.get('status').textContent, /valid HTTPS links/);
 });
 
 test('admin uploads a custom song with the invitation', async () => {

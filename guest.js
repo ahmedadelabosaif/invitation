@@ -19,6 +19,12 @@
     chopinRomance: 'https://upload.wikimedia.org/wikipedia/commons/a/a4/Chopin_-_Piano_Concerto_no._1%2C_Op._11_%28string_quartet%29-2.ogg',
     beethovenHammerklavier: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Beethoven%2C_Piano_Sonata_No._29_in_B-flat_Major%2C_Op._106_Hammerklavier_-_III._Adagio_sostenuto.ogg'
   };
+  var EVENT_TYPE_LABELS = {
+    wedding: 'wedding',
+    engagement: 'engagement',
+    birthday: 'birthday',
+    gathering: 'gathering'
+  };
   var ETIQUETTE = {
     noPhotos: { icon: '🚫📷', label: 'No photos or video, please' },
     modestDress: { icon: '🧕', label: 'Modest dress requested' },
@@ -145,12 +151,81 @@
     $('decor').innerHTML = html;
   }
 
+  function renderWeddingDetails(event) {
+    var isWedding = event && (!event.eventType || event.eventType === 'wedding');
+    var religiousOpening = isWedding ? event.religiousOpening || '' : '';
+    var quranVerse = isWedding ? event.quranVerse || '' : '';
+    var quranReference = isWedding ? event.quranReference || '' : '';
+    $('religiousOpening').textContent = religiousOpening;
+    $('religiousOpening').hidden = !religiousOpening;
+    $('quranVerse').textContent = quranVerse;
+    $('quranReference').textContent = quranReference;
+    $('quranBlock').hidden = !quranVerse && !quranReference;
+    $('weddingOpening').hidden = !religiousOpening && !quranVerse && !quranReference;
+
+    var hosts = isWedding ? event.hostNames || '' : '';
+    $('hostNames').textContent = hosts;
+    $('hostNames').hidden = !hosts;
+
+    var relatedFields = isWedding && [
+      event.preEventTitle,
+      event.preEventDate,
+      event.preEventTime,
+      event.preEventVenue,
+      event.preEventLocationUrl,
+      event.preEventDetails
+    ].some(Boolean);
+    $('relatedEvent').hidden = !relatedFields;
+    if (relatedFields) {
+      $('relatedEventTitle').textContent = event.preEventTitle || 'Related gathering';
+      $('relatedEventDate').textContent = event.preEventDate
+        ? new Date(event.preEventDate + 'T00:00:00').toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        })
+        : '';
+      $('relatedEventTime').textContent = event.preEventTime || '';
+      $('relatedEventVenue').textContent = event.preEventVenue || '';
+      $('relatedEventDetails').textContent = event.preEventDetails || '';
+      var relatedLocation = safeLocationUrl(event.preEventLocationUrl);
+      $('relatedEventLocation').hidden = !relatedLocation;
+      if (relatedLocation) $('relatedEventLocation').href = relatedLocation;
+      var calendar = $('relatedEventCalendar');
+      calendar.hidden = !event.preEventDate;
+      if (event.preEventDate) {
+        var startDate = new Date(event.preEventDate + 'T00:00:00');
+        var endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1);
+        var details = [event.preEventTime, event.preEventDetails].filter(Boolean).join('\n');
+        calendar.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
+          encodeURIComponent(event.preEventTitle || 'Related gathering') + '&dates=' +
+          calendarTime(startDate).slice(0, 8) + '/' + calendarTime(endDate).slice(0, 8) +
+          '&details=' + encodeURIComponent(details) +
+          '&location=' + encodeURIComponent(event.preEventVenue || event.preEventLocationUrl || '');
+      }
+    } else {
+      $('relatedEventLocation').hidden = true;
+      $('relatedEventCalendar').hidden = true;
+    }
+
+    var contractUrl = isWedding ? safeMediaUrl(event.contractImageUrl) : '';
+    $('contractPhoto').hidden = !contractUrl;
+    $('contractImage').src = contractUrl;
+    $('contractImage').alt = isWedding ? event.contractImageCaption || 'Marriage contract photo' : '';
+    $('contractCaption').textContent = isWedding ? event.contractImageCaption || '' : '';
+
+    var groomName = isWedding ? event.groomName || '' : '';
+    var brideName = isWedding ? event.brideName || '' : '';
+    var groom = groomName ? [event.groomTitle, groomName].filter(Boolean).join(' ') : '';
+    var bride = brideName ? [event.brideTitle, brideName].filter(Boolean).join(' ') : '';
+    return [groom, bride].filter(Boolean).join(' & ');
+  }
+
   function renderEvent(event) {
     var environment = ENVS[event.env] || ENVS.classic;
     $('themeMark').hidden = event.env !== 'islamic';
-    document.title = event.names
-      ? event.names.trim() + "'s wedding invitation"
-      : 'Wedding invitation';
+    var eventType = EVENT_TYPE_LABELS[event.eventType] || 'wedding';
+    var coupleNames = renderWeddingDetails(event);
+    var names = coupleNames || event.names || '';
+    document.title = names ? names.trim() + "'s " + eventType + ' invitation' : 'Invitation';
     $('card').style.setProperty('--cbg', environment.bg);
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
@@ -168,7 +243,7 @@
     $('icon').textContent = event.emoji || '';
     $('kicker').textContent = event.kicker || '';
     $('introDescription').textContent = event.introDescription || '';
-    $('names').textContent = event.names || '';
+    $('names').textContent = names;
     currentStart = dateTime(event);
     $('date').textContent = currentStart
       ? currentStart.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -316,6 +391,7 @@
       $('info').textContent = '';
       $('etiquette').replaceChildren();
       $('etiquette').hidden = true;
+      renderWeddingDetails(null);
       $('pageBackdrop').hidden = true;
       $('pageBackgroundImage').hidden = true;
       $('cardBackground').hidden = true;

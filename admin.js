@@ -1,4 +1,10 @@
 (function () {
+  var EVENT_TYPES = {
+    wedding: { label: 'Wedding', emoji: '💍', names: 'New wedding invitation', kicker: 'You’re invited to the wedding of', title: 'Wedding' },
+    engagement: { label: 'Engagement', emoji: '💍', names: 'New engagement invitation', kicker: 'You’re invited to celebrate', title: 'Engagement' },
+    birthday: { label: 'Birthday', emoji: '🎂', names: 'New birthday invitation', kicker: 'You’re invited to celebrate', title: 'Birthday celebration' },
+    gathering: { label: 'Gathering', emoji: '✨', names: 'New gathering invitation', kicker: 'You’re invited to', title: 'Gathering' }
+  };
   var BACKGROUNDS = {
     roseGarden: './backgrounds/rose-garden.svg',
     goldenArch: './backgrounds/golden-arch.svg',
@@ -114,6 +120,9 @@
 
   function normalizeInvitations(data) {
     data.events.forEach(function (event) {
+      if (!Object.prototype.hasOwnProperty.call(EVENT_TYPES, event.eventType)) {
+        event.eventType = 'wedding';
+      }
       event.etiquette = Array.isArray(event.etiquette)
         ? event.etiquette.filter(function (item) { return Object.prototype.hasOwnProperty.call(ETIQUETTE, item); })
         : [];
@@ -130,7 +139,8 @@
       button.setAttribute('aria-pressed', event.id === selectedId ? 'true' : 'false');
       button.textContent = event.emoji ? event.emoji + ' ' + (event.names || 'New event') : (event.names || 'New event');
       var meta = document.createElement('small');
-      meta.textContent = event.id === invitations.featured ? 'Main invitation' : 'Guest link available';
+      meta.textContent = (event.id === invitations.featured ? 'Main invitation' : 'Guest link available') +
+        ' · ' + EVENT_TYPES[event.eventType].label;
       button.appendChild(meta);
       button.addEventListener('click', function () {
         selectedId = event.id;
@@ -155,6 +165,7 @@
     $('eventForm').hidden = !event;
     if (!event) return;
     updateEventMetadata(event);
+    $('weddingFields').hidden = event.eventType !== 'wedding';
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
       if (control.name === 'etiquette') {
         control.checked = Array.isArray(event.etiquette) && event.etiquette.includes(control.value);
@@ -366,13 +377,29 @@
   });
 
   $('addEvent').addEventListener('click', function () {
+    $('newEventPanel').hidden = false;
+    $('newEventType').focus();
+  });
+
+  $('cancelNewEvent').addEventListener('click', function () {
+    $('newEventPanel').hidden = true;
+  });
+
+  $('createEvent').addEventListener('click', function () {
+    var type = $('newEventType').value;
+    if (!Object.prototype.hasOwnProperty.call(EVENT_TYPES, type)) {
+      setStatus('Choose an invitation type before creating the event.');
+      return;
+    }
+    var template = EVENT_TYPES[type];
     var id = 'event-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     invitations.events.push({
       id: id,
-      emoji: '🎉',
-      kicker: 'You’re invited to',
-      names: 'New event',
-      event: 'New event',
+      eventType: type,
+      emoji: template.emoji,
+      kicker: template.kicker,
+      names: template.names,
+      event: template.title,
       date: '',
       time: '',
       venue: '',
@@ -384,6 +411,7 @@
       env: 'classic'
     });
     selectedId = id;
+    $('newEventPanel').hidden = true;
     markChanged();
     render();
   });
@@ -569,6 +597,13 @@
       return event.locationUrl && !safeLocationUrl(event.locationUrl);
     })) {
       setStatus('Use a valid map link starting with https:// or http://.');
+      return;
+    }
+    if (invitations.events.some(function (event) {
+      return (event.preEventLocationUrl && !safeLocationUrl(event.preEventLocationUrl)) ||
+        (event.contractImageUrl && !safeMediaUrl(event.contractImageUrl));
+    })) {
+      setStatus('Use valid HTTPS links for the related gathering map and marriage-contract image.');
       return;
     }
     if (invitations.events.some(function (event) {
