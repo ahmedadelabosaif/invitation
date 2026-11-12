@@ -1,0 +1,19 @@
+{
+  "featured": "wedding",
+  "events": [
+    {
+      "id": "wedding",
+      "public": true,
+      "emoji": "💍",
+      "kicker": "You’re invited to the wedding of",
+      "names": "Sara & Ahmed",
+      "event": "Sara & Ahmed’s wedding",
+      "date": "2027-06-12",
+      "time": "16:00",
+      "venue": "Venue name, City",
+      "message": "We would be honored to celebrate with you. Join us for dinner, music and dancing.",
+      "info": "Dress code: formal.\nParking is available at the venue.",
+      "env": "garden"
+    }
+  ]
+}

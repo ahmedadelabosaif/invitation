@@ -6,38 +6,27 @@
     sunset: { bg: '#fbe3d6', ink: '#4a2335', mut: '#7a5260', acc: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
     night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 }
   };
-  var fallback = JSON.parse(document.getElementById('preview-data').textContent);
-  var client = null;
   var currentStart = null;
-  var currentEventId = null;
-  var eventChannel = null;
-  var settingsChannel = null;
-  var latestRequest = 0;
+  var currentEvent = null;
   var lastEnvironment = null;
+  var invitations = null;
 
   function $(id) {
     return document.getElementById(id);
-  }
-
-  function requestId() {
-    return new URLSearchParams(location.search).get('event') || location.hash.slice(1) || null;
-  }
-
-  function dateTime(event) {
-    if (!event.date) return null;
-    var dateParts = event.date.split('-').map(Number);
-    var timeParts = (event.time || '00:00').split(':').map(Number);
-    return new Date(
-      dateParts[0], dateParts[1] - 1, dateParts[2],
-      timeParts[0] || 0, timeParts[1] || 0, 0
-    );
   }
 
   function pad(number) {
     return String(number).padStart(2, '0');
   }
 
-  function timestamp(date) {
+  function dateTime(event) {
+    if (!event.date) return null;
+    var date = event.date.split('-').map(Number);
+    var time = (event.time || '00:00').split(':').map(Number);
+    return new Date(date[0], date[1] - 1, date[2], time[0] || 0, time[1] || 0);
+  }
+
+  function calendarTime(date) {
     return date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate()) +
       'T' + pad(date.getHours()) + pad(date.getMinutes()) + '00';
   }
@@ -49,11 +38,11 @@
       var duration = 9 + (i * 7) % 8;
       var delay = -((i * 5) % duration);
       var size = 0.9 + (i % 4) * 0.25;
-      var top = (i * 37) % 90;
       var twinkle = environment.motion === 'twinkle';
-      html += '<span style="left:' + left + '%;' + (twinkle ? 'top:' + top + '%;' : '') +
+      html += '<span style="left:' + left + '%;' +
+        (twinkle ? 'top:' + (i * 37) % 90 + '%;' : '') +
         'font-size:' + size + 'rem;animation-duration:' +
-        (twinkle ? 3 + (i % 4) : duration) + 's;animation-delay:' + delay + 's">' +
+        (twinkle ? 3 + i % 4 : duration) + 's;animation-delay:' + delay + 's">' +
         environment.emojis[i % environment.emojis.length] + '</span>';
     }
     $('decor').className = 'decor ' + environment.motion;
@@ -72,7 +61,7 @@
     currentStart = dateTime(event);
     $('date').textContent = currentStart
       ? currentStart.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-      : (event.date ? 'Date to be announced' : '');
+      : 'Date to be announced';
     $('time').textContent = currentStart && event.time
       ? 'at ' + currentStart.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
@@ -84,7 +73,7 @@
       var end = new Date(currentStart.getTime() + 4 * 3600 * 1000);
       $('cal').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
         encodeURIComponent(event.event || event.names || 'Event') + '&dates=' +
-        timestamp(currentStart) + '/' + timestamp(end) + '&details=' +
+        calendarTime(currentStart) + '/' + calendarTime(end) + '&details=' +
         encodeURIComponent(event.message || '') + '&location=' + encodeURIComponent(event.venue || '');
     }
     if (event.env !== lastEnvironment) {
@@ -93,20 +82,6 @@
     }
     $('notice').hidden = true;
     updateCountdown();
-  }
-
-  function showUnavailable(message) {
-    currentStart = null;
-    $('names').textContent = 'Invitation unavailable';
-    $('kicker').textContent = '';
-    $('date').textContent = '';
-    $('time').textContent = '';
-    $('venue').textContent = '';
-    $('msg').textContent = message;
-    $('info').textContent = '';
-    $('icon').textContent = '';
-    $('clock').replaceChildren();
-    $('cal').hidden = true;
   }
 
   function updateCountdown() {
@@ -131,76 +106,90 @@
     }).join('') + '</div>';
   }
 
-  async function loadEvent() {
-    var request = ++latestRequest;
-    var requestedId = requestId();
+  function requestedId() {
+    return new URLSearchParams(location.search).get('event') || location.hash.slice(1);
+  }
+
+  function sortedPublicEvents() {
+    return invitations.events
+      .filter(function (event) { return event.public !== false; })
+      .slice()
+      .sort(function (a, b) { return (a.date || '9999').localeCompare(b.date || '9999'); });
+  }
+
+  function renderMore() {
+    var section = $('more');
+    section.replaceChildren();
+    var others = sortedPublicEvents().filter(function (event) {
+      return event.id !== currentEvent.id;
+    });
+    section.hidden = others.length === 0;
+    if (!others.length) return;
+
+    var heading = document.createElement('h2');
+    heading.textContent = 'More events';
+    section.appendChild(heading);
+    others.forEach(function (event) {
+      var link = document.createElement('a');
+      link.className = 'mrow';
+      link.href = '?event=' + encodeURIComponent(event.id);
+      var icon = document.createElement('span');
+      icon.textContent = event.emoji || '✨';
+      var details = document.createElement('span');
+      var title = document.createElement('b');
+      title.textContent = event.names || event.event || 'Event';
+      var date = document.createElement('small');
+      var starts = dateTime(event);
+      date.textContent = starts
+        ? starts.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+        : 'Date to be announced';
+      details.append(title, date);
+      link.append(icon, details);
+      section.appendChild(link);
+    });
+  }
+
+  function render() {
+    var events = sortedPublicEvents();
+    var id = requestedId();
+    currentEvent = (id && events.find(function (event) { return event.id === id; })) ||
+      events.find(function (event) { return event.id === invitations.featured; }) ||
+      events[0] || null;
+    if (!currentEvent) {
+      currentStart = null;
+      $('names').textContent = 'Invitation unavailable';
+      $('icon').textContent = '';
+      $('kicker').textContent = '';
+      $('date').textContent = '';
+      $('time').textContent = '';
+      $('venue').textContent = '';
+      $('msg').textContent = 'There are no public invitations right now.';
+      $('info').textContent = '';
+      $('clock').replaceChildren();
+      $('cal').hidden = true;
+      $('more').hidden = true;
+      return;
+    }
+    renderEvent(currentEvent);
+    renderMore();
+  }
+
+  async function loadInvitations() {
     try {
-      if (!requestedId && !settingsChannel) {
-        settingsChannel = client.channel('public-invitation-settings')
-          .on('postgres_changes', {
-            event: '*', schema: 'public', table: 'invitation_settings', filter: 'id=eq.1'
-          }, loadEvent)
-          .subscribe();
-      }
-      var id = requestedId;
-      if (!id) {
-        var settings = await client.from('invitation_settings')
-          .select('featured_event_id').eq('id', 1).single();
-        if (settings.error) throw settings.error;
-        id = settings.data.featured_event_id;
-      }
-      if (!id) {
-        if (request === latestRequest) showUnavailable('No invitation is currently featured.');
-        return;
-      }
-      var result = await client.from('events').select('*')
-        .eq('id', id).eq('is_public', true).maybeSingle();
-      if (result.error) throw result.error;
-      if (request !== latestRequest) return;
-      if (!result.data) {
-        showUnavailable('This invitation is not available to the public.');
-        watchEvent(id);
-        return;
-      }
-      renderEvent(result.data);
-      watchEvent(result.data.id);
+      var response = await fetch('./invitations.json?updated=' + Date.now(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('Could not load invitations.');
+      invitations = await response.json();
+      if (!Array.isArray(invitations.events)) throw new Error('Invitation data is invalid.');
+      render();
     } catch (error) {
-      if (request === latestRequest) {
-        showUnavailable('We could not load this invitation. Please try again later.');
-        $('notice').textContent = 'Invitation service error: ' + error.message;
-        $('notice').hidden = false;
-      }
+      $('notice').textContent = error.message;
+      $('notice').hidden = false;
     }
   }
 
-  function watchEvent(id) {
-    if (id === currentEventId && eventChannel) return;
-    if (eventChannel) client.removeChannel(eventChannel);
-    currentEventId = id;
-    eventChannel = client.channel('public-invitation-event-' + id)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'events', filter: 'id=eq.' + id
-      }, loadEvent)
-      .subscribe();
-  }
-
-  if (!window.invitationData.isConfigured()) {
-    renderEvent(fallback);
-    $('notice').textContent = 'Preview mode: connect the invitation service to use live event links.';
-    $('notice').hidden = false;
-    return;
-  }
-
-  try {
-    client = window.invitationData.getClient();
-    loadEvent();
-    window.setInterval(loadEvent, 30000);
-    window.addEventListener('hashchange', loadEvent);
-    window.addEventListener('popstate', loadEvent);
-    window.setInterval(updateCountdown, 1000);
-  } catch (error) {
-    showUnavailable('We could not connect to the invitation service.');
-    $('notice').textContent = error.message;
-    $('notice').hidden = false;
-  }
+  loadInvitations();
+  window.setInterval(updateCountdown, 1000);
+  window.setInterval(loadInvitations, 30000);
+  window.addEventListener('hashchange', render);
+  window.addEventListener('popstate', render);
 })();

@@ -6,100 +6,70 @@ const vm = require('node:vm');
 
 const guestSource = fs.readFileSync(path.join(__dirname, '..', 'guest.js'), 'utf8');
 
-function runGuest({ search = '', hash = '', event = null, settings = { featured_event_id: 'wedding' } }) {
+async function loadGuest(search, data) {
   const elements = new Map();
-  const queries = [];
-  const channels = [];
-  function element(id) {
+  function getElementById(id) {
     if (!elements.has(id)) {
       elements.set(id, {
         id,
+        children: [],
         hidden: false,
-        textContent: id === 'preview-data' ? '{"id":"preview","names":"Preview"}' : '',
+        textContent: '',
         innerHTML: '',
         href: '',
         className: '',
         style: { setProperty() {} },
-        replaceChildren() {}
+        replaceChildren() { this.children = []; },
+        appendChild(child) { this.children.push(child); },
+        append(...children) { this.children.push(...children); }
       });
     }
     return elements.get(id);
   }
-  const client = {
-    from(table) {
-      const query = { table, filters: [] };
-      queries.push(query);
+  const document = {
+    getElementById,
+    createElement(tag) {
       return {
-        select() { return this; },
-        eq(column, value) { query.filters.push([column, value]); return this; },
-        async maybeSingle() { return { data: event, error: null }; },
-        async single() { return { data: settings, error: null }; }
+        tag,
+        children: [],
+        append(...children) { this.children.push(...children); }
       };
-    },
-    channel(name) {
-      const channel = {
-        name,
-        on() { return this; },
-        subscribe() { channels.push(name); return this; }
-      };
-      return channel;
-    },
-    removeChannel() {}
-  };
-  const window = {
-    invitationData: {
-      isConfigured: () => true,
-      getClient: () => client
-    },
-    location: { search, hash },
-    setInterval() {},
-    addEventListener() {}
+    }
   };
   vm.runInNewContext(guestSource, {
-    window,
-    location: window.location,
-    document: {
-      getElementById: element
-    },
+    document,
+    location: { search, hash: '' },
     URLSearchParams,
     Date,
     Math,
-    encodeURIComponent
+    encodeURIComponent,
+    fetch: async () => ({ ok: true, json: async () => data }),
+    window: { setInterval() {}, addEventListener() {} }
   });
-  return new Promise((resolve) => setImmediate(() => resolve({ elements, queries, channels })));
+  await new Promise(setImmediate);
+  return elements;
 }
 
-test('loads only the requested published event', async () => {
-  const event = {
-    id: 'wedding',
-    names: 'Sara & Ahmed',
-    date: '2027-06-12',
-    time: '16:00',
-    env: 'garden',
-    is_public: true
-  };
-  const result = await runGuest({ search: '?event=wedding', event });
+const invitations = {
+  featured: 'wedding',
+  events: [
+    { id: 'wedding', public: true, names: 'Sara & Ahmed', env: 'garden' },
+    { id: 'party', public: true, names: 'Birthday party', env: 'classic' },
+    { id: 'private', public: false, names: 'Private event', env: 'classic' }
+  ]
+};
 
-  assert.equal(result.elements.get('names').textContent, 'Sara & Ahmed');
-  assert.deepEqual(result.queries[0].filters, [['id', 'wedding'], ['is_public', true]]);
-  assert.deepEqual(result.channels, ['public-invitation-event-wedding']);
+test('shows the event selected by its public link', async () => {
+  const elements = await loadGuest('?event=party', invitations);
+
+  assert.equal(elements.get('names').textContent, 'Birthday party');
 });
 
-test('uses the featured event for the root link and watches featured changes', async () => {
-  const event = { id: 'wedding', names: 'Sara & Ahmed', env: 'classic', is_public: true };
-  const result = await runGuest({ event });
+test('shows the featured event and only links to other public events', async () => {
+  const elements = await loadGuest('', invitations);
+  const links = elements.get('more').children.slice(1);
 
-  assert.equal(result.queries[0].table, 'invitation_settings');
-  assert.equal(result.queries[1].filters[0][1], 'wedding');
-  assert.deepEqual(result.channels, [
-    'public-invitation-settings',
-    'public-invitation-event-wedding'
-  ]);
-});
-
-test('does not render an unpublished event', async () => {
-  const result = await runGuest({ search: '?event=private-event', event: null });
-
-  assert.equal(result.elements.get('names').textContent, 'Invitation unavailable');
-  assert.match(result.elements.get('msg').textContent, /not available to the public/);
+  assert.equal(elements.get('names').textContent, 'Sara & Ahmed');
+  assert.equal(links.length, 1);
+  assert.equal(links[0].href, '?event=party');
 });

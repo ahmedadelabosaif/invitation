@@ -7,110 +7,34 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Karla:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root{font-family:Karla,system-ui,sans-serif;color:#1f2a44;background:#eef1f5;line-height:1.5}
+    :root{font-family:Karla,system-ui,sans-serif;color:#1f2a44;background:#eef1f5;line-height:1.55}
     *{box-sizing:border-box}
     body{margin:0}
-    button,input,select,textarea{font:inherit;color:inherit}
-    button{border:1px solid #d5dbe6;border-radius:8px;background:#fff;padding:8px 12px;cursor:pointer}
-    button:hover{border-color:#b4476b}
-    button:disabled{opacity:.55;cursor:not-allowed}
-    button.primary{color:#fff;background:#b4476b;border-color:#b4476b;font-weight:600}
-    :focus-visible{outline:2px solid #b4476b;outline-offset:2px}
-    [hidden]{display:none!important}
-    header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#fff;border-bottom:1px solid #d5dbe6}
-    header h1{font:600 1.65rem "Cormorant Garamond",Georgia,serif;margin:0}
-    header .spacer{flex:1}
-    main{max-width:1080px;margin:32px auto;padding:0 16px}
-    .card{background:#fff;border:1px solid #d5dbe6;border-radius:14px;padding:20px}
-    #login{max-width:420px;margin:10vh auto}
-    h2{font:600 1.5rem "Cormorant Garamond",Georgia,serif;margin:0 0 12px}
+    header{padding:14px 20px;background:#fff;border-bottom:1px solid #d5dbe6}
+    main{max-width:680px;margin:48px auto;padding:0 16px}
+    section{padding:24px;background:#fff;border:1px solid #d5dbe6;border-radius:14px}
+    h1{margin:0 0 8px;font:600 2rem "Cormorant Garamond",Georgia,serif}
     p{color:#5c6780}
-    label{display:grid;gap:5px;margin:12px 0;color:#5c6780;font-size:.92rem}
-    input,select,textarea{width:100%;padding:9px 10px;border:1px solid #d5dbe6;border-radius:8px;background:#eef1f5}
-    textarea{min-height:84px;resize:vertical}
-    #status{min-height:1.5em;color:#5c6780}
-    .layout{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:18px}
-    .event-list{display:grid;gap:8px}
-    .event-list button{text-align:left}
-    .event-list button[aria-pressed=true]{border-color:#b4476b}
-    .event-list small{display:block;color:#5c6780}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-    .wide{grid-column:1/-1}
-    .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
-    .share{display:flex;gap:8px;align-items:end}
-    .share label{flex:1}
-    .checkbox{display:flex;align-items:center;gap:8px}
-    .checkbox input{width:auto}
-    @media(max-width:720px){.layout{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.share{align-items:stretch;flex-direction:column}}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+    a.button{display:inline-block;padding:10px 16px;border:1px solid #d5dbe6;border-radius:8px;color:#1f2a44;text-decoration:none}
+    a.primary{background:#b4476b;border-color:#b4476b;color:#fff;font-weight:600}
+    code{padding:2px 5px;border-radius:4px;background:#eef1f5}
+    :focus-visible{outline:2px solid #b4476b;outline-offset:2px}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Invitation admin</h1>
-    <span class="spacer"></span>
-    <a href="./" target="_blank" rel="noopener">View public invitation</a>
-    <button id="signOut" hidden>Sign out</button>
-  </header>
+  <header><a href="./">← Public invitation</a></header>
   <main>
-    <section id="login" class="card">
-      <h2>Admin sign in</h2>
-      <p>Sign in with the admin password to manage and share events.</p>
-      <form id="loginForm">
-        <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
-        <button id="loginButton" class="primary" type="submit">Sign in</button>
-      </form>
-      <p id="loginStatus" role="status"></p>
-    </section>
-
-    <section id="portal" hidden>
-      <p id="status" role="status"></p>
-      <div class="layout">
-        <aside class="card">
-          <h2>Events</h2>
-          <div id="eventList" class="event-list"></div>
-          <div class="actions"><button id="addEvent" class="primary">Add event</button></div>
-        </aside>
-        <section class="card">
-          <form id="eventForm">
-            <h2 id="editorTitle">Edit event</h2>
-            <div class="grid">
-              <label>Emoji<input name="emoji" maxlength="4"></label>
-              <label>Intro line<input name="kicker" maxlength="80"></label>
-              <label>Names / title<input name="names" maxlength="80" required></label>
-              <label>Calendar title<input name="event" maxlength="80"></label>
-              <label>Date<input name="date" type="date"></label>
-              <label>Time<input name="time" type="time"></label>
-              <label class="wide">Venue<input name="venue" maxlength="120"></label>
-              <label class="wide">Message<textarea name="message" maxlength="300"></textarea></label>
-              <label class="wide">Additional information<textarea name="info" maxlength="600"></textarea></label>
-              <label>Theme
-                <select name="env">
-                  <option value="classic">Classic</option>
-                  <option value="garden">Garden</option>
-                  <option value="beach">Beach</option>
-                  <option value="sunset">Sunset</option>
-                  <option value="night">Night sky</option>
-                </select>
-              </label>
-              <label class="checkbox"><input name="is_public" type="checkbox"> Publicly shareable</label>
-            </div>
-            <div class="actions">
-              <button id="saveEvent" class="primary" type="submit">Save changes</button>
-              <button id="featureEvent" type="button">Set as main invitation</button>
-              <button id="deleteEvent" type="button">Delete event</button>
-            </div>
-            <div class="share">
-              <label>Public link for this event<input id="shareLink" readonly></label>
-              <button id="copyLink" type="button">Copy link</button>
-            </div>
-          </form>
-        </section>
+    <section>
+      <h1>Your invitation admin</h1>
+      <p>Edit the invitation data on GitHub. Sign in with the GitHub account that owns this repository; GitHub only lets that account save changes.</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json">Edit invitations</a>
+        <a class="button" href="./">View public page</a>
       </div>
+      <p>Change the event details in <code>invitations.json</code>, then choose <strong>Commit changes</strong>. To add another event, add an event object with a unique <code>id</code>. Set <code>"featured"</code> to the ID you want shown on the main link.</p>
+      <p>After GitHub Pages finishes publishing, your public link updates. Share the main link or use <code>?event=your-event-id</code> for a specific event.</p>
     </section>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./supabase-config.js"></script>
-  <script src="./invitation-data.js"></script>
-  <script src="./admin.js"></script>
 </body>
 </html>
