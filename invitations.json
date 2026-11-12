@@ -26,7 +26,21 @@
       "musicUrl": "",
       "musicTrack": "beethovenVariations",
       "backgroundImage": "",
-      "introDescription": "You’re invited to the wedding of"
+      "introDescription": "You’re invited to the wedding of",
+      "layoutStyles": {
+        "kicker": {
+          "font": "",
+          "size": "1.2rem",
+          "align": "",
+          "color": ""
+        },
+        "introDescription": {
+          "font": "cursive",
+          "size": "2.5rem",
+          "align": "",
+          "color": ""
+        }
+      }
     }
   ]
 }
