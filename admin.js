@@ -4,7 +4,8 @@
     garden: { bg: '#ddebdd', ink: '#1e3a2a', accent: '#3f7a55', motion: 'fall', emojis: ['🌸', '🍃', '🌼'], count: 10 },
     beach: { bg: '#d9eef3', ink: '#123b4a', accent: '#1b7f9a', motion: 'rise', emojis: ['🫧', '🐚'], count: 10 },
     sunset: { bg: '#fbe3d6', ink: '#4a2335', accent: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
-    night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 }
+    night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
+    islamic: { bg: '#153b35', ink: '#fff8e9', accent: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
   };
   var CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
   var TOKEN_KEY = 'invitation.github.publish-token';

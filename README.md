@@ -16,6 +16,7 @@ invitation update; GitHub Pages deploys it automatically.
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one
 event. Add an optional map URL to make a **Get directions** link appear on the
-public invitation. Changes are drafts until published.
+public invitation. Choose **Islamic wedding** for an emerald-and-gold palette
+with subtle crescent-and-star animation. Changes are drafts until published.
 All event data in the public JSON file is visible to anyone, so don't put
 private details there.

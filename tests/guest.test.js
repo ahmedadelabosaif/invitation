@@ -19,7 +19,10 @@ async function loadGuest(search, data) {
         href: '',
         className: '',
         attributes: {},
-        style: { setProperty() {} },
+        style: {
+          properties: {},
+          setProperty(name, value) { this.properties[name] = value; }
+        },
         replaceChildren() { this.children = []; },
         removeAttribute(name) { delete this.attributes[name]; },
         setAttribute(name, value) { this.attributes[name] = value; },
@@ -99,6 +102,18 @@ test('does not make unsafe location URLs clickable', async () => {
   const elements = await loadGuest('', withUnsafeLink);
 
   assert.equal(elements.get('locationLink').hidden, true);
+});
+
+test('renders the Islamic wedding theme with its emerald and gold decor', async () => {
+  const islamicTheme = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'islamic' }]
+  };
+  const elements = await loadGuest('', islamicTheme);
+
+  assert.equal(elements.get('card').style.properties['--cbg'], '#153b35');
+  assert.equal(elements.get('card').style.properties['--cacc'], '#d8b46a');
+  assert.match(elements.get('decor').innerHTML, /☾/);
 });
 
 test('shows the featured event and links to other events', async () => {

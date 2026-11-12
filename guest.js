@@ -4,7 +4,8 @@
     garden: { bg: '#ddebdd', ink: '#1e3a2a', mut: '#4f6b58', acc: '#3f7a55', motion: 'fall', emojis: ['🌸', '🍃', '🌼'], count: 10 },
     beach: { bg: '#d9eef3', ink: '#123b4a', mut: '#3d6272', acc: '#1b7f9a', motion: 'rise', emojis: ['🫧', '🐚'], count: 10 },
     sunset: { bg: '#fbe3d6', ink: '#4a2335', mut: '#7a5260', acc: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
-    night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 }
+    night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
+    islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
   };
   var currentStart = null;
   var currentEvent = null;
