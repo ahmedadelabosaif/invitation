@@ -27,7 +27,7 @@
     #stage[data-theme=arabesque]:not([data-background=full]){background:radial-gradient(ellipse at 50% 22%,#fffdf7 0,#f0eadc 58%,#e6decb 100%)}
     .card[data-env=arabesque] .quran-verse{padding:16px 10px;border-block:3px double var(--cacc);font-size:1.2rem;line-height:2}
     .card[data-env=arabesque] .date{color:var(--cacc);letter-spacing:.04em}
-    #stage[data-theme=plum]{display:block;min-height:100vh;padding:0;background:radial-gradient(ellipse at 50% 0,#3a2650,#2a1a3a 72%);color:#f6ecf0}
+    #stage[data-theme=plum]{display:block;min-height:100vh;padding:0;background:radial-gradient(ellipse at 50% 0,var(--page-custom-glow,#3a2650),var(--page-custom-bg,#2a1a3a) 72%);color:#f6ecf0}
     #stage[data-theme=plum][data-background=full]{background:transparent}
     #stage[data-theme=plum] #notice{margin:12px auto}
     #pageBackdrop[data-theme=plum]::after{background:rgba(28,17,41,.5)}
@@ -95,6 +95,12 @@
     .contract-photo{max-width:420px;margin:22px auto 0}
     .contract-photo img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px}
     .contract-photo figcaption{margin-top:8px;color:var(--cmut);font-size:.88rem}
+    .wedding-section{margin:22px auto 0;padding:16px 0 0;border-top:1px solid var(--cacc)}
+    .wedding-section h2{margin:0 0 10px;color:var(--cacc);font:600 1.35rem "Cormorant Garamond",Georgia,serif}
+    .wedding-section p{margin:6px auto}
+    .privacy-note{max-width:40ch;margin:12px auto;padding:12px;border:1px solid color-mix(in srgb,var(--cacc) 50%,transparent);border-radius:10px;background:color-mix(in srgb,var(--cacc) 8%,transparent);font-size:.9rem}
+    .parent-invitation{margin:22px auto 0;padding:16px 0;border-block:1px solid var(--cacc)}
+    .parent-invitation p{margin:6px auto}
     .wedding-arabic{direction:rtl;unicode-bidi:plaintext}
     .rich-gold{color:#d8b46a}.rich-rose{color:#d86d8d}.rich-emerald{color:#27815f}
     .card h1{margin:0 0 20px;font:500 clamp(2.6rem,10vw,4rem)/1.05 "Cormorant Garamond",Georgia,serif}
@@ -159,6 +165,7 @@
               </blockquote>
             </section>
           </section>
+          <div id="layout-poem" class="layout-item"><p class="poem" id="poem" dir="auto"></p></div>
           <div id="layout-kicker" class="layout-item"><p class="kicker" id="kicker" dir="auto"></p></div>
           <div id="layout-introDescription" class="layout-item"><p class="intro-description" id="introDescription" dir="auto"></p></div>
           <div id="layout-hostNames" class="layout-item"><p id="hostNames" class="wedding-hosts" dir="auto" hidden></p></div>
@@ -169,6 +176,7 @@
           </div>
           <div id="layout-venue" class="layout-item">
             <p class="venue" id="venue" dir="auto"></p>
+            <p class="venue-address" id="venueAddress" dir="auto"></p>
             <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
           </div>
           <div id="layout-message" class="layout-item"><p class="msg" id="msg" dir="auto"></p></div>
@@ -187,14 +195,50 @@
               <a id="relatedEventCalendar" class="related-calendar" hidden target="_blank" rel="noopener">Add to calendar</a>
             </section>
           </section>
+          <section id="layout-henna" class="layout-item wedding-section" hidden>
+            <h2>ليلة حنة</h2>
+            <p id="hennaBride" class="wedding-arabic"></p>
+            <p id="hennaVerse" class="poem" dir="auto"></p>
+            <p id="hennaDate"></p>
+            <p id="hennaTime"></p>
+            <p id="hennaPlace" dir="auto"></p>
+            <p id="hennaNote" dir="auto"></p>
+            <div id="privacyNote" class="privacy-note" hidden>
+              <p id="privacyText" dir="auto"></p>
+              <p aria-hidden="true">📵　🚫📷</p>
+            </div>
+          </section>
+          <section id="layout-lunch" class="layout-item wedding-section" hidden>
+            <h2 id="lunchTitle"></h2>
+            <p id="lunchDate"></p>
+            <p id="lunchPlace" dir="auto"></p>
+            <p id="lunchTime" dir="auto"></p>
+            <a id="lunchCalendar" class="related-calendar" hidden target="_blank" rel="noopener">Add to calendar</a>
+          </section>
           <div id="layout-contractPhoto" class="layout-item">
             <figure id="contractPhoto" class="contract-photo" hidden>
               <img id="contractImage" alt="">
               <figcaption id="contractCaption"></figcaption>
             </figure>
           </div>
-          <div id="layout-countdown" class="layout-item"><div id="clock" role="timer"></div></div>
+          <section id="layout-katb" class="layout-item wedding-section" hidden>
+            <h2>كتبنا كتابنا</h2>
+            <p id="katbText" dir="auto"></p>
+          </section>
+          <section id="layout-parents" class="layout-item parent-invitation" hidden>
+            <p id="groomFather" dir="auto"></p>
+            <p id="brideFather" dir="auto"></p>
+            <p id="parentsInviteText"></p>
+            <p id="groomFull" dir="auto"></p>
+            <p id="brideFull" dir="auto"></p>
+            <p id="inviteNames" dir="auto"></p>
+          </section>
+          <div id="layout-countdown" class="layout-item">
+            <div id="clock" role="timer"></div>
+            <p id="countdownNote" class="mute"></p>
+          </div>
           <div id="layout-calendar" class="layout-item"><a class="btn" id="cal" href="#" target="_blank" rel="noopener">Add to Google Calendar</a></div>
+          <div id="layout-closing" class="layout-item"><p id="closing" class="msg" dir="auto"></p></div>
         </div>
       </div>
     </article>

@@ -1,12 +1,13 @@
 (function () {
   var KEYS = [
-    'emoji', 'weddingOpening', 'kicker', 'introDescription', 'hostNames', 'names',
-    'date', 'venue', 'message', 'info', 'etiquette', 'relatedEvent', 'contractPhoto',
-    'countdown', 'calendar'
+    'emoji', 'weddingOpening', 'poem', 'kicker', 'introDescription', 'hostNames', 'names',
+    'date', 'venue', 'message', 'info', 'etiquette', 'relatedEvent', 'henna', 'lunch',
+    'contractPhoto', 'katb', 'parents', 'countdown', 'calendar', 'closing'
   ];
   var LABELS = {
     emoji: 'Invitation icon',
     weddingOpening: 'Wedding opening',
+    poem: 'Opening poem',
     kicker: 'Invitation intro',
     introDescription: 'Intro description',
     hostNames: 'Hosts',
@@ -17,9 +18,14 @@
     info: 'Extra details',
     etiquette: 'Guest etiquette',
     relatedEvent: 'Related gathering',
+    henna: 'Henna night',
+    lunch: 'Lunch invitation',
     contractPhoto: 'Photo caption',
+    katb: 'Marriage contract',
+    parents: 'Parents’ invitation',
     countdown: 'Countdown',
-    calendar: 'Calendar link'
+    calendar: 'Calendar link',
+    closing: 'Closing message'
   };
   var FONTS = {
     serif: '"Cormorant Garamond", Georgia, serif',

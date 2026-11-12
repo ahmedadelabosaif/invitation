@@ -231,9 +231,10 @@
 
   function renderWeddingDetails(event) {
     var isWedding = event && (!event.eventType || event.eventType === 'wedding');
+    var showVerse = isWedding && event.showVerse !== false;
     var religiousOpening = isWedding ? event.religiousOpening || '' : '';
-    var quranVerse = isWedding ? event.quranVerse || '' : '';
-    var quranReference = isWedding ? event.quranReference || '' : '';
+    var quranVerse = showVerse ? event.quranVerse || '' : '';
+    var quranReference = showVerse ? event.quranReference || '' : '';
     setFormattedText('religiousOpening', religiousOpening);
     $('religiousOpening').hidden = !religiousOpening;
     setFormattedText('quranVerse', quranVerse);
@@ -285,16 +286,92 @@
     }
 
     var contractUrl = isWedding ? safeMediaUrl(event.contractImageUrl) : '';
-    $('contractPhoto').hidden = !contractUrl;
+    $('contractPhoto').hidden = !contractUrl || event.showKatb === false;
     $('contractImage').src = contractUrl;
     $('contractImage').alt = isWedding ? event.contractImageCaption || 'Marriage contract photo' : '';
     setFormattedText('contractCaption', isWedding ? event.contractImageCaption || '' : '');
 
     var groomName = isWedding ? event.groomName || '' : '';
     var brideName = isWedding ? event.brideName || '' : '';
-    var groom = groomName ? [event.groomTitle, groomName].filter(Boolean).join(' ') : '';
-    var bride = brideName ? [event.brideTitle, brideName].filter(Boolean).join(' ') : '';
+    var groom = isWedding && event.groomFull
+      ? event.groomFull
+      : (groomName ? [event.groomTitle, groomName].filter(Boolean).join(' ') : '');
+    var bride = isWedding && event.brideFull
+      ? event.brideFull
+      : (brideName ? [event.brideTitle, brideName].filter(Boolean).join(' ') : '');
     return [groom, bride].filter(Boolean).join(' & ');
+  }
+
+  function formatInvitationDate(value) {
+    return value
+      ? new Date(value + 'T00:00:00').toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      })
+      : '';
+  }
+
+  function renderWeddingExtras(event) {
+    var isWedding = event && (!event.eventType || event.eventType === 'wedding');
+    function showText(id, value) {
+      setFormattedText(id, value || '');
+    }
+
+    showText('poem', isWedding ? event.poem : '');
+    showText('venueAddress', event.venueAddress);
+    $('venueAddress').hidden = !event.venueAddress;
+    $('layout-poem').hidden = !(isWedding && event.poem);
+
+    $('layout-henna').hidden = !(isWedding && event.showHenna);
+    $('hennaBride').textContent = isWedding ? event.brideName || '' : '';
+    showText('hennaVerse', isWedding ? event.hennaVerse : '');
+    $('hennaDate').textContent = isWedding ? formatInvitationDate(event.hennaDate) : '';
+    $('hennaTime').textContent = isWedding && event.hennaTime
+      ? 'At ' + new Date('2000-01-01T' + event.hennaTime).toLocaleTimeString([], {
+        hour: 'numeric', minute: '2-digit'
+      })
+      : '';
+    showText('hennaPlace', isWedding ? event.hennaPlace : '');
+    showText('hennaNote', isWedding ? event.hennaNote : '');
+    $('privacyNote').hidden = !(isWedding && event.showHenna && event.showPrivacy && event.privacyText);
+    showText('privacyText', isWedding && event.showPrivacy ? event.privacyText : '');
+
+    $('layout-lunch').hidden = !(isWedding && event.showLunch);
+    showText('lunchTitle', isWedding ? event.lunchTitle || 'Lunch invitation' : '');
+    $('lunchDate').textContent = isWedding ? formatInvitationDate(event.lunchDate) : '';
+    showText('lunchPlace', isWedding ? event.lunchPlace : '');
+    showText('lunchTime', isWedding ? event.lunchTime : '');
+    var lunchCalendar = $('lunchCalendar');
+    lunchCalendar.hidden = !(isWedding && event.showLunch && event.lunchDate);
+    if (!lunchCalendar.hidden) {
+      var lunchStart = new Date(event.lunchDate + 'T00:00:00');
+      var lunchEnd = new Date(lunchStart.getFullYear(), lunchStart.getMonth(), lunchStart.getDate() + 1);
+      lunchCalendar.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
+        encodeURIComponent(plainText(event.lunchTitle || 'Lunch invitation')) + '&dates=' +
+        calendarTime(lunchStart).slice(0, 8) + '/' + calendarTime(lunchEnd).slice(0, 8) +
+        '&details=' + encodeURIComponent(plainText(event.lunchTime || '')) +
+        '&location=' + encodeURIComponent(plainText(event.lunchPlace || ''));
+    }
+
+    $('layout-katb').hidden = !(isWedding && event.showKatb !== false &&
+      (event.showKatb === true || safeMediaUrl(event.contractImageUrl) ||
+        event.contractImageCaption || event.katbText));
+    showText('katbText', isWedding
+      ? event.katbText || (!safeMediaUrl(event.contractImageUrl) && event.contractImageCaption) || ''
+      : '');
+
+    $('layout-parents').hidden = !(isWedding && event.showParents);
+    showText('groomFather', isWedding ? event.groomFather : '');
+    showText('brideFather', isWedding ? event.brideFather : '');
+    $('parentsInviteText').textContent = isWedding && event.showParents
+      ? 'بدعوة سيادتكم لحضور حفل زفاف'
+      : '';
+    showText('groomFull', isWedding ? event.groomFull || event.groomName : '');
+    showText('brideFull', isWedding ? event.brideFull || event.brideName : '');
+    showText('inviteNames', isWedding ? event.inviteNames : '');
+
+    $('countdownNote').textContent = event.countdownNote || '';
+    showText('closing', isWedding ? event.closing : '');
+    $('layout-closing').hidden = !(isWedding && event.closing);
   }
 
   function renderEvent(event) {
@@ -315,6 +392,17 @@
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
     $('card').style.setProperty('--cacc', environment.acc);
+    var customBackgroundColor = /^#[0-9a-f]{6}$/i.test(event.customBackgroundColor || '')
+      ? event.customBackgroundColor
+      : '#2a1a3a';
+    $('stage').style.setProperty('--page-custom-bg', customBackgroundColor);
+    $('stage').style.setProperty('--page-custom-glow', customBackgroundColor);
+    if (/^#[0-9a-f]{6}$/i.test(event.customBackgroundColor || '')) {
+      $('card').style.setProperty('--cbg', event.customBackgroundColor);
+    }
+    if (/^#[0-9a-f]{6}$/i.test(event.customAccentColor || '')) {
+      $('card').style.setProperty('--cacc', event.customAccentColor);
+    }
     var imageUrl = safeMediaUrl(event.backgroundImage) ||
       safeMediaUrl(BACKGROUNDS[event.backgroundPreset]);
     var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
@@ -338,6 +426,7 @@
       ? 'at ' + currentStart.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : '';
     setFormattedText('venue', event.venue || '');
+    renderWeddingExtras(event);
     var locationUrl = safeLocationUrl(event.locationUrl);
     $('locationLink').hidden = !locationUrl;
     if (locationUrl) $('locationLink').href = locationUrl;

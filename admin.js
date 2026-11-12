@@ -57,6 +57,7 @@
   var savedToken = '';
   var editingToken = false;
   var pendingImages = {};
+  var pendingContractImages = {};
   var pendingAudio = {};
   var activeTextControl = null;
 
@@ -252,7 +253,9 @@
   }
 
   function renderCanvas(event) {
-    var theme = CANVAS_THEMES[event.env] || CANVAS_THEMES.classic;
+    var theme = (CANVAS_THEMES[event.env] || CANVAS_THEMES.classic).slice();
+    if (/^#[0-9a-f]{6}$/i.test(event.customBackgroundColor || '')) theme[0] = event.customBackgroundColor;
+    if (/^#[0-9a-f]{6}$/i.test(event.customAccentColor || '')) theme[3] = event.customAccentColor;
     $('designCanvas').setAttribute('data-env', event.env || 'classic');
     $('designCanvas').style.setProperty('--canvas-bg', theme[0]);
     $('designCanvas').style.setProperty('--canvas-ink', theme[1]);
@@ -272,11 +275,13 @@
     }
     setCanvasField('emoji', event.emoji, false);
     setCanvasField('religiousOpening', isWedding && event.religiousOpening, true);
-    setCanvasField('quranVerse', isWedding && event.quranVerse, true);
-    setCanvasField('quranReference', isWedding && event.quranReference, true);
+    setCanvasField('quranVerse', isWedding && event.showVerse !== false && event.quranVerse, true);
+    setCanvasField('quranReference', isWedding && event.showVerse !== false && event.quranReference, true);
+    setCanvasField('poem', event.poem, true);
+    setLayoutVisible('poem', Boolean(event.poem));
     setLayoutVisible('emoji', Boolean(event.emoji));
     setLayoutVisible('weddingOpening', Boolean(isWedding &&
-      (event.religiousOpening || event.quranVerse || event.quranReference)));
+      (event.religiousOpening || (event.showVerse !== false && (event.quranVerse || event.quranReference)))));
     setCanvasField('kicker', event.kicker, true);
     setCanvasField('hostNames', isWedding && event.hostNames, true);
     setCanvasField('groomTitle', weddingNames && event.groomName && event.groomTitle, true);
@@ -296,9 +301,10 @@
     setLayoutVisible('date', true);
     setCanvasField('introDescription', event.introDescription, true);
     setCanvasField('venue', event.venue, true);
+    setCanvasField('venueAddress', event.venueAddress, true);
     $('canvas-locationLink').hidden = !safeLocationUrl(event.locationUrl);
     setLayoutVisible('introDescription', Boolean(event.introDescription));
-    setLayoutVisible('venue', Boolean(event.venue));
+    setLayoutVisible('venue', Boolean(event.venue || event.venueAddress));
     setCanvasField('message', event.message, true);
     setCanvasField('info', event.info, true);
     setLayoutVisible('message', Boolean(event.message));
@@ -325,13 +331,43 @@
     setCanvasField('preEventTime', relatedFields && event.preEventTime, true);
     setCanvasField('preEventVenue', relatedFields && event.preEventVenue, true);
     setCanvasField('preEventDetails', relatedFields && event.preEventDetails, true);
-    var contractImageUrl = isWedding ? safeMediaUrl(event.contractImageUrl) : '';
+    var pendingContractImage = pendingContractImages[event.id];
+    var contractImageUrl = isWedding
+      ? (pendingContractImage && pendingContractImage.previewUrl) || safeMediaUrl(event.contractImageUrl)
+      : '';
     $('canvas-contractImage').src = contractImageUrl;
     $('canvas-contractImage').alt = isWedding ? event.contractImageCaption || 'Marriage contract photo' : '';
     $('canvas-contractImage').hidden = !contractImageUrl;
     setCanvasField('contractImageCaption', isWedding && event.contractImageCaption, true);
-    $('layout-contractPhoto').hidden = !(contractImageUrl || (isWedding && event.contractImageCaption));
-    var backgroundUrl = safeMediaUrl(event.backgroundImage) ||
+    $('layout-contractPhoto').hidden = event.showKatb === false ||
+      !(contractImageUrl || (isWedding && event.contractImageCaption));
+    setCanvasField('hennaVerse', isWedding && event.hennaVerse, true);
+    setCanvasField('hennaDate', isWedding && event.hennaDate, false);
+    setCanvasField('hennaTime', isWedding && event.hennaTime, false);
+    setCanvasField('hennaPlace', isWedding && event.hennaPlace, true);
+    setCanvasField('hennaNote', isWedding && event.hennaNote, true);
+    setCanvasField('privacyText', isWedding && event.showPrivacy && event.privacyText, true);
+    $('layout-henna').hidden = !(isWedding && event.showHenna);
+    setCanvasField('lunchTitle', isWedding && event.lunchTitle, true);
+    setCanvasField('lunchDate', isWedding && event.lunchDate, false);
+    setCanvasField('lunchPlace', isWedding && event.lunchPlace, true);
+    setCanvasField('lunchTime', isWedding && event.lunchTime, true);
+    $('layout-lunch').hidden = !(isWedding && event.showLunch);
+    setCanvasField('katbText', isWedding && event.katbText, true);
+    $('layout-katb').hidden = !(isWedding && event.showKatb !== false &&
+      (event.showKatb === true || contractImageUrl || event.contractImageCaption || event.katbText));
+    setCanvasField('groomFather', isWedding && event.groomFather, true);
+    setCanvasField('brideFather', isWedding && event.brideFather, true);
+    setCanvasField('groomFull', isWedding && event.groomFull, true);
+    setCanvasField('brideFull', isWedding && event.brideFull, true);
+    setCanvasField('inviteNames', isWedding && event.inviteNames, true);
+    $('layout-parents').hidden = !(isWedding && event.showParents);
+    setCanvasField('countdownNote', event.countdownNote, true);
+    setCanvasField('closing', event.closing, true);
+    setLayoutVisible('closing', Boolean(event.closing));
+    var pendingBackground = pendingImages[event.id];
+    var backgroundUrl = (pendingBackground && pendingBackground.previewUrl) ||
+      safeMediaUrl(event.backgroundImage) ||
       safeMediaUrl(BACKGROUNDS[event.backgroundPreset]);
     $('designCanvas').style.backgroundImage = backgroundUrl
       ? 'linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.58)),url("' + backgroundUrl + '")'
@@ -361,6 +397,11 @@
     event.layout = order;
     markChanged();
     renderCanvas(event);
+    var pendingContractImage = pendingContractImages[event.id];
+    $('contractImageStatus').textContent = pendingContractImage
+      ? (pendingContractImage.uploadedPath ? 'Photo uploaded; publish to apply it.' : 'Photo ready. It will upload when you publish.')
+      : (event.contractImageUrl ? 'A marriage-contract photo is selected.' : 'Choose a JPG, PNG, or WebP photo, or enter a public HTTPS image URL.');
+    $('removeContractImage').disabled = !pendingContractImage && !event.contractImageUrl;
   }
 
   function moveLayoutItemBy(key, distance) {
@@ -427,10 +468,23 @@
     updateEventMetadata(event);
     $('weddingFields').hidden = event.eventType !== 'wedding';
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
-      if (control.name === 'etiquette') {
+      if (control.type === 'checkbox' && control.name === 'etiquette') {
         control.checked = Array.isArray(event.etiquette) && event.etiquette.includes(control.value);
+      } else if (control.type === 'checkbox') {
+        control.checked = control.name === 'showVerse'
+          ? event.showVerse !== false
+          : (control.name === 'showKatb'
+            ? event.showKatb === true ||
+              (event.showKatb !== false && Boolean(event.contractImageUrl || event.contractImageCaption || event.katbText))
+            : Boolean(event[control.name]));
       } else if (control.name) {
-        control.value = event[control.name] || '';
+        if (control.name === 'customBackgroundColor' || control.name === 'customAccentColor') {
+          var theme = CANVAS_THEMES[event.env] || CANVAS_THEMES.classic;
+          var index = control.name === 'customBackgroundColor' ? 0 : 3;
+          control.value = event[control.name] || theme[index];
+        } else {
+          control.value = event[control.name] || '';
+        }
       }
     });
     renderCanvas(event);
@@ -453,7 +507,23 @@
   }
 
   function discardPendingImage(eventId) {
+    var pendingImage = pendingImages[eventId];
+    if (pendingImage && pendingImage.previewUrl && URL.revokeObjectURL) {
+      URL.revokeObjectURL(pendingImage.previewUrl);
+    }
     delete pendingImages[eventId];
+  }
+
+  function discardPendingContractImage(eventId) {
+    var pendingImage = pendingContractImages[eventId];
+    if (pendingImage && pendingImage.previewUrl && URL.revokeObjectURL) {
+      URL.revokeObjectURL(pendingImage.previewUrl);
+    }
+    delete pendingContractImages[eventId];
+  }
+
+  function imagePreviewUrl(blob) {
+    return URL.createObjectURL ? URL.createObjectURL(blob) : '';
   }
 
   function discardPendingAudio(eventId) {
@@ -511,9 +581,7 @@
     try {
       var blob = await optimizeImage(file);
       discardPendingImage(invitation.id);
-      pendingImages[invitation.id] = {
-        blob: blob
-      };
+      pendingImages[invitation.id] = { blob: blob, previewUrl: imagePreviewUrl(blob) };
       invitation.backgroundPreset = '';
       invitation.backgroundImage = '';
       if (!invitation.backgroundMode) invitation.backgroundMode = 'card';
@@ -522,6 +590,29 @@
       setStatus('Image ready. Publish to add it to the invitation.');
     } catch (error) {
       $('imageStatus').textContent = error.message;
+      setStatus(error.message);
+    } finally {
+      event.target.value = '';
+    }
+  });
+
+  $('contractImageUpload').addEventListener('change', async function (event) {
+    var file = event.target.files && event.target.files[0];
+    var invitation = selectedEvent();
+    if (!file || !invitation) return;
+    $('contractImageStatus').textContent = 'Preparing photo…';
+    try {
+      var blob = await optimizeImage(file);
+      discardPendingContractImage(invitation.id);
+      pendingContractImages[invitation.id] = { blob: blob, previewUrl: imagePreviewUrl(blob) };
+      invitation.contractImageUrl = '';
+      invitation.showKatb = true;
+      setFormValue('showKatb', true);
+      markChanged();
+      render();
+      setStatus('Marriage-contract photo ready. Publish to add it to the invitation.');
+    } catch (error) {
+      $('contractImageStatus').textContent = error.message;
       setStatus(error.message);
     } finally {
       event.target.value = '';
@@ -576,6 +667,25 @@
     render();
   });
 
+  $('removeContractImage').addEventListener('click', function () {
+    var invitation = selectedEvent();
+    if (!invitation) return;
+    discardPendingContractImage(invitation.id);
+    invitation.contractImageUrl = '';
+    $('contractImageUpload').value = '';
+    markChanged();
+    render();
+  });
+
+  $('resetColors').addEventListener('click', function () {
+    var invitation = selectedEvent();
+    if (!invitation) return;
+    delete invitation.customBackgroundColor;
+    delete invitation.customAccentColor;
+    markChanged();
+    render();
+  });
+
   function markChanged() {
     changed = true;
     setStatus('Unpublished changes.');
@@ -622,6 +732,17 @@
       invitation.musicUrl = control.value;
       invitation.musicTrack = '';
       setFormValue('musicTrack', '');
+    } else if (control.name === 'contractImageUrl') {
+      if (control.value) discardPendingContractImage(invitation.id);
+      invitation.contractImageUrl = control.value;
+      $('contractImageUpload').value = '';
+    } else if (control.name === 'env') {
+      invitation.env = control.value;
+      var theme = CANVAS_THEMES[control.value] || CANVAS_THEMES.classic;
+      if (!invitation.customBackgroundColor) setFormValue('customBackgroundColor', theme[0]);
+      if (!invitation.customAccentColor) setFormValue('customAccentColor', theme[3]);
+    } else if (control.type === 'checkbox') {
+      invitation[control.name] = control.checked;
     } else {
       invitation[control.name] = control.value;
     }
@@ -638,7 +759,7 @@
     if (event.target.name !== 'etiquette') updateField(event);
   });
   $('eventForm').addEventListener('change', function (event) {
-    if (event.target.name === 'etiquette' || event.target.tagName === 'SELECT') updateField(event);
+    if (event.target.type === 'checkbox' || event.target.tagName === 'SELECT') updateField(event);
   });
 
   $('designCanvas').addEventListener('click', function (event) {
@@ -774,6 +895,7 @@
     }
     if (!event || !window.confirm('Delete "' + (event.names || 'this event') + '"?')) return;
     discardPendingImage(selectedId);
+    discardPendingContractImage(selectedId);
     invitations.events = invitations.events.filter(function (item) {
       return item.id !== selectedId;
     });
@@ -876,34 +998,46 @@
     }
   }
 
-  async function uploadPendingImage(event, headers) {
-    var pendingImage = pendingImages[event.id];
-    if (!pendingImage) return;
+  async function uploadImageBlob(event, headers, pendingImage, label) {
     if (pendingImage.uploadedPath) {
-      event.backgroundImage = pendingImage.uploadedPath;
-      return;
+      return pendingImage.uploadedPath;
     }
     var safeId = event.id.replace(/[^a-z0-9-]/gi, '-').slice(0, 40) || 'event';
-    var fileName = safeId + '-' + Date.now().toString(36) +
+    var fileName = safeId + (label === 'background' ? '-' : '-' + label + '-') + Date.now().toString(36) +
       Math.random().toString(36).slice(2, 6) + '.jpg';
     var path = 'images/' + fileName;
     var response = await fetch(REPO_CONTENTS_URL + path, {
       method: 'PUT',
       headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
       body: JSON.stringify({
-        message: 'Upload invitation background image',
+        message: 'Upload invitation ' + label + ' image',
         content: encodeBytesBase64(new Uint8Array(await pendingImage.blob.arrayBuffer())),
         branch: 'main'
       })
     });
     var result = await responseJson(response);
     if (!response.ok) {
-      throw new Error(result.message || 'GitHub could not upload the background image.');
+      throw new Error(result.message || 'GitHub could not upload the ' + label + ' image.');
     }
-    event.backgroundImage = path;
     pendingImage.uploadedPath = path;
+    return path;
+  }
+
+  async function uploadPendingImage(event, headers) {
+    var pendingImage = pendingImages[event.id];
+    if (!pendingImage) return;
+    event.backgroundImage = await uploadImageBlob(event, headers, pendingImage, 'background');
     if (event.id === selectedId) {
       $('imageStatus').textContent = 'Image uploaded; publish to apply it.';
+    }
+  }
+
+  async function uploadPendingContractImage(event, headers) {
+    var pendingImage = pendingContractImages[event.id];
+    if (!pendingImage) return;
+    event.contractImageUrl = await uploadImageBlob(event, headers, pendingImage, 'contract');
+    if (event.id === selectedId) {
+      $('contractImageStatus').textContent = 'Photo uploaded; publish to apply it.';
     }
   }
 
@@ -1014,6 +1148,7 @@
 
       for (var imageIndex = 0; imageIndex < invitations.events.length; imageIndex++) {
         await uploadPendingImage(invitations.events[imageIndex], headers);
+        await uploadPendingContractImage(invitations.events[imageIndex], headers);
         await uploadPendingAudio(invitations.events[imageIndex], headers);
       }
       var content = JSON.stringify(normalizeInvitations(invitations), null, 2) + '\n';

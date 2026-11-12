@@ -21,7 +21,10 @@ function makeNode(id) {
     textContent: '',
     value: '',
     files: [],
-    style: { setProperty() {} },
+    style: {
+      properties: {},
+      setProperty(name, value) { this.properties[name] = value; }
+    },
     dataset: {},
     handlers: {},
     addEventListener(name, handler) { this.handlers[name] = handler; },
@@ -59,7 +62,12 @@ async function loadAdmin(initialData, storage) {
     'hostNames', 'groomTitle', 'groomName', 'brideTitle', 'brideName', 'preEventTitle',
     'preEventDate', 'preEventTime', 'preEventVenue', 'preEventLocationUrl',
     'preEventDetails', 'contractImageUrl', 'contractImageCaption', 'backgroundMode',
-    'backgroundPreset', 'musicTrack', 'musicUrl'
+    'backgroundPreset', 'musicTrack', 'musicUrl', 'poem', 'inviteNames', 'groomFull',
+    'brideFull', 'groomFather', 'brideFather', 'venueAddress', 'hennaDate', 'hennaTime',
+    'hennaPlace', 'hennaNote', 'hennaVerse', 'privacyText', 'lunchTitle', 'lunchDate',
+    'lunchPlace', 'lunchTime', 'katbText', 'customBackgroundColor', 'customAccentColor',
+    'countdownNote', 'closing', 'showParents', 'showVerse', 'showHenna', 'showPrivacy',
+    'showLunch', 'showKatb'
   ]
     .map(function (name) {
       const field = makeNode(name);
@@ -67,11 +75,16 @@ async function loadAdmin(initialData, storage) {
       if (['env', 'typography', 'backgroundPreset', 'backgroundMode', 'musicTrack'].includes(name)) {
         field.tagName = 'SELECT';
       }
+      if (name.startsWith('show')) field.type = 'checkbox';
+      if (name.startsWith('custom') && name.endsWith('Color')) field.type = 'color';
       if ([
         'names', 'kicker', 'introDescription', 'venue', 'message', 'info', 'event',
         'religiousOpening', 'quranVerse', 'quranReference', 'hostNames', 'groomTitle',
         'groomName', 'brideTitle', 'brideName', 'preEventTitle', 'preEventTime',
-        'preEventVenue', 'preEventDetails', 'contractImageCaption'
+        'preEventVenue', 'preEventDetails', 'contractImageCaption', 'poem', 'inviteNames',
+        'groomFull', 'brideFull', 'groomFather', 'brideFather', 'venueAddress',
+        'hennaPlace', 'hennaNote', 'hennaVerse', 'privacyText', 'lunchTitle', 'lunchPlace',
+        'lunchTime', 'katbText', 'countdownNote', 'closing'
       ].includes(name)) field.tagName = 'TEXTAREA';
       return field;
     });
@@ -448,6 +461,81 @@ test('shows the plum and rose gold theme in the live editor preview', async () =
   const { elements } = await loadAdmin(data);
 
   assert.equal(elements.get('designCanvas').getAttribute('data-env'), 'plum');
+});
+
+test('admin publishes reference wedding sections and custom invitation colors', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', eventType: 'wedding', names: 'Amina & Omar', env: 'garden' }]
+  };
+  const { elements, fields, saved } = await loadAdmin(data, new Map([
+    ['invitation.github.publish-token', 'fine-grained-test-token']
+  ]));
+  const values = {
+    poem: 'A line for the couple',
+    groomFather: 'Groom’s father',
+    brideFather: 'Bride’s father',
+    hennaDate: '2027-05-25',
+    hennaPlace: 'Family home',
+    lunchTitle: 'Wedding lunch',
+    lunchDate: '2027-05-26',
+    lunchPlace: 'Garden',
+    katbText: 'Alhamdulillah',
+    countdownNote: 'Until we celebrate together',
+    closing: 'We look forward to seeing you'
+  };
+  Object.entries(values).forEach(([name, value]) => {
+    const field = fields.find((item) => item.name === name);
+    field.value = value;
+    elements.get('eventForm').handlers.input({ target: field });
+  });
+  for (const name of ['showParents', 'showHenna', 'showPrivacy', 'showLunch', 'showKatb']) {
+    const field = fields.find((item) => item.name === name);
+    field.checked = true;
+    elements.get('eventForm').handlers.change({ target: field });
+  }
+  const color = fields.find((item) => item.name === 'customAccentColor');
+  color.value = '#123456';
+  elements.get('eventForm').handlers.input({ target: color });
+
+  assert.equal(elements.get('layout-henna').hidden, false);
+  assert.equal(elements.get('layout-lunch').hidden, false);
+  assert.equal(elements.get('layout-katb').hidden, false);
+  assert.equal(elements.get('layout-parents').hidden, false);
+  assert.equal(elements.get('designCanvas').style.properties['--canvas-accent'], '#123456');
+  await elements.get('publishButton').handlers.click();
+
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const published = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  Object.entries(values).forEach(([name, value]) => assert.equal(published[name], value));
+  for (const name of ['showParents', 'showHenna', 'showPrivacy', 'showLunch', 'showKatb']) {
+    assert.equal(published[name], true);
+  }
+  assert.equal(published.customAccentColor, '#123456');
+});
+
+test('admin uploads the marriage-contract photo with the invitation', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', eventType: 'wedding', names: 'Amina & Omar' }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, saved, uploaded } = await loadAdmin(data, storage);
+  const photoUpload = elements.get('contractImageUpload');
+  photoUpload.files = [{ name: 'contract.png', type: 'image/png', size: 100 }];
+
+  await photoUpload.handlers.change({ target: photoUpload });
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(uploaded.length, 1);
+  assert.match(uploaded[0].url, /\/contents\/images\/wedding-contract-/);
+  assert.equal(saved.length, 1, elements.get('status').textContent);
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const published = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  assert.match(published.contractImageUrl, /^images\/wedding-contract-[a-z0-9]+\.jpg$/);
+  assert.equal(published.showKatb, true);
 });
 
 test('requires choosing an invitation type before creating an event', async () => {

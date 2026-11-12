@@ -15,6 +15,8 @@ publish without re-entering it. Use **Change token** to replace it or **Forget
 token on this device** to remove it. Only save it on a trusted device; browser
 storage is accessible to scripts running on this site. GitHub commits the
 invitation update; GitHub Pages deploys it automatically.
+Guests see only the published invitation; editing controls are available on
+the admin page, not on the public invite.
 
 The editor keeps the Events selector separate from the page header and protects
 the main invitation from deletion. Start with the couple’s names, date, time,
@@ -32,8 +34,12 @@ event. Choose the invitation type before creating an event; existing events
 default to **Wedding**. Wedding invitations have optional structured fields for
 the opening invocation and Qur’anic verse, hosts, each partner’s title and
 name, a related gathering with its own date/time/location and calendar link, and
-a marriage-contract image URL and caption. These appear on the public invite
-only when filled in. Add an optional map URL to make a **Get directions** link
+a marriage-contract image URL or optimized photo upload plus caption. The
+additional reference-design section includes opening poetry, separate parent invitations, venue address,
+optional henna and lunch sections, a photography privacy note, a marriage
+contract caption, closing text, countdown note, and custom background/accent
+colors. Optional sections appear on the public invitation only when enabled.
+Add an optional map URL to make a **Get directions** link
 appear on the public invitation. Use **Intro description (optional)** to add a
 personal line beneath the intro and above the names. Choose **Islamic wedding**
 for an emerald-and-gold palette, a crescent-and-star emblem, and subtle gold

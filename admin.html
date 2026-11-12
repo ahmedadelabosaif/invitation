@@ -209,6 +209,9 @@
                 <label class="wide">Map / location link<input name="preEventLocationUrl" type="url" placeholder="https://maps.google.com/..."></label>
                 <label class="wide">Gathering details<textarea name="preEventDetails" maxlength="400"></textarea></label>
                 <label class="wide">Marriage-contract photo URL<input name="contractImageUrl" type="url" maxlength="500" placeholder="https://..."></label>
+                <label class="wide">Or upload the marriage-contract photo<input id="contractImageUpload" type="file" accept="image/jpeg,image/png,image/webp"></label>
+                <p class="field-note" id="contractImageStatus">Choose a JPG, PNG, or WebP photo, or enter a public HTTPS image URL.</p>
+                <button id="removeContractImage" type="button">Remove marriage-contract photo</button>
                 <label class="wide">Photo caption<textarea name="contractImageCaption" maxlength="400" placeholder="e.g. 23 October 2026 · Alhamdulillah"></textarea></label>
               </div>
           </details>
@@ -262,6 +265,46 @@
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="prayerSpace"> 🕌 Prayer space available</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="halalFood"> 🍽️ Halal food served</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="noMusic"> 🔇 No music</label>
+            </div>
+          </details>
+          <details class="form-section wide">
+            <summary>Additional wedding sections from the reference design</summary>
+            <p class="theme-note">Enable only the sections you want guests to see. These fields are published with the invitation.</p>
+            <div class="fields">
+              <label class="wide">Poem / opening lines<textarea name="poem" maxlength="1200" placeholder="Optional lines shown near the top of the invitation"></textarea></label>
+              <label class="wide">Names as written in the invitation<textarea name="inviteNames" maxlength="240" placeholder="Optional wording, including titles"></textarea></label>
+              <label>Groom’s full name with titles<textarea name="groomFull" maxlength="200"></textarea></label>
+              <label>Bride’s full name with titles<textarea name="brideFull" maxlength="200"></textarea></label>
+              <label class="checkbox"><input type="checkbox" name="showParents"> Show parents’ invitation</label>
+              <span></span>
+              <label>Groom’s parent<textarea name="groomFather" maxlength="160"></textarea></label>
+              <label>Bride’s parent<textarea name="brideFather" maxlength="160"></textarea></label>
+              <label class="wide">Venue address / directions note<textarea name="venueAddress" maxlength="300"></textarea></label>
+              <label class="checkbox"><input type="checkbox" name="showVerse"> Show Qur’anic verse section</label>
+              <span></span>
+              <label class="checkbox"><input type="checkbox" name="showHenna"> Show henna-night section</label>
+              <span></span>
+              <label>Henna date<input name="hennaDate" type="date"></label>
+              <label>Henna time<input name="hennaTime" type="time"></label>
+              <label>Henna venue<textarea name="hennaPlace" maxlength="240"></textarea></label>
+              <label>Henna note<textarea name="hennaNote" maxlength="240"></textarea></label>
+              <label class="wide">Henna poem<textarea name="hennaVerse" maxlength="600"></textarea></label>
+              <label class="checkbox"><input type="checkbox" name="showPrivacy"> Show photography privacy note</label>
+              <span></span>
+              <label class="wide">Privacy note<textarea name="privacyText" maxlength="700"></textarea></label>
+              <label class="checkbox"><input type="checkbox" name="showLunch"> Show lunch invitation section</label>
+              <span></span>
+              <label>Lunch heading<textarea name="lunchTitle" maxlength="160"></textarea></label>
+              <label>Lunch date<input name="lunchDate" type="date"></label>
+              <label>Lunch venue<textarea name="lunchPlace" maxlength="240"></textarea></label>
+              <label>Lunch time / note<textarea name="lunchTime" maxlength="180"></textarea></label>
+              <label class="checkbox"><input type="checkbox" name="showKatb"> Show marriage-contract section</label>
+              <span></span>
+              <label class="wide">Marriage-contract caption<textarea name="katbText" maxlength="400"></textarea></label>
+              <label>Invitation background color<input name="customBackgroundColor" type="color"></label>
+              <label>Invitation accent color<input name="customAccentColor" type="color"></label>
+              <button id="resetColors" type="button">Use selected theme colors</button>
+              <p class="field-note">Leave either color at its default to use the selected theme palette.</p>
             </div>
           </details>
           <details class="form-section">
@@ -323,6 +366,9 @@
               <p id="canvas-quranVerse" class="canvas-copy canvas-field"></p>
               <p id="canvas-quranReference" class="canvas-detail canvas-field"></p>
             </div>
+            <div id="layout-poem" class="canvas-item" data-layout-item="poem" draggable="true" tabindex="0" aria-label="Opening poem">
+              <p id="canvas-poem" class="canvas-copy canvas-field"></p>
+            </div>
             <div id="layout-kicker" class="canvas-item" data-layout-item="kicker" draggable="true" tabindex="0" aria-label="Invitation intro">
               <p id="canvas-kicker" class="canvas-kicker canvas-field"></p>
             </div>
@@ -347,6 +393,7 @@
             </div>
             <div id="layout-venue" class="canvas-item" data-layout-item="venue" draggable="true" tabindex="0" aria-label="Venue">
               <p id="canvas-venue" class="canvas-detail canvas-field"></p>
+              <p id="canvas-venueAddress" class="canvas-detail canvas-field"></p>
               <p id="canvas-locationLink" class="canvas-detail" hidden>Get directions ↗</p>
             </div>
             <div id="layout-message" class="canvas-item" data-layout-item="message" draggable="true" tabindex="0" aria-label="Invitation message">
@@ -365,24 +412,54 @@
               <p id="canvas-preEventVenue" class="canvas-detail canvas-field"></p>
               <p id="canvas-preEventDetails" class="canvas-copy canvas-field"></p>
             </section>
+            <section id="layout-henna" class="canvas-item canvas-related" data-layout-item="henna" draggable="true" tabindex="0" aria-label="Henna night">
+              <h2 id="canvas-hennaTitle" class="canvas-detail">ليلة حنة</h2>
+              <p id="canvas-hennaVerse" class="canvas-copy canvas-field"></p>
+              <p id="canvas-hennaDate" class="canvas-date canvas-field"></p>
+              <p id="canvas-hennaTime" class="canvas-detail canvas-field"></p>
+              <p id="canvas-hennaPlace" class="canvas-detail canvas-field"></p>
+              <p id="canvas-hennaNote" class="canvas-copy canvas-field"></p>
+              <p id="canvas-privacyText" class="canvas-copy canvas-field"></p>
+            </section>
+            <section id="layout-lunch" class="canvas-item canvas-related" data-layout-item="lunch" draggable="true" tabindex="0" aria-label="Lunch invitation">
+              <p id="canvas-lunchTitle" class="canvas-detail canvas-field"></p>
+              <p id="canvas-lunchDate" class="canvas-date canvas-field"></p>
+              <p id="canvas-lunchPlace" class="canvas-detail canvas-field"></p>
+              <p id="canvas-lunchTime" class="canvas-detail canvas-field"></p>
+            </section>
             <div id="layout-contractPhoto" class="canvas-item" data-layout-item="contractPhoto" draggable="true" tabindex="0" aria-label="Photo caption">
               <img id="canvas-contractImage" class="canvas-contract-image" alt="" hidden>
               <p id="canvas-contractImageCaption" class="canvas-detail canvas-field"></p>
             </div>
+            <section id="layout-katb" class="canvas-item canvas-related" data-layout-item="katb" draggable="true" tabindex="0" aria-label="Marriage contract">
+              <h2 class="canvas-detail">كتبنا كتابنا</h2>
+              <p id="canvas-katbText" class="canvas-copy canvas-field"></p>
+            </section>
+            <section id="layout-parents" class="canvas-item canvas-related" data-layout-item="parents" draggable="true" tabindex="0" aria-label="Parents’ invitation">
+              <p id="canvas-groomFather" class="canvas-detail canvas-field"></p>
+              <p id="canvas-brideFather" class="canvas-detail canvas-field"></p>
+              <p id="canvas-groomFull" class="canvas-copy canvas-field"></p>
+              <p id="canvas-brideFull" class="canvas-copy canvas-field"></p>
+              <p id="canvas-inviteNames" class="canvas-detail canvas-field"></p>
+            </section>
             <div id="layout-countdown" class="canvas-item" data-layout-item="countdown" draggable="true" tabindex="0" aria-label="Countdown">
               <p id="canvas-countdown" class="canvas-date"></p>
+              <p id="canvas-countdownNote" class="canvas-detail canvas-field"></p>
             </div>
             <div id="layout-calendar" class="canvas-item" data-layout-item="calendar" draggable="true" tabindex="0" aria-label="Calendar link">
               <p id="canvas-calendar" class="canvas-calendar">Add to Google Calendar</p>
             </div>
             <div id="layout-ornament" class="canvas-item canvas-mark" data-layout-item="ornament" draggable="true" tabindex="0" aria-label="Invitation ornament">❧</div>
+            <div id="layout-closing" class="canvas-item" data-layout-item="closing" draggable="true" tabindex="0" aria-label="Closing message">
+              <p id="canvas-closing" class="canvas-copy canvas-field"></p>
+            </div>
           </article>
         </div>
         </aside>
       </div>
     </div>
   </main>
-  <script src="./layout-config.js?v=layout-editor-v4"></script>
-  <script src="./admin.js?v=layout-editor-v7"></script>
+  <script src="./layout-config.js?v=reference-wedding-sections"></script>
+  <script src="./admin.js?v=reference-wedding-sections"></script>
 </body>
 </html>

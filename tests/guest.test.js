@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const layoutConfigSource = fs.readFileSync(path.join(__dirname, '..', 'layout-config.js'), 'utf8');
 const guestSource = fs.readFileSync(path.join(__dirname, '..', 'guest.js'), 'utf8');
+const guestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
 async function loadGuest(search, data, blockFirstPlay = false) {
   const elements = new Map();
@@ -246,6 +247,71 @@ test('renders structured wedding details, related gathering, and contract photo'
   assert.equal(elements.get('contractPhoto').hidden, false);
   assert.equal(elements.get('contractImage').src, wedding.events[0].contractImageUrl);
   assert.equal(elements.get('contractCaption').textContent, 'Alhamdulillah');
+});
+
+test('renders optional wedding sections, privacy note, lunch calendar, and custom colors', async () => {
+  const wedding = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      eventType: 'wedding',
+      names: 'Amina & Omar',
+      env: 'garden',
+      showVerse: false,
+      religiousOpening: 'Bismillah',
+      poem: 'A loving opening',
+      venueAddress: 'Near the city center',
+      showParents: true,
+      groomFather: 'Groom’s father',
+      brideFather: 'Bride’s father',
+      groomFull: 'Engineer Omar',
+      brideFull: 'Doctor Amina',
+      inviteNames: 'Omar & Amina',
+      showHenna: true,
+      hennaDate: '2027-05-25',
+      hennaTime: '19:00',
+      hennaPlace: 'Family home',
+      hennaNote: 'Private gathering',
+      hennaVerse: 'A henna poem',
+      showPrivacy: true,
+      privacyText: 'Please do not take photos.',
+      showLunch: true,
+      lunchTitle: 'Wedding lunch',
+      lunchDate: '2027-05-26',
+      lunchPlace: 'Garden',
+      lunchTime: 'After noon prayer',
+      showKatb: true,
+      katbText: 'Alhamdulillah',
+      countdownNote: 'Until we celebrate',
+      closing: 'See you soon',
+      customBackgroundColor: '#fefefe',
+      customAccentColor: '#123456'
+    }]
+  };
+  const elements = await loadGuest('', wedding);
+
+  assert.equal(elements.get('weddingOpening').hidden, false);
+  assert.equal(elements.get('religiousOpening').textContent, 'Bismillah');
+  assert.equal(elements.get('quranBlock').hidden, true);
+  assert.equal(elements.get('poem').textContent, 'A loving opening');
+  assert.equal(elements.get('venueAddress').textContent, 'Near the city center');
+  assert.equal(elements.get('layout-henna').hidden, false);
+  assert.equal(elements.get('privacyNote').hidden, false);
+  assert.equal(elements.get('privacyText').textContent, 'Please do not take photos.');
+  assert.equal(elements.get('layout-lunch').hidden, false);
+  assert.match(elements.get('lunchCalendar').href, /20270526\/20270527/);
+  assert.equal(elements.get('layout-katb').hidden, false);
+  assert.equal(elements.get('layout-parents').hidden, false);
+  assert.equal(elements.get('groomFull').textContent, 'Engineer Omar');
+  assert.equal(elements.get('countdownNote').textContent, 'Until we celebrate');
+  assert.equal(elements.get('closing').textContent, 'See you soon');
+  assert.equal(elements.get('card').style.properties['--cbg'], '#fefefe');
+  assert.equal(elements.get('card').style.properties['--cacc'], '#123456');
+});
+
+test('public invitation has no customization button', () => {
+  assert.doesNotMatch(guestHtml, /تخصيص الدعوة/);
+  assert.doesNotMatch(guestHtml, /id="fab"/);
 });
 
 test('shows a clickable map link when a valid location URL is provided', async () => {
