@@ -21,6 +21,7 @@
         "separateSeating"
       ],
       "backgroundMode": "card",
+      "backgroundPreset": "roseGarden",
       "musicUrl": "https://www.youtube.com/watch?v=PJrfUKDy3E4"
     }
   ]

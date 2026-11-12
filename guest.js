@@ -185,8 +185,8 @@
       ? 'linear-gradient(rgba(18,24,38,.30),rgba(18,24,38,.30)),url("' + imageUrl + '")'
       : '';
     $('card').style.backgroundImage = imageMode === 'card'
-      ? 'linear-gradient(color-mix(in srgb,' + environment.bg + ' 84%,transparent),color-mix(in srgb,' +
-        environment.bg + ' 84%,transparent)),url("' + imageUrl + '")'
+      ? 'linear-gradient(color-mix(in srgb,' + environment.bg + ' 30%,transparent),color-mix(in srgb,' +
+        environment.bg + ' 30%,transparent)),url("' + imageUrl + '")'
       : '';
     $('card').style.backgroundSize = 'cover';
     $('card').style.backgroundPosition = 'center';
@@ -220,16 +220,16 @@
       if (videoId) {
         audio.removeAttribute('src');
         audio.load();
-        video.hidden = false;
+        $('musicVideo').hidden = false;
         video.src = 'https://www.youtube-nocookie.com/embed/' + videoId +
           '?autoplay=0&controls=0&disablekb=1&enablejsapi=1&loop=1&playlist=' +
           videoId + '&origin=' + encodeURIComponent(location.origin);
       } else if (musicUrl) {
-        video.hidden = true;
+        $('musicVideo').hidden = true;
         video.removeAttribute('src');
         audio.src = musicUrl;
       } else {
-        video.hidden = true;
+        $('musicVideo').hidden = true;
         video.removeAttribute('src');
         audio.removeAttribute('src');
       }
@@ -354,7 +354,7 @@
       $('pageBackdrop').hidden = true;
       $('musicControls').hidden = true;
       $('backgroundMusic').pause();
-      $('backgroundVideo').hidden = true;
+      $('musicVideo').hidden = true;
       $('backgroundVideo').removeAttribute('src');
       $('clock').replaceChildren();
       $('cal').hidden = true;

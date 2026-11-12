@@ -251,6 +251,7 @@ test('supports the existing YouTube music link with the single sound button', as
   const player = elements.get('backgroundVideo');
 
   assert.equal(elements.get('musicControls').hidden, false);
+  assert.equal(elements.get('musicVideo').hidden, false);
   assert.match(player.src, /youtube-nocookie\.com\/embed\/PJrfUKDy3E4/);
   elements.get('musicToggle').handlers.click();
   assert.match(elements.get('musicToggle').textContent, /Mute music/);
@@ -260,6 +261,24 @@ test('supports the existing YouTube music link with the single sound button', as
   assert.deepEqual(JSON.parse(player.contentWindow.messages[1].message).func, 'mute');
   elements.get('musicToggle').handlers.click();
   assert.deepEqual(JSON.parse(player.contentWindow.messages[2].message).func, 'unMute');
+});
+
+test('makes card background images clearly visible', async () => {
+  const withBackground = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      backgroundPreset: 'roseGarden',
+      backgroundMode: 'card',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withBackground);
+  const cardBackground = elements.get('card').style.backgroundImage;
+
+  assert.match(cardBackground, /rose-garden\.svg/);
+  assert.match(cardBackground, / 30%,transparent/);
 });
 
 test('does not use unsafe background or audio URLs', async () => {

@@ -25,7 +25,10 @@ the card/full-page background. Uploads are optimized and stored with the
 published site. Choose one of four public-domain/CC0 classical tracks, or add a
 direct HTTPS audio URL, YouTube link, or upload an MP3/OGG/WAV/M4A song up to
 8 MB. Guests start the music with one button, then use that same button to
-mute/unmute; music never autoplays. Changes are drafts until published.
+mute/unmute; music never autoplays. YouTube links play in an embedded video
+player so guests hear the linked video's audio; the editor does not extract or
+download audio from video links. Upload an audio file when you want an
+audio-only track. Changes are drafts until published.
 Uploaded images and event data are public, so only use content you want to
 share with guests.
 

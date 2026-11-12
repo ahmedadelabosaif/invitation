@@ -109,6 +109,22 @@
     }
   }
 
+  function youtubeVideoId(value) {
+    if (!value) return '';
+    try {
+      var url = new URL(value);
+      var host = url.hostname.toLowerCase();
+      var id = '';
+      if (host === 'youtu.be') id = url.pathname.slice(1);
+      else if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(host)) {
+        id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || '';
+      }
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
   function normalizeInvitations(data) {
     data.events.forEach(function (event) {
       event.etiquette = Array.isArray(event.etiquette)
@@ -168,17 +184,20 @@
       ? event.backgroundMode
       : '';
     $('previewCard').style.backgroundImage = imageMode === 'card'
-      ? 'linear-gradient(color-mix(in srgb,' + theme.bg + ' 84%,transparent),color-mix(in srgb,' +
-        theme.bg + ' 84%,transparent)),url("' + imageUrl + '")'
+      ? 'linear-gradient(color-mix(in srgb,' + theme.bg + ' 30%,transparent),color-mix(in srgb,' +
+        theme.bg + ' 30%,transparent)),url("' + imageUrl + '")'
       : '';
     $('previewCard').style.backgroundSize = 'cover';
     $('previewCard').style.backgroundPosition = 'center';
     $('previewPanel').style.backgroundImage = imageMode === 'full'
-      ? 'linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.55)),url("' + imageUrl + '")'
+      ? 'linear-gradient(rgba(255,255,255,.20),rgba(255,255,255,.20)),url("' + imageUrl + '")'
       : '';
     $('previewPanel').style.backgroundSize = 'cover';
     $('previewPanel').style.backgroundPosition = 'center';
     $('previewMusicNote').hidden = !MUSIC_TRACKS[event.musicTrack] && !safeMediaUrl(event.musicUrl);
+    $('previewMusicNote').textContent = youtubeVideoId(event.musicUrl)
+      ? '♫ Guests can play the linked music video’s sound'
+      : '♫ Music will be available to guests on request';
     if (previewTheme !== event.env) {
       previewTheme = event.env;
       drawPreviewDecor(theme);
@@ -657,9 +676,10 @@
       return;
     }
     if (invitations.events.some(function (event) {
-      return event.musicUrl && !safeMediaUrl(event.musicUrl);
+      return event.musicUrl && (!safeMediaUrl(event.musicUrl) ||
+        /youtube(?:-nocookie)?\.com|youtu\.be/i.test(event.musicUrl) && !youtubeVideoId(event.musicUrl));
     })) {
-      setStatus('Use a valid HTTPS audio link or YouTube link for the background music.');
+      setStatus('Use a valid HTTPS audio link or a valid YouTube video link for the background music.');
       return;
     }
     if (invitations.events.some(function (event) {

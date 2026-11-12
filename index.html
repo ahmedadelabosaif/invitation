@@ -61,7 +61,8 @@
     .music-control{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.15);font:600 .9rem Karla,system-ui,sans-serif;cursor:pointer}
     .music-control:hover{border-color:var(--accent)}
     .music-control:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-    #backgroundVideo{position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;pointer-events:none}
+    .music-video{width:min(100%,356px);margin:18px auto 0}
+    .music-video iframe{display:block;width:100%;height:200px;border:0;border-radius:12px;background:#111;box-shadow:0 6px 20px rgba(0,0,0,.2)}
     @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card{animation:none}}
     @media(prefers-reduced-motion:reduce){#pageBackdrop,.icon:not(:empty){animation:none}}
     @media(max-width:480px){.music-controls{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.music-control{padding:8px 11px;font-size:.82rem}}
@@ -84,6 +85,9 @@
         <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
         <p class="msg" id="msg"></p>
         <p class="info" id="info"></p>
+        <section class="music-video" id="musicVideo" aria-label="Invitation music video" hidden>
+          <iframe id="backgroundVideo" title="Invitation music video" tabindex="-1" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </section>
         <section class="etiquette" id="etiquette" aria-label="Guest etiquette" hidden></section>
         <div id="clock" role="timer"></div>
         <a class="btn" id="cal" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
@@ -94,7 +98,6 @@
   <div id="musicControls" class="music-controls" hidden>
     <button id="musicToggle" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
   </div>
-  <iframe id="backgroundVideo" title="Background music player" aria-hidden="true" tabindex="-1" hidden allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   <script src="./guest.js"></script>
 </body>
 </html>
