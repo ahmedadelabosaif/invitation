@@ -116,6 +116,26 @@ test('renders the Islamic wedding theme with its emerald and gold decor', async 
   assert.match(elements.get('decor').innerHTML, /☾/);
 });
 
+test('shows only selected etiquette notes on the guest invitation', async () => {
+  const withEtiquette = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      etiquette: ['noPhotos', 'prayerSpace'],
+      env: 'islamic'
+    }]
+  };
+  const elements = await loadGuest('', withEtiquette);
+  const notes = elements.get('etiquette').children;
+
+  assert.equal(elements.get('etiquette').hidden, false);
+  assert.deepEqual(notes.map((note) => note.textContent), [
+    '🚫📷 No photos or video, please',
+    '🕌 Prayer space available'
+  ]);
+});
+
 test('shows the featured event and links to other events', async () => {
   const elements = await loadGuest('', invitations);
   const links = elements.get('more').children.slice(1);

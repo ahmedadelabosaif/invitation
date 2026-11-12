@@ -39,6 +39,8 @@
     .location-link:hover{background:var(--cacc);color:var(--cbg);transform:translateY(-2px)}
     .msg{max-width:38ch;margin:20px auto 0;color:var(--cmut)}
     .info{max-width:40ch;margin:22px auto 0;padding-top:16px;border-top:1px solid var(--cacc);font-size:.95rem;white-space:pre-line}
+    .etiquette{display:grid;gap:6px;max-width:40ch;margin:18px auto 0}
+    .etiquette-note{margin:0;padding:7px 10px;border:1px solid color-mix(in srgb,var(--cacc) 50%,transparent);border-radius:8px;font-size:.92rem}
     .clock{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;margin:28px auto 8px}
     .clock b{display:block;color:var(--cacc);font:500 2.4rem/1.1 "Cormorant Garamond",Georgia,serif;font-variant-numeric:tabular-nums}
     .clock span{color:var(--cmut);font-size:.85rem}
@@ -69,6 +71,7 @@
         <a class="location-link" id="locationLink" hidden target="_blank" rel="noopener noreferrer">Get directions ↗</a>
         <p class="msg" id="msg"></p>
         <p class="info" id="info"></p>
+        <section class="etiquette" id="etiquette" aria-label="Guest etiquette" hidden></section>
         <div id="clock" role="timer"></div>
         <a class="btn" id="cal" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
       </div>

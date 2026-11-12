@@ -9,6 +9,14 @@
   };
   var CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/invitations.json';
   var TOKEN_KEY = 'invitation.github.publish-token';
+  var ETIQUETTE = {
+    noPhotos: { icon: '🚫📷', label: 'No photos or video, please' },
+    modestDress: { icon: '🧕', label: 'Modest dress requested' },
+    separateSeating: { icon: '↔️', label: 'Separate seating' },
+    prayerSpace: { icon: '🕌', label: 'Prayer space available' },
+    halalFood: { icon: '🍽️', label: 'Halal food served' },
+    noMusic: { icon: '🔇', label: 'No music' }
+  };
   var invitations = null;
   var originalData = null;
   var selectedId = null;
@@ -136,6 +144,16 @@
     $('previewDirections').hidden = !locationUrl;
     $('previewMessage').textContent = event.message || '';
     $('previewInfo').textContent = event.info || '';
+    var etiquette = $('previewEtiquette');
+    etiquette.replaceChildren();
+    (event.etiquette || []).forEach(function (item) {
+      var option = ETIQUETTE[item];
+      if (!option) return;
+      var note = document.createElement('p');
+      note.textContent = option.icon + ' ' + option.label;
+      etiquette.appendChild(note);
+    });
+    etiquette.hidden = !etiquette.children.length;
     var featured = invitations.events.find(function (item) {
       return item.id === invitations.featured;
     });
@@ -150,7 +168,11 @@
     $('eventForm').hidden = !event;
     if (!event) return;
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
-      if (control.name) control.value = event[control.name] || '';
+      if (control.name === 'etiquette') {
+        control.checked = (event.etiquette || []).includes(control.value);
+      } else if (control.name) {
+        control.value = event[control.name] || '';
+      }
     });
     renderPreview();
   }
@@ -164,7 +186,14 @@
     var invitation = selectedEvent();
     var control = event.target;
     if (!invitation || !control.name) return;
-    invitation[control.name] = control.value;
+    if (control.name === 'etiquette') {
+      var choices = new Set(invitation.etiquette || []);
+      if (control.checked) choices.add(control.value);
+      else choices.delete(control.value);
+      invitation.etiquette = Array.from(choices);
+    } else {
+      invitation[control.name] = control.value;
+    }
     markChanged();
     renderEvents();
     renderPreview();
@@ -183,6 +212,7 @@
       venue: '',
       message: '',
       info: '',
+      etiquette: [],
       env: 'classic'
     });
     selectedId = id;

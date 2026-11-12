@@ -7,6 +7,14 @@
     night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
     islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
   };
+  var ETIQUETTE = {
+    noPhotos: { icon: '🚫📷', label: 'No photos or video, please' },
+    modestDress: { icon: '🧕', label: 'Modest dress requested' },
+    separateSeating: { icon: '↔️', label: 'Separate seating' },
+    prayerSpace: { icon: '🕌', label: 'Prayer space available' },
+    halalFood: { icon: '🍽️', label: 'Halal food served' },
+    noMusic: { icon: '🔇', label: 'No music' }
+  };
   var currentStart = null;
   var currentEvent = null;
   var lastEnvironment = null;
@@ -82,6 +90,7 @@
     if (locationUrl) $('locationLink').href = locationUrl;
     $('msg').textContent = event.message || '';
     $('info').textContent = event.info || '';
+    renderEtiquette(event.etiquette || []);
     $('cal').hidden = !currentStart;
     if (currentStart) {
       var end = new Date(currentStart.getTime() + 4 * 3600 * 1000);
@@ -96,6 +105,20 @@
     }
     $('notice').hidden = true;
     updateCountdown();
+  }
+
+  function renderEtiquette(items) {
+    var section = $('etiquette');
+    section.replaceChildren();
+    items.forEach(function (item) {
+      var option = ETIQUETTE[item];
+      if (!option) return;
+      var note = document.createElement('p');
+      note.className = 'etiquette-note';
+      note.textContent = option.icon + ' ' + option.label;
+      section.appendChild(note);
+    });
+    section.hidden = !section.children.length;
   }
 
   function updateCountdown() {
@@ -180,6 +203,8 @@
       $('locationLink').removeAttribute('href');
       $('msg').textContent = 'There are no public invitations right now.';
       $('info').textContent = '';
+      $('etiquette').replaceChildren();
+      $('etiquette').hidden = true;
       $('clock').replaceChildren();
       $('cal').hidden = true;
       $('more').hidden = true;

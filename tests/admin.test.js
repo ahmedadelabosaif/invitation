@@ -41,6 +41,14 @@ async function loadAdmin(initialData, storage) {
       field.name = name;
       return field;
     });
+  ['noPhotos', 'modestDress', 'separateSeating', 'prayerSpace', 'halalFood', 'noMusic']
+    .forEach(function (value) {
+      const field = makeNode('etiquette-' + value);
+      field.name = 'etiquette';
+      field.value = value;
+      field.type = 'checkbox';
+      fields.push(field);
+    });
   getElementById('eventForm').elements = fields;
   const document = { getElementById, createElement: makeNode };
   const window = {
@@ -101,6 +109,7 @@ test('admin remembers the saved token and reuses it on later visits', async () =
       locationUrl: 'https://maps.example.test/event',
       message: 'Join us',
       info: '',
+      etiquette: [],
       env: 'garden'
     }]
   };
@@ -111,6 +120,11 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
   assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
   assert.ok(elements.get('previewDecor').children.length > 0);
+  const noPhotos = fields.find((field) => field.value === 'noPhotos');
+  noPhotos.checked = true;
+  elements.get('eventForm').handlers.input({ target: noPhotos });
+  assert.equal(elements.get('previewEtiquette').hidden, false);
+  assert.equal(elements.get('previewEtiquette').children[0].textContent, '🚫📷 No photos or video, please');
 
   elements.get('addToken').handlers.click();
   elements.get('githubToken').value = 'fine-grained-test-token';
