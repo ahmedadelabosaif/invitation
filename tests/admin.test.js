@@ -269,11 +269,30 @@ test('editing form groups optional fields into collapsible sections', () => {
   assert.match(adminHtml, /<summary>Guest etiquette \(optional\)<\/summary>/);
 });
 
-test('event selector is housed in the page header instead of taking a content row', () => {
+test('event selector is a separate workspace bar and is not placed in the page header', () => {
   const header = adminHtml.match(/<header>([\s\S]*?)<\/header>/);
   assert.ok(header);
-  assert.match(header[1], /class="header-events"[\s\S]*id="eventList"[\s\S]*id="addEvent"/);
-  assert.doesNotMatch(adminHtml, /class="panel event-panel"/);
+  assert.doesNotMatch(header[1], /id="eventList"|id="addEvent"/);
+  assert.match(adminHtml, /<section class="panel events-panel" aria-label="Events">[\s\S]*id="eventList"[\s\S]*id="addEvent"[\s\S]*id="newEventPanel"/);
+  assert.match(adminHtml, /<section class="panel events-panel"[\s\S]*?<\/section>\s*<div class="layout">/);
+});
+
+test('the main invitation cannot be deleted accidentally', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [
+      { id: 'wedding', names: 'Amina & Omar' },
+      { id: 'engagement', names: 'Engagement' }
+    ]
+  };
+  const { elements } = await loadAdmin(data);
+
+  assert.equal(elements.get('deleteEvent').disabled, true);
+  assert.match(elements.get('deleteEventNote').textContent, /main invitation is protected/i);
+  elements.get('deleteEvent').handlers.click();
+
+  assert.equal(data.events.length, 2);
+  assert.equal(data.events[0].id, 'wedding');
 });
 
 test('shared layout sections and style options stay aligned across pages', async () => {

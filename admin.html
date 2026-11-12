@@ -21,14 +21,14 @@
     header a{color:#60462f}
     header strong{font:600 1.45rem "Cormorant Garamond",Georgia,serif}
     header .spacer{flex:1}
-    .header-events{position:relative;display:flex;align-items:center;gap:8px;min-width:0;max-width:65vw}
-    .events-label{font-size:.82rem;font-weight:600;color:#766a5d}
-    #eventList{display:flex;align-items:center;gap:6px;min-width:0;max-width:50vw;flex:1;overflow-x:auto;padding:2px}
+    .events-panel{position:relative;display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 14px}
+    .events-label{flex:0 0 auto;font-size:.9rem;font-weight:600;color:#62584f}
+    #eventList{display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow-x:auto;padding:2px}
     #eventList button{flex:0 1 200px;min-width:110px;overflow:hidden;padding:7px 10px;text-align:left;text-overflow:ellipsis;white-space:nowrap}
     #eventList button[aria-pressed=true]{border-color:#79563b;background:#faf6f0}
     #eventList small{display:block;overflow:hidden;color:#766a5d;font-size:.7rem;text-overflow:ellipsis}
     #addEvent{flex:0 0 auto;padding:7px 10px}
-    #newEventPanel{position:absolute;top:calc(100% + 8px);right:0;z-index:5;width:min(320px,90vw);box-shadow:0 8px 24px rgba(30,24,17,.16)}
+    #newEventPanel{position:absolute;top:calc(100% + 4px);right:12px;z-index:5;width:min(320px,90vw);box-shadow:0 8px 24px rgba(30,24,17,.16)}
     main{max-width:1280px;margin:26px auto;padding:0 16px}
     .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
     .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
@@ -53,6 +53,7 @@
     .checkbox{display:flex;align-items:center;gap:8px}
     .checkbox input{width:auto}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .delete-event-note{margin:8px 0 0;color:#766a5d;font-size:.84rem}
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
     .token-panel{margin-top:16px;padding:12px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
     .token-panel>p{margin:8px 0}
@@ -110,14 +111,18 @@
     .theme-note{color:#766a5d;font-size:.85rem}
     .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
     @media(max-width:1180px){.design-panel{position:static}}
-    @media(max-width:900px){header{flex-wrap:wrap}.header-events{order:3;flex:1 0 100%;max-width:none}.header-events #eventList{max-width:none;flex:1}}
-    @media(max-width:640px){header{padding:10px 12px}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.header-events{gap:6px}.events-label{display:none}.header-events #eventList button{min-width:100px}}
+    @media(max-width:640px){header{padding:10px 12px}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.events-panel{flex-wrap:wrap;gap:8px}.events-panel #eventList{flex:1 1 100%;order:3}.events-panel #addEvent{margin-left:auto}}
   </style>
 </head>
 <body>
   <header>
     <strong>Invitation editor</strong>
-    <div class="header-events" aria-label="Events">
+    <span class="spacer"></span>
+    <a href="./">Public invitation</a>
+  </header>
+  <main>
+    <p class="notice">Edit the fields, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
+    <section class="panel events-panel" aria-label="Events">
       <span class="events-label">Events</span>
       <div id="eventList" role="group" aria-label="Choose an invitation"></div>
       <button id="addEvent" class="primary" type="button">＋ Add event</button>
@@ -135,12 +140,7 @@
           <button id="cancelNewEvent" type="button">Cancel</button>
         </div>
       </section>
-    </div>
-    <span class="spacer"></span>
-    <a href="./">Public invitation</a>
-  </header>
-  <main>
-    <p class="notice">Edit the fields, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
+    </section>
     <div class="layout">
       <div class="workspace">
         <nav class="editor-tabs" role="tablist" aria-label="Invitation workspace">
@@ -264,6 +264,7 @@
             <button id="deleteEvent" type="button">Delete event</button>
             <a id="viewEventLink" class="button" target="_blank" rel="noopener">View guest link</a>
           </div>
+          <p id="deleteEventNote" class="delete-event-note" role="status"></p>
           <section class="token-panel">
             <strong>GitHub publishing</strong>
             <p class="theme-note">Use a fine-grained token limited to this repository with Contents read/write access. It will be saved in this browser only. Anyone using this browser profile may be able to publish; revoke the token in GitHub if this device is shared or lost. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create token</a></p>

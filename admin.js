@@ -165,6 +165,12 @@
       ? 'Main invitation'
       : 'Set as main invitation';
     $('setFeatured').disabled = event.id === invitations.featured;
+    $('deleteEvent').disabled = invitations.events.length <= 1 || event.id === invitations.featured;
+    $('deleteEventNote').textContent = invitations.events.length <= 1
+      ? 'The only invitation cannot be deleted.'
+      : event.id === invitations.featured
+        ? 'The main invitation is protected. Set another invitation as main before deleting this one.'
+        : '';
     $('viewEventLink').href = linkFor(event);
   }
 
@@ -854,7 +860,11 @@
   $('deleteEvent').addEventListener('click', function () {
     var event = selectedEvent();
     if (invitations.events.length <= 1) {
-      setStatus('Keep at least one event in the invitation.');
+      setStatus('The only invitation cannot be deleted.');
+      return;
+    }
+    if (event && event.id === invitations.featured) {
+      setStatus('Set another invitation as main before deleting this one.');
       return;
     }
     if (!event || !window.confirm('Delete "' + (event.names || 'this event') + '"?')) return;
