@@ -185,7 +185,7 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
   const audio = elements.get('backgroundMusic');
 
   assert.equal(backdrop.hidden, false);
-  assert.match(backdrop.style.backgroundImage, /images\/wedding\.jpg/);
+  assert.match(elements.get('pageBackgroundImage').src, /images\/wedding\.jpg/);
   assert.equal(elements.get('musicControls').hidden, false);
   assert.equal(audio.src, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg');
   assert.equal(audio.paused, true);
@@ -214,7 +214,7 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
     }]
   });
   assert.equal(cardImage.get('pageBackdrop').hidden, true);
-  assert.match(cardImage.get('card').style.backgroundImage, /images\/wedding\.jpg/);
+  assert.match(cardImage.get('cardBackground').src, /images\/wedding\.jpg/);
 });
 
 test('renders a selected background design and music preset', async () => {
@@ -232,12 +232,12 @@ test('renders a selected background design and music preset', async () => {
   const elements = await loadGuest('', withPresets);
 
   assert.equal(elements.get('pageBackdrop').hidden, false);
-  assert.match(elements.get('pageBackdrop').style.backgroundImage, /golden-arch\.svg/);
+  assert.match(elements.get('pageBackgroundImage').src, /golden-arch\.svg/);
   assert.equal(elements.get('musicControls').hidden, false);
   assert.match(elements.get('backgroundMusic').src, /Chopin_-_Piano_Concerto/);
 });
 
-test('supports the existing YouTube music link with the single sound button', async () => {
+test('does not render a video player or play a video-page URL as audio', async () => {
   const withYoutube = {
     featured: 'wedding',
     events: [{
@@ -248,22 +248,12 @@ test('supports the existing YouTube music link with the single sound button', as
     }]
   };
   const elements = await loadGuest('', withYoutube);
-  const player = elements.get('backgroundVideo');
 
-  assert.equal(elements.get('musicControls').hidden, false);
-  assert.equal(elements.get('musicVideo').hidden, false);
-  assert.match(player.src, /youtube-nocookie\.com\/embed\/PJrfUKDy3E4/);
-  elements.get('musicToggle').handlers.click();
-  assert.match(elements.get('musicToggle').textContent, /Mute music/);
-  assert.deepEqual(JSON.parse(player.contentWindow.messages[0].message).func, 'playVideo');
-  elements.get('musicToggle').handlers.click();
-  assert.match(elements.get('musicToggle').textContent, /Unmute music/);
-  assert.deepEqual(JSON.parse(player.contentWindow.messages[1].message).func, 'mute');
-  elements.get('musicToggle').handlers.click();
-  assert.deepEqual(JSON.parse(player.contentWindow.messages[2].message).func, 'unMute');
+  assert.equal(elements.get('musicControls').hidden, true);
+  assert.ok(!elements.get('backgroundMusic').src);
 });
 
-test('makes card background images clearly visible', async () => {
+test('shows selected card background designs in a visible image layer', async () => {
   const withBackground = {
     featured: 'wedding',
     events: [{
@@ -275,10 +265,9 @@ test('makes card background images clearly visible', async () => {
     }]
   };
   const elements = await loadGuest('', withBackground);
-  const cardBackground = elements.get('card').style.backgroundImage;
 
-  assert.match(cardBackground, /rose-garden\.svg/);
-  assert.match(cardBackground, / 30%,transparent/);
+  assert.equal(elements.get('cardBackground').hidden, false);
+  assert.match(elements.get('cardBackground').src, /rose-garden\.svg/);
 });
 
 test('does not use unsafe background or audio URLs', async () => {

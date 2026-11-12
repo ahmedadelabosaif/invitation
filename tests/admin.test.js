@@ -146,7 +146,7 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const backgroundUpload = elements.get('backgroundUpload');
   backgroundUpload.files = [{ name: 'photo.png', type: 'image/png' }];
   await backgroundUpload.handlers.change({ target: backgroundUpload });
-  assert.match(elements.get('previewPanel').style.backgroundImage, /blob:/);
+  assert.equal(elements.get('previewPageBackground').src.startsWith('blob:'), true);
   const noPhotos = fields.find((field) => field.value === 'noPhotos');
   assert.equal(noPhotos.value, 'noPhotos');
   noPhotos.checked = true;
@@ -207,7 +207,7 @@ test('admin publishes a background design and a selected public-domain music tra
   const backgroundPreset = fields.find((field) => field.name === 'backgroundPreset');
   backgroundPreset.value = 'goldenArch';
   elements.get('eventForm').handlers.input({ target: backgroundPreset });
-  assert.match(elements.get('previewPanel').style.backgroundImage, /golden-arch\.svg/);
+  assert.match(elements.get('previewPageBackground').src, /golden-arch\.svg/);
 
   const musicTrack = fields.find((field) => field.name === 'musicTrack');
   musicTrack.value = 'chopinRomance';
@@ -253,4 +253,24 @@ test('admin uploads a custom song with the invitation', async () => {
   const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
   const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
   assert.match(savedEvent.musicUrl, /^music\/wedding-[a-z0-9]+\.mp3$/);
+});
+
+test('admin flags video-page links and blocks publishing them as audio', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Sara & Ahmed',
+      musicUrl: 'https://www.youtube.com/watch?v=PJrfUKDy3E4',
+      env: 'garden'
+    }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, saved } = await loadAdmin(data, storage);
+
+  assert.match(elements.get('musicStatus').textContent, /cannot be played as audio only/);
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(saved.length, 0);
+  assert.match(elements.get('status').textContent, /Video-page links cannot be used/);
 });

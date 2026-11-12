@@ -109,19 +109,15 @@
     }
   }
 
-  function youtubeVideoId(value) {
-    if (!value) return '';
+  function isVideoPageUrl(value) {
+    if (!value) return false;
     try {
       var url = new URL(value);
       var host = url.hostname.toLowerCase();
-      var id = '';
-      if (host === 'youtu.be') id = url.pathname.slice(1);
-      else if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(host)) {
-        id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || '';
-      }
-      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+      return host === 'youtu.be' ||
+        ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com'].includes(host);
     } catch (error) {
-      return '';
+      return false;
     }
   }
 
@@ -183,21 +179,14 @@
     var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
       ? event.backgroundMode
       : '';
-    $('previewCard').style.backgroundImage = imageMode === 'card'
-      ? 'linear-gradient(color-mix(in srgb,' + theme.bg + ' 30%,transparent),color-mix(in srgb,' +
-        theme.bg + ' 30%,transparent)),url("' + imageUrl + '")'
-      : '';
-    $('previewCard').style.backgroundSize = 'cover';
-    $('previewCard').style.backgroundPosition = 'center';
-    $('previewPanel').style.backgroundImage = imageMode === 'full'
-      ? 'linear-gradient(rgba(255,255,255,.20),rgba(255,255,255,.20)),url("' + imageUrl + '")'
-      : '';
-    $('previewPanel').style.backgroundSize = 'cover';
-    $('previewPanel').style.backgroundPosition = 'center';
-    $('previewMusicNote').hidden = !MUSIC_TRACKS[event.musicTrack] && !safeMediaUrl(event.musicUrl);
-    $('previewMusicNote').textContent = youtubeVideoId(event.musicUrl)
-      ? '♫ Guests can play the linked music video’s sound'
-      : '♫ Music will be available to guests on request';
+    $('previewCardBackground').hidden = imageMode !== 'card';
+    $('previewCardBackground').src = imageMode === 'card' ? imageUrl : '';
+    $('previewPageBackground').hidden = imageMode !== 'full';
+    $('previewPageBackground').src = imageMode === 'full' ? imageUrl : '';
+    var linkedMusicUrl = safeMediaUrl(event.musicUrl);
+    var videoPageUrl = isVideoPageUrl(linkedMusicUrl);
+    $('previewMusicNote').hidden = !MUSIC_TRACKS[event.musicTrack] && (!linkedMusicUrl || videoPageUrl);
+    $('previewMusicNote').textContent = '♫ Music will be available to guests on request';
     if (previewTheme !== event.env) {
       previewTheme = event.env;
       drawPreviewDecor(theme);
@@ -265,11 +254,14 @@
         : 'Choose a preset or upload a JPG, PNG, or WebP.');
     $('removeImage').disabled = !pendingImage && !event.backgroundImage && !event.backgroundPreset;
     var pendingSong = pendingAudio[event.id];
+    var linkedMusicUrl = safeMediaUrl(event.musicUrl);
     $('musicStatus').textContent = pendingSong
       ? (pendingSong.uploadedPath ? 'Song uploaded; publish to apply it.' : 'Song ready. It will upload when you publish.')
       : (MUSIC_TRACKS[event.musicTrack] ? 'Selected: ' + MUSIC_TRACKS[event.musicTrack].title
         : (event.musicTrack === 'none' ? 'No music selected.'
-          : (event.musicUrl ? 'A custom music link is saved.' : 'Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.')));
+          : (isVideoPageUrl(linkedMusicUrl)
+            ? 'Video-page links (such as YouTube) cannot be played as audio only. Choose a preset, direct audio link, or upload an audio file.'
+            : (event.musicUrl ? 'A custom music link is saved.' : 'Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.'))));
     renderPreview();
   }
 
@@ -676,10 +668,10 @@
       return;
     }
     if (invitations.events.some(function (event) {
-      return event.musicUrl && (!safeMediaUrl(event.musicUrl) ||
-        /youtube(?:-nocookie)?\.com|youtu\.be/i.test(event.musicUrl) && !youtubeVideoId(event.musicUrl));
+      var url = safeMediaUrl(event.musicUrl);
+      return event.musicUrl && (!url || isVideoPageUrl(url));
     })) {
-      setStatus('Use a valid HTTPS audio link or a valid YouTube video link for the background music.');
+      setStatus('Video-page links cannot be used for audio-only playback. Choose a preset, direct HTTPS audio link, or upload an audio file.');
       return;
     }
     if (invitations.events.some(function (event) {

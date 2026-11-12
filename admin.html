@@ -49,11 +49,14 @@
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
     .token-panel{margin-top:16px;padding:12px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
     .token-panel>p{margin:8px 0}
-    .preview{position:sticky;top:16px}
+    .preview{position:sticky;top:16px;min-height:500px;overflow:hidden}
     .preview-card{position:relative;overflow:hidden;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25);animation:preview-arrive .8s ease both}
-    .preview-card:before{content:"";position:absolute;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
-    .preview-card>*{position:relative;z-index:1}
-    .preview-decor{position:absolute!important;z-index:0!important;inset:0;pointer-events:none}
+    .preview-card:before{content:"";position:absolute;z-index:1;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
+    .preview-card>*:not(.preview-background){position:relative;z-index:2}
+    .preview-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.82;pointer-events:none}
+    .preview-page-background{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92;pointer-events:none}
+    #previewPanel>*:not(.preview-page-background){position:relative;z-index:1}
+    .preview-decor{position:absolute!important;z-index:1!important;inset:0;pointer-events:none}
     .preview-decor span{position:absolute;line-height:1;opacity:0}
     .preview-decor.fall span{top:-8%;animation:preview-fall 10s linear infinite}
     .preview-decor.rise span{bottom:-8%;animation:preview-rise 11s linear infinite}
@@ -147,10 +150,10 @@
                 <option value="beethovenHammerklavier">Beethoven · Adagio sostenuto</option>
               </select>
             </label>
-            <label class="wide">Or add a music link<input name="musicUrl" type="url" maxlength="500" placeholder="Direct audio URL or YouTube link"></label>
+            <label class="wide">Or add a music link<input name="musicUrl" type="url" maxlength="500" placeholder="Direct HTTPS audio URL"></label>
             <label class="wide">Or upload your own song<input id="musicUpload" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a"></label>
             <p class="field-note" id="musicStatus">Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.</p>
-            <p class="field-note">Preset instrumentals are public domain / CC0. Guests start music with one button, then use the same button to mute or unmute. Nothing autoplays.</p>
+            <p class="field-note">Preset instrumentals are public domain / CC0. Video-page links such as YouTube cannot be played as audio only. Upload an audio file or provide a direct audio URL. Guests start music with one button, then use the same button to mute or unmute. Nothing autoplays.</p>
           </div>
           <div class="actions">
             <button id="removeImage" type="button">Remove background image</button>
@@ -198,8 +201,10 @@
       </section>
 
       <aside class="panel preview" id="previewPanel">
+        <img id="previewPageBackground" class="preview-page-background" alt="" hidden>
         <h2>Live preview</h2>
         <article id="previewCard" class="preview-card">
+          <img id="previewCardBackground" class="preview-background" alt="" hidden>
           <div id="previewDecor" class="preview-decor" aria-hidden="true"></div>
           <div id="previewEmoji" class="preview-emoji"></div>
           <p id="previewKicker" class="preview-kicker"></p>
@@ -217,6 +222,6 @@
       </aside>
     </div>
   </main>
-  <script src="./admin.js"></script>
+  <script src="./admin.js?v=audio-only-preview"></script>
 </body>
 </html>

@@ -22,13 +22,14 @@ etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
 Choose one of four original background designs or upload a JPG, PNG, or WebP for
 the card/full-page background. Uploads are optimized and stored with the
-published site. Choose one of four public-domain/CC0 classical tracks, or add a
-direct HTTPS audio URL, YouTube link, or upload an MP3/OGG/WAV/M4A song up to
-8 MB. Guests start the music with one button, then use that same button to
-mute/unmute; music never autoplays. YouTube links play in an embedded video
-player so guests hear the linked video's audio; the editor does not extract or
-download audio from video links. Upload an audio file when you want an
-audio-only track. Changes are drafts until published.
+published site. The editor preview shows the selected background behind the
+invitation card or as a full-page backdrop. Choose one of four public-domain/CC0
+classical tracks, add a direct HTTPS audio URL, or upload an MP3/OGG/WAV/M4A
+song up to 8 MB. Guests start the music with one button, then use that same
+button to mute/unmute; music never autoplays. Video-page links such as YouTube
+are not played or embedded, because the editor cannot extract audio from them.
+Use a preset, direct audio URL, or upload an audio file for an audio-only
+soundtrack. Changes are drafts until published.
 Uploaded images and event data are public, so only use content you want to
 share with guests.
 

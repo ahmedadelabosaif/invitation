@@ -31,7 +31,6 @@
   var currentEvent = null;
   var lastEnvironment = null;
   var currentMusicUrl = '';
-  var currentVideoId = '';
   var musicStarted = false;
   var invitations = null;
 
@@ -75,19 +74,15 @@
     }
   }
 
-  function youtubeVideoId(value) {
-    if (!value) return '';
+  function isVideoPageUrl(value) {
+    if (!value) return false;
     try {
       var url = new URL(value);
       var host = url.hostname.toLowerCase();
-      var id = '';
-      if (host === 'youtu.be') id = url.pathname.slice(1);
-      else if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(host)) {
-        id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || '';
-      }
-      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+      return host === 'youtu.be' ||
+        ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com'].includes(host);
     } catch (error) {
-      return '';
+      return false;
     }
   }
 
@@ -98,29 +93,9 @@
     toggle.setAttribute('aria-pressed', musicStarted && !audio.muted ? 'true' : 'false');
   }
 
-  function sendVideoCommand(command) {
-    var video = $('backgroundVideo');
-    if (!currentVideoId || !video.contentWindow) return;
-    video.contentWindow.postMessage(JSON.stringify({
-      event: 'command',
-      func: command,
-      args: []
-    }), 'https://www.youtube-nocookie.com');
-  }
-
   $('musicToggle').addEventListener('click', function () {
     var audio = $('backgroundMusic');
-    if (currentVideoId) {
-      if (!musicStarted) {
-        musicStarted = true;
-        audio.muted = false;
-        sendVideoCommand('playVideo');
-      } else {
-        audio.muted = !audio.muted;
-        sendVideoCommand(audio.muted ? 'mute' : 'unMute');
-      }
-      updateMusicControls();
-    } else if (!musicStarted) {
+    if (!musicStarted) {
       audio.play().then(function () {
         musicStarted = true;
         updateMusicControls();
@@ -140,12 +115,6 @@
       });
       updateMusicControls();
     }
-  });
-
-  $('backgroundVideo').addEventListener('load', function () {
-    if (!musicStarted) return;
-    sendVideoCommand('playVideo');
-    if ($('backgroundMusic').muted) sendVideoCommand('mute');
   });
 
   $('backgroundMusic').addEventListener('play', updateMusicControls);
@@ -181,15 +150,10 @@
       ? event.backgroundMode
       : '';
     $('pageBackdrop').hidden = imageMode !== 'full';
-    $('pageBackdrop').style.backgroundImage = imageMode === 'full'
-      ? 'linear-gradient(rgba(18,24,38,.30),rgba(18,24,38,.30)),url("' + imageUrl + '")'
-      : '';
-    $('card').style.backgroundImage = imageMode === 'card'
-      ? 'linear-gradient(color-mix(in srgb,' + environment.bg + ' 30%,transparent),color-mix(in srgb,' +
-        environment.bg + ' 30%,transparent)),url("' + imageUrl + '")'
-      : '';
-    $('card').style.backgroundSize = 'cover';
-    $('card').style.backgroundPosition = 'center';
+    $('pageBackgroundImage').hidden = imageMode !== 'full';
+    $('pageBackgroundImage').src = imageMode === 'full' ? imageUrl : '';
+    $('cardBackground').hidden = imageMode !== 'card';
+    $('cardBackground').src = imageMode === 'card' ? imageUrl : '';
     $('icon').textContent = event.emoji || '';
     $('kicker').textContent = event.kicker || '';
     $('names').textContent = event.names || '';
@@ -207,33 +171,20 @@
     $('msg').textContent = event.message || '';
     $('info').textContent = event.info || '';
     renderEtiquette(event.etiquette || []);
-    var musicUrl = MUSIC_TRACKS[event.musicTrack] || safeMediaUrl(event.musicUrl);
-    var videoId = event.musicTrack ? '' : youtubeVideoId(musicUrl);
+    var linkedMusicUrl = safeMediaUrl(event.musicUrl);
+    var musicUrl = MUSIC_TRACKS[event.musicTrack] || (isVideoPageUrl(linkedMusicUrl) ? '' : linkedMusicUrl);
     var audio = $('backgroundMusic');
-    var video = $('backgroundVideo');
-    if (musicUrl !== currentMusicUrl || videoId !== currentVideoId) {
+    if (musicUrl !== currentMusicUrl) {
       audio.pause();
       audio.muted = false;
       musicStarted = false;
       currentMusicUrl = musicUrl;
-      currentVideoId = videoId;
-      if (videoId) {
-        audio.removeAttribute('src');
-        audio.load();
-        $('musicVideo').hidden = false;
-        video.src = 'https://www.youtube-nocookie.com/embed/' + videoId +
-          '?autoplay=0&controls=0&disablekb=1&enablejsapi=1&loop=1&playlist=' +
-          videoId + '&origin=' + encodeURIComponent(location.origin);
-      } else if (musicUrl) {
-        $('musicVideo').hidden = true;
-        video.removeAttribute('src');
+      if (musicUrl) {
         audio.src = musicUrl;
       } else {
-        $('musicVideo').hidden = true;
-        video.removeAttribute('src');
         audio.removeAttribute('src');
       }
-      if (!videoId) audio.load();
+      audio.load();
     }
     $('musicControls').hidden = !musicUrl;
     updateMusicControls();
@@ -352,10 +303,10 @@
       $('etiquette').replaceChildren();
       $('etiquette').hidden = true;
       $('pageBackdrop').hidden = true;
+      $('pageBackgroundImage').hidden = true;
+      $('cardBackground').hidden = true;
       $('musicControls').hidden = true;
       $('backgroundMusic').pause();
-      $('musicVideo').hidden = true;
-      $('backgroundVideo').removeAttribute('src');
       $('clock').replaceChildren();
       $('cal').hidden = true;
       $('more').hidden = true;
