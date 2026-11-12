@@ -380,14 +380,6 @@
     applyCanvasLayout(event);
   }
 
-  function setWorkspaceTab(tab) {
-    var reviewing = tab === 'review';
-    $('editingTab').setAttribute('aria-selected', reviewing ? 'false' : 'true');
-    $('reviewTab').setAttribute('aria-selected', reviewing ? 'true' : 'false');
-    $('editingPanel').hidden = reviewing;
-    $('reviewPanel').hidden = !reviewing;
-  }
-
   function layoutItemFromTarget(target) {
     while (target && target !== $('designCanvas')) {
       if (target.getAttribute && target.getAttribute('data-layout-item')) return target;
@@ -726,7 +718,6 @@
       return item.name === fieldName;
     });
     if (control) {
-      setWorkspaceTab('editing');
       control.focus();
       activeTextControl = control.tagName === 'TEXTAREA' ? control : null;
     }
@@ -773,9 +764,6 @@
     var updatedRow = $('layout-order-' + key);
     if (updatedRow) updatedRow.focus();
   });
-
-  $('editingTab').addEventListener('click', function () { setWorkspaceTab('editing'); });
-  $('reviewTab').addEventListener('click', function () { setWorkspaceTab('review'); });
 
   $('richTextToolbar').addEventListener('mousedown', function (event) {
     event.preventDefault();

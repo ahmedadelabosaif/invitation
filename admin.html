@@ -31,7 +31,7 @@
     #newEventPanel{position:absolute;top:calc(100% + 4px);right:12px;z-index:5;width:min(320px,90vw);box-shadow:0 8px 24px rgba(30,24,17,.16)}
     main{max-width:1280px;margin:26px auto;padding:0 16px}
     .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
-    .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+    .layout{display:block}
     .panel{padding:18px;background:#fff;border:1px solid #e3dace;border-radius:13px}
     h1,h2{font-family:"Cormorant Garamond",Georgia,serif}
     h1{margin:0 0 12px;font-size:1.6rem}
@@ -64,11 +64,9 @@
     .rich-text-toolbar .color-swatch{width:24px;min-width:24px;height:24px;padding:0;border-radius:50%}
     .fields textarea{min-height:86px}
     .fields textarea[name=names]{min-height:54px}
-    .workspace{min-width:0}
-    .editor-tabs{display:flex;gap:8px;margin-bottom:12px}
-    .editor-tabs [aria-selected=true]{border-color:#79563b;background:#faf6f0;font-weight:600}
-    .editor-panel{min-width:0}
-    .design-panel{position:sticky;top:16px}
+    .workspace{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+    .editor-panel{grid-column:1;min-width:0}
+    .design-panel{grid-column:2;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
     .design-hint{margin:-4px 0 12px;color:#766a5d;font-size:.85rem}
     .design-stage{min-height:400px;padding:20px 14px;border:1px solid #e3dace;border-radius:11px;background:radial-gradient(circle at 20% 15%,#f2dfcb,transparent 45%),linear-gradient(145deg,#e9e2d7,#d8d2c8)}
     .design-card{position:relative;overflow:hidden;min-height:360px;padding:28px 20px;border:1px solid var(--canvas-accent,#d8b46a);border-radius:14px;background-color:var(--canvas-bg,#153b35);background-size:cover;background-position:center;color:var(--canvas-ink,#fff8e9);box-shadow:0 12px 30px rgba(30,24,17,.22);text-align:center}
@@ -110,7 +108,7 @@
     .format-hint{margin:-7px 0 12px;color:#766a5d;font-size:.84rem}
     .theme-note{color:#766a5d;font-size:.85rem}
     .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
-    @media(max-width:1180px){.design-panel{position:static}}
+    @media(max-width:900px){.workspace{grid-template-columns:minmax(0,1fr)}.editor-panel,.design-panel{grid-column:1}.design-panel{position:static;max-height:none;overflow:visible}}
     @media(max-width:640px){header{padding:10px 12px}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.events-panel{flex-wrap:wrap;gap:8px}.events-panel #eventList{flex:1 1 100%;order:3}.events-panel #addEvent{margin-left:auto}}
   </style>
 </head>
@@ -143,11 +141,7 @@
     </section>
     <div class="layout">
       <div class="workspace">
-        <nav class="editor-tabs" role="tablist" aria-label="Invitation workspace">
-          <button id="editingTab" type="button" role="tab" aria-controls="editingPanel" aria-selected="true">Editing</button>
-          <button id="reviewTab" type="button" role="tab" aria-controls="reviewPanel" aria-selected="false">Review</button>
-        </nav>
-        <section class="panel editor-panel" id="editingPanel" role="tabpanel" aria-labelledby="editingTab">
+        <section class="panel editor-panel" id="editingPanel">
           <form id="eventForm">
           <h1 id="formTitle">Invitation details</h1>
           <div id="richTextToolbar" class="rich-text-toolbar" role="toolbar" aria-label="Text formatting">
@@ -289,7 +283,7 @@
           </form>
         </section>
 
-        <aside class="panel design-panel" id="reviewPanel" role="tabpanel" aria-labelledby="reviewTab" hidden>
+        <aside class="panel design-panel" id="reviewPanel">
         <h2>Review invitation</h2>
         <p class="design-hint">Adjust a section’s typography, then arrange sections with the controls or by dragging them on the preview.</p>
         <div class="review-tools" aria-label="Section typography controls">

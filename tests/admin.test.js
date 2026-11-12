@@ -255,11 +255,14 @@ test('admin publishes a background design and a selected public-domain music tra
   assert.equal(savedEvent.musicUrl, '');
 });
 
-test('editor separates Editing and Review into tabs', () => {
+test('editor keeps Editing and Review visible in side-by-side columns', () => {
   assert.doesNotMatch(adminHtml, /id="previewPanel"/);
   assert.doesNotMatch(adminHtml, /id="previewButton"/);
-  assert.match(adminHtml, /id="editingTab"[^>]*>Editing/);
-  assert.match(adminHtml, /id="reviewTab"[^>]*>Review/);
+  assert.doesNotMatch(adminHtml, /role="tablist"|id="editingTab"|id="reviewTab"/);
+  assert.match(adminHtml, /\.workspace\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(adminHtml, /<section class="panel editor-panel" id="editingPanel">/);
+  assert.match(adminHtml, /<aside class="panel design-panel" id="reviewPanel">/);
+  assert.match(adminHtml, /@media\(max-width:900px\)\{\.workspace\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
 
 test('editing form groups optional fields into collapsible sections', () => {
@@ -320,7 +323,7 @@ test('shared layout sections and style options stay aligned across pages', async
   assert.equal(elements.get('layoutFontSize').children.length, layoutWindow.InvitationLayout.sizeChoices.length + 1);
 });
 
-test('review tab supports drag-and-drop section reordering', async () => {
+test('live review supports drag-and-drop section reordering', async () => {
   const data = {
     featured: 'wedding',
     events: [{ id: 'wedding', eventType: 'wedding', names: 'Sara & Ahmed', env: 'garden' }]
@@ -328,9 +331,6 @@ test('review tab supports drag-and-drop section reordering', async () => {
   const { elements, saved } = await loadAdmin(data, new Map([
     ['invitation.github.publish-token', 'fine-grained-test-token']
   ]));
-  elements.get('reviewTab').handlers.click();
-  assert.equal(elements.get('editingPanel').hidden, true);
-  assert.equal(elements.get('reviewPanel').hidden, false);
 
   const message = elements.get('layout-message');
   const venue = elements.get('layout-venue');
@@ -406,11 +406,23 @@ test('formats selected invitation text and updates the clickable canvas', async 
   assert.equal(data.events[0].message, '[gold]Join us[/gold]');
   assert.equal(elements.get('canvas-message').innerHTML, '<span class="text-gold">Join us</span>');
 
-  elements.get('reviewTab').handlers.click();
   elements.get('designCanvas').handlers.click({ target: elements.get('canvas-message') });
   assert.equal(message.focused, true);
-  assert.equal(elements.get('editingPanel').hidden, false);
-  assert.equal(elements.get('reviewPanel').hidden, true);
+});
+
+test('editing changes appear immediately in the always-visible review', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{ id: 'wedding', names: 'Birthday', message: 'Before', eventType: 'birthday' }]
+  };
+  const { elements, fields } = await loadAdmin(data);
+  const message = fields.find((field) => field.name === 'message');
+
+  message.value = 'After';
+  elements.get('eventForm').handlers.input({ target: message });
+
+  assert.equal(data.events[0].message, 'After');
+  assert.equal(elements.get('canvas-message').innerHTML, 'After');
 });
 
 test('requires choosing an invitation type before creating an event', async () => {

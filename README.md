@@ -18,8 +18,10 @@ invitation update; GitHub Pages deploys it automatically.
 
 The editor keeps the full Events selector in its own workspace bar, separate
 from the page header. The main invitation is protected from deletion; set a
-different invitation as main before deleting the former one. The editor
-separates **Editing** from **Review**. In Review, choose a section
+different invitation as main before deleting the former one. The editor shows
+**Editing** on the left and **Review** on the right, with both visible together
+on desktop and stacked on narrow screens. Changes update the preview
+immediately without switching views. In Review, choose a section
 to adjust its font, size, alignment, or color. Reorder sections with the
 up/down buttons, drag handles, or the arrow keys; drag items directly on the
 invitation preview as well. Typography and order are saved with the invitation
