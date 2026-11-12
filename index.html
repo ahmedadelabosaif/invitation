@@ -78,7 +78,7 @@
 </head>
 <body>
   <div id="pageBackdrop" hidden aria-hidden="true"><img id="pageBackgroundImage" alt=""></div>
-  <audio id="backgroundMusic" preload="none" loop hidden></audio>
+  <audio id="backgroundMusic" autoplay preload="auto" loop hidden></audio>
   <main id="stage">
     <p id="notice" role="status" hidden></p>
     <article class="card" id="card">
@@ -111,6 +111,6 @@
   <div id="musicControls" class="music-controls" hidden>
     <button id="musicToggle" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
   </div>
-  <script src="./guest.js?v=audio-only-preview"></script>
+  <script src="./guest.js?v=autoplay-no-preview"></script>
 </body>
 </html>

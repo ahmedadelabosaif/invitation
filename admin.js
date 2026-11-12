@@ -1,12 +1,4 @@
 (function () {
-  var THEMES = {
-    classic: { bg: '#fff', ink: '#1f2a44', accent: '#b4476b', motion: 'fall', emojis: ['✨', '🤍'], count: 8 },
-    garden: { bg: '#ddebdd', ink: '#1e3a2a', accent: '#3f7a55', motion: 'fall', emojis: ['🌸', '🍃', '🌼'], count: 10 },
-    beach: { bg: '#d9eef3', ink: '#123b4a', accent: '#1b7f9a', motion: 'rise', emojis: ['🫧', '🐚'], count: 10 },
-    sunset: { bg: '#fbe3d6', ink: '#4a2335', accent: '#c2492f', motion: 'rise', emojis: ['🎈', '✨'], count: 7 },
-    night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
-    islamic: { bg: '#153b35', ink: '#fff8e9', accent: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
-  };
   var BACKGROUNDS = {
     roseGarden: './backgrounds/rose-garden.svg',
     goldenArch: './backgrounds/golden-arch.svg',
@@ -46,7 +38,6 @@
   var originalData = null;
   var selectedId = null;
   var changed = false;
-  var previewTheme = null;
   var savedToken = '';
   var editingToken = false;
   var pendingImages = {};
@@ -130,24 +121,6 @@
     return data;
   }
 
-  function drawPreviewDecor(theme) {
-    var decor = $('previewDecor');
-    decor.replaceChildren();
-    decor.className = 'preview-decor ' + theme.motion +
-      (theme === THEMES.islamic ? ' islamic-decor' : '');
-    for (var i = 0; i < theme.count; i++) {
-      var span = document.createElement('span');
-      var duration = 9 + (i * 7) % 8;
-      span.textContent = theme.emojis[i % theme.emojis.length];
-      span.style.left = (i * 97) % 100 + '%';
-      if (theme.motion === 'twinkle') span.style.top = (i * 37) % 90 + '%';
-      span.style.fontSize = 0.75 + (i % 4) * 0.2 + 'rem';
-      span.style.animationDuration = (theme.motion === 'twinkle' ? 3 + i % 4 : duration) + 's';
-      span.style.animationDelay = -((i * 5) % duration) + 's';
-      decor.appendChild(span);
-    }
-  }
-
   function renderEvents() {
     var list = $('eventList');
     list.replaceChildren();
@@ -167,74 +140,13 @@
     });
   }
 
-  function renderPreview() {
-    var event = selectedEvent();
-    if (!event) return;
-    var theme = THEMES[event.env] || THEMES.classic;
-    $('previewThemeMark').hidden = event.env !== 'islamic';
-    $('previewCard').style.setProperty('--preview-bg', theme.bg);
-    $('previewCard').style.setProperty('--preview-ink', theme.ink);
-    $('previewCard').style.setProperty('--preview-accent', theme.accent);
-    var pendingImage = pendingImages[event.id];
-    var imageUrl = pendingImage ? pendingImage.previewUrl :
-      (safeMediaUrl(event.backgroundImage) || safeMediaUrl(BACKGROUNDS[event.backgroundPreset]));
-    var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
-      ? event.backgroundMode
-      : '';
-    $('previewCardBackground').hidden = imageMode !== 'card';
-    $('previewCardBackground').src = imageMode === 'card' ? imageUrl : '';
-    $('previewPageBackground').hidden = imageMode !== 'full';
-    $('previewPageBackground').src = imageMode === 'full' ? imageUrl : '';
-    var linkedMusicUrl = safeMediaUrl(event.musicUrl);
-    var videoPageUrl = isVideoPageUrl(linkedMusicUrl);
-    $('previewMusicNote').hidden = !MUSIC_TRACKS[event.musicTrack] && (!linkedMusicUrl || videoPageUrl);
-    $('previewMusicNote').textContent = '♫ Music will be available to guests on request';
-    if (previewTheme !== event.env) {
-      previewTheme = event.env;
-      drawPreviewDecor(theme);
-    }
+  function updateEventMetadata(event) {
     $('formTitle').textContent = event.names || 'Invitation details';
     $('setFeatured').textContent = event.id === invitations.featured
       ? 'Main invitation'
       : 'Set as main invitation';
     $('setFeatured').disabled = event.id === invitations.featured;
     $('viewEventLink').href = linkFor(event);
-    $('previewEmoji').textContent = event.emoji || '';
-    $('previewKicker').textContent = event.kicker || '';
-    $('previewIntroDescription').textContent = event.introDescription || '';
-    $('previewNames').textContent = event.names || 'Your names here';
-    $('previewDate').textContent = event.date
-      ? new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-      })
-      : 'Date to be announced';
-    $('previewTime').textContent = event.time
-      ? new Date('2000-01-01T' + event.time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-      : '';
-    $('previewVenue').textContent = event.venue || '';
-    var locationUrl = safeLocationUrl(event.locationUrl);
-    $('previewDirections').href = locationUrl || '#';
-    $('previewDirections').setAttribute('aria-disabled', locationUrl ? 'false' : 'true');
-    $('previewDirections').tabIndex = locationUrl ? 0 : -1;
-    $('previewDirections').hidden = !locationUrl;
-    $('previewMessage').textContent = event.message || '';
-    $('previewInfo').textContent = event.info || '';
-    var etiquette = $('previewEtiquette');
-    etiquette.replaceChildren();
-    (Array.isArray(event.etiquette) ? event.etiquette : []).forEach(function (item) {
-      var option = ETIQUETTE[item];
-      if (!option) return;
-      var note = document.createElement('p');
-      note.textContent = option.icon + ' ' + option.label;
-      etiquette.appendChild(note);
-    });
-    etiquette.hidden = !etiquette.children.length;
-    var featured = invitations.events.find(function (item) {
-      return item.id === invitations.featured;
-    });
-    $('featuredNote').textContent = event.id === invitations.featured
-      ? 'This event appears on the main invitation link.'
-      : 'Main invitation: ' + (featured ? featured.names : 'not set');
   }
 
   function render() {
@@ -242,6 +154,7 @@
     var event = selectedEvent();
     $('eventForm').hidden = !event;
     if (!event) return;
+    updateEventMetadata(event);
     Array.prototype.forEach.call($('eventForm').elements, function (control) {
       if (control.name === 'etiquette') {
         control.checked = Array.isArray(event.etiquette) && event.etiquette.includes(control.value);
@@ -265,13 +178,9 @@
           : (isVideoPageUrl(linkedMusicUrl)
             ? 'Video-page links (such as YouTube) cannot be played as audio only. Choose a preset, direct audio link, or upload an audio file.'
             : (event.musicUrl ? 'A custom music link is saved.' : 'Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.'))));
-    renderPreview();
   }
 
   function discardPendingImage(eventId) {
-    var pendingImage = pendingImages[eventId];
-    if (!pendingImage) return;
-    URL.revokeObjectURL(pendingImage.previewUrl);
     delete pendingImages[eventId];
   }
 
@@ -331,8 +240,7 @@
       var blob = await optimizeImage(file);
       discardPendingImage(invitation.id);
       pendingImages[invitation.id] = {
-        blob: blob,
-        previewUrl: URL.createObjectURL(blob)
+        blob: blob
       };
       invitation.backgroundPreset = '';
       invitation.backgroundImage = '';
@@ -447,7 +355,7 @@
     }
     markChanged();
     renderEvents();
-    renderPreview();
+    updateEventMetadata(invitation);
   }
 
   $('eventForm').addEventListener('input', function (event) {
@@ -558,12 +466,6 @@
     }
   });
 
-  $('previewButton').addEventListener('click', function () {
-    renderPreview();
-    $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setStatus('Preview updated.');
-  });
-
   function encodeBase64(text) {
     var bytes = new TextEncoder().encode(text);
     var binary = '';
@@ -624,7 +526,6 @@
     pendingImage.uploadedPath = path;
     if (event.id === selectedId) {
       $('imageStatus').textContent = 'Image uploaded; publish to apply it.';
-      renderPreview();
     }
   }
 

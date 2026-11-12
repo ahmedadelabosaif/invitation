@@ -9,7 +9,7 @@ The public page title is personalized from the invitation names (for example,
 The visual editor opens directly at `/admin.html`. To publish without copying
 data, create a GitHub fine-grained personal access token limited to this
 repository with **Contents: read and write** permission. Enter the token in the
-editor, then use **Preview** and **Publish**. The token is used for the GitHub
+editor, then use **Publish**. The token is used for the GitHub
 API request and saved in this browser's local storage so later visits can
 publish without re-entering it. Use **Change token** to replace it or **Forget
 token on this device** to remove it. Only save it on a trusted device; browser
@@ -26,11 +26,11 @@ etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
 Choose one of four original background designs or upload a JPG, PNG, or WebP for
 the card/full-page background. Uploads are optimized and stored with the
-published site. The editor preview shows the selected background behind the
-invitation card or as a full-page backdrop. Choose one of four public-domain/CC0
+published site. Choose one of four public-domain/CC0
 classical tracks, add a direct HTTPS audio URL, or upload an MP3/OGG/WAV/M4A
 song up to 8 MB. Guests start the music with one button, then use that same
-button to mute/unmute; music never autoplays. Video-page links such as YouTube
+button to mute/unmute. Music starts automatically when the browser permits it;
+if autoplay is blocked, guests can tap **Play music**. Video-page links such as YouTube
 are not played or embedded, because the editor cannot extract audio from them.
 Use a preset, direct audio URL, or upload an audio file for an audio-only
 soundtrack. Changes are drafts until published.

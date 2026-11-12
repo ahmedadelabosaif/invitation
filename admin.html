@@ -23,7 +23,7 @@
     header .spacer{flex:1}
     main{max-width:1280px;margin:26px auto;padding:0 16px}
     .notice{margin:0 0 16px;padding:11px 14px;border:1px solid #e3dace;border-radius:9px;background:#fff;color:#665d53}
-    .layout{display:grid;grid-template-columns:220px minmax(280px,1fr) minmax(240px,320px);gap:16px;align-items:start}
+    .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
     .panel{padding:18px;background:#fff;border:1px solid #e3dace;border-radius:13px}
     h1,h2{font-family:"Cormorant Garamond",Georgia,serif}
     h1{margin:0 0 12px;font-size:1.6rem}
@@ -49,43 +49,10 @@
     #status{min-height:1.5em;margin:12px 0 0;color:#665d53;font-size:.9rem}
     .token-panel{margin-top:16px;padding:12px;border:1px solid #e3dace;border-radius:9px;background:#fcfaf7}
     .token-panel>p{margin:8px 0}
-    .preview{position:sticky;top:16px;min-height:500px;overflow:hidden}
-    .preview-card{position:relative;overflow:hidden;padding:28px 20px;text-align:center;border:1px solid var(--preview-accent,#d8c6ad);border-radius:12px;background:var(--preview-bg,#fbf6ed);color:var(--preview-ink,#392f25);animation:preview-arrive .8s ease both}
-    .preview-card:before{content:"";position:absolute;z-index:1;inset:8px;border:1px solid var(--preview-accent,#d8c6ad);pointer-events:none}
-    .preview-card>*:not(.preview-background){position:relative;z-index:2}
-    .preview-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.82;pointer-events:none}
-    .preview-page-background{position:absolute;z-index:0;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92;pointer-events:none}
-    #previewPanel>*:not(.preview-page-background){position:relative;z-index:1}
-    .preview-decor{position:absolute!important;z-index:1!important;inset:0;pointer-events:none}
-    .preview-decor span{position:absolute;line-height:1;opacity:0}
-    .preview-decor.fall span{top:-8%;animation:preview-fall 10s linear infinite}
-    .preview-decor.rise span{bottom:-8%;animation:preview-rise 11s linear infinite}
-    .preview-decor.twinkle span{animation:preview-twinkle 3s ease-in-out infinite}
-    .preview-decor.islamic-decor span{color:#d8b46a;text-shadow:0 0 8px rgba(216,180,106,.55)}
-    @keyframes preview-arrive{from{transform:translateY(12px);opacity:.65}to{transform:translateY(0);opacity:1}}
-    @keyframes preview-fall{0%{transform:translateY(0) rotate(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(24px,300px) rotate(120deg);opacity:0}}
-    @keyframes preview-rise{0%{transform:translateY(0);opacity:0}12%,85%{opacity:.7}100%{transform:translate(18px,-300px);opacity:0}}
-    @keyframes preview-twinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.85;transform:scale(1.2)}}
-    .preview-emoji{font-size:1.8rem}
-    .preview-theme-mark{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 10px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:50%;color:var(--preview-accent,#d8c6ad);background:rgba(21,59,53,.78);box-shadow:0 0 0 4px rgba(216,180,106,.12),0 0 20px rgba(216,180,106,.2)}
-    .preview-theme-mark svg{width:27px;height:27px}
-    .preview-theme-mark .moon,.preview-theme-mark .star{fill:currentColor}
-    .preview-kicker{margin:6px 0;color:#806b54;font-style:italic}
-    .preview-intro-description{max-width:34ch;margin:4px auto 10px;color:var(--preview-ink,#392f25);font-size:.92rem;line-height:1.45}
-    .preview-names{margin:4px 0 12px;font:600 2.2rem/1.05 "Cormorant Garamond",Georgia,serif}
-    .preview-date{font:600 1.2rem "Cormorant Garamond",Georgia,serif}
-    .preview-venue{margin:12px 0 0;font-weight:600}
-    .preview-directions{display:inline-block;margin-top:8px;padding:5px 12px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:999px;color:inherit;font-size:.85rem;text-decoration:none}
-    .preview-directions[aria-disabled=true]{opacity:.5}
-    .preview-message{white-space:pre-line}
-    .preview-etiquette{display:grid;gap:5px;margin-top:12px}
-    .preview-etiquette p{margin:0;padding:6px;border:1px solid var(--preview-accent,#d8c6ad);border-radius:7px;font-size:.85rem}
     .theme-note{color:#766a5d;font-size:.85rem}
     .field-note{grid-column:1/-1;margin:-5px 0 10px;color:#766a5d;font-size:.84rem}
-    .preview-music-note{margin:12px 0 0;color:#766a5d;font-size:.85rem}
-    @media(prefers-reduced-motion:reduce){.preview-card{animation:none}.preview-decor span{animation:none!important;opacity:.5}}
-    @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}.preview{position:static;grid-column:1/-1}}
-    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}.preview{grid-column:auto}}
+    @media(max-width:980px){.layout{grid-template-columns:200px minmax(0,1fr)}}
+    @media(max-width:640px){header{flex-wrap:wrap}.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr}label.wide{grid-column:auto}}
   </style>
 </head>
 <body>
@@ -95,7 +62,7 @@
     <a href="./">Public invitation</a>
   </header>
   <main>
-    <p class="notice">Edit the fields, preview, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
+    <p class="notice">Edit the fields, then publish. Save your fine-grained GitHub token once in this browser to publish future edits without re-entering it.</p>
     <div class="layout">
       <aside class="panel stack">
         <h1>Events</h1>
@@ -159,7 +126,7 @@
             <label class="wide">Or add a music link<input name="musicUrl" type="url" maxlength="500" placeholder="Direct HTTPS audio URL"></label>
             <label class="wide">Or upload your own song<input id="musicUpload" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a"></label>
             <p class="field-note" id="musicStatus">Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.</p>
-            <p class="field-note">Preset instrumentals are public domain / CC0. Video-page links such as YouTube cannot be played as audio only. Upload an audio file or provide a direct audio URL. Guests start music with one button, then use the same button to mute or unmute. Nothing autoplays.</p>
+            <p class="field-note">Preset instrumentals are public domain / CC0. Video-page links such as YouTube cannot be played as audio only. Upload an audio file or provide a direct audio URL. Music starts automatically where the guest’s browser permits it; guests can mute or unmute with one button.</p>
           </div>
           <div class="actions">
             <button id="removeImage" type="button">Remove background image</button>
@@ -200,41 +167,13 @@
           </section>
           <p id="status" role="status"></p>
           <div class="actions">
-            <button id="previewButton" type="button">Preview</button>
             <button id="publishButton" class="primary" type="button">Publish</button>
           </div>
         </form>
       </section>
 
-      <aside class="panel preview" id="previewPanel">
-        <img id="previewPageBackground" class="preview-page-background" alt="" hidden>
-        <h2>Live preview</h2>
-        <article id="previewCard" class="preview-card">
-          <img id="previewCardBackground" class="preview-background" alt="" hidden>
-          <div id="previewDecor" class="preview-decor" aria-hidden="true"></div>
-          <div class="preview-theme-mark" id="previewThemeMark" aria-hidden="true" hidden>
-            <svg viewBox="0 0 48 48" focusable="false">
-              <path class="moon" d="M29.8 5.7a18.7 18.7 0 1 0 12.5 31.7A16.2 16.2 0 0 1 29.8 5.7Z"/>
-              <path class="star" d="m37.5 8.2 1.8 4.1 4.2 1.7-4.2 1.8-1.8 4.1-1.7-4.1-4.2-1.8 4.2-1.7z"/>
-            </svg>
-          </div>
-          <div id="previewEmoji" class="preview-emoji"></div>
-          <p id="previewKicker" class="preview-kicker"></p>
-          <p id="previewIntroDescription" class="preview-intro-description"></p>
-          <h2 id="previewNames" class="preview-names"></h2>
-          <div id="previewDate" class="preview-date"></div>
-          <p id="previewTime"></p>
-          <p id="previewVenue" class="preview-venue"></p>
-          <a id="previewDirections" class="preview-directions" target="_blank" rel="noopener noreferrer" aria-disabled="true">Get directions ↗</a>
-          <p id="previewMessage" class="preview-message"></p>
-          <p id="previewInfo" class="preview-message"></p>
-          <div id="previewEtiquette" class="preview-etiquette" hidden></div>
-          <p class="preview-music-note" id="previewMusicNote" hidden>♫ Music will be available to guests on request</p>
-        </article>
-        <p id="featuredNote" class="theme-note"></p>
-      </aside>
     </div>
   </main>
-  <script src="./admin.js?v=audio-only-preview"></script>
+  <script src="./admin.js?v=autoplay-no-preview"></script>
 </body>
 </html>

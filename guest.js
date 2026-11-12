@@ -93,22 +93,28 @@
     toggle.setAttribute('aria-pressed', musicStarted && !audio.muted ? 'true' : 'false');
   }
 
+  function startMusic() {
+    var audio = $('backgroundMusic');
+    if (!currentMusicUrl) return;
+    audio.play().then(function () {
+      musicStarted = true;
+      $('notice').hidden = true;
+      updateMusicControls();
+    }).catch(function () {
+      musicStarted = false;
+      $('notice').textContent = 'Music could not start automatically. Tap Play music to start it.';
+      $('notice').hidden = false;
+      updateMusicControls();
+    });
+  }
+
   $('musicToggle').addEventListener('click', function () {
     var audio = $('backgroundMusic');
     if (!musicStarted) {
-      audio.play().then(function () {
-        musicStarted = true;
-        updateMusicControls();
-      }).catch(function () {
-        musicStarted = false;
-        $('notice').textContent = 'Music could not be played. Check the music link and try again.';
-        $('notice').hidden = false;
-        updateMusicControls();
-      });
+      startMusic();
     } else {
       audio.muted = !audio.muted;
-      if (audio.muted) audio.pause();
-      else audio.play().catch(function () {
+      if (!audio.muted) audio.play().catch(function () {
         audio.muted = true;
         $('notice').textContent = 'Music could not be played. Check the music link and try again.';
         $('notice').hidden = false;
@@ -191,6 +197,7 @@
         audio.removeAttribute('src');
       }
       audio.load();
+      startMusic();
     }
     $('musicControls').hidden = !musicUrl;
     updateMusicControls();

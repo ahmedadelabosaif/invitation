@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const guestSource = fs.readFileSync(path.join(__dirname, '..', 'guest.js'), 'utf8');
 
-async function loadGuest(search, data) {
+async function loadGuest(search, data, blockFirstPlay = false) {
   const elements = new Map();
   function getElementById(id) {
     if (!elements.has(id)) {
@@ -23,6 +23,7 @@ async function loadGuest(search, data) {
         className: '',
         attributes: {},
         handlers: {},
+        playAttempts: 0,
         contentWindow: { messages: [], postMessage(message, origin) { this.messages.push({ message, origin }); } },
         style: {
           properties: {},
@@ -35,7 +36,15 @@ async function loadGuest(search, data) {
         appendChild(child) { this.children.push(child); },
         append(...children) { this.children.push(...children); },
         load() {},
-        play() { this.paused = false; if (this.handlers.play) this.handlers.play(); return Promise.resolve(); },
+        play() {
+          this.playAttempts++;
+          if (blockFirstPlay && this.id === 'backgroundMusic' && this.playAttempts === 1) {
+            return Promise.reject(new Error('Autoplay blocked'));
+          }
+          this.paused = false;
+          if (this.handlers.play) this.handlers.play();
+          return Promise.resolve();
+        },
         pause() { this.paused = true; if (this.handlers.pause) this.handlers.pause(); }
       });
     }
@@ -198,7 +207,7 @@ test('ignores legacy non-array etiquette data on the guest invitation', async ()
   assert.equal(elements.get('etiquette').children.length, 0);
 });
 
-test('shows a full-page image and lets guests play, pause, and mute music', async () => {
+test('autoplays a full-page invitation soundtrack and lets guests mute and unmute', async () => {
   const withMedia = {
     featured: 'wedding',
     events: [{
@@ -218,16 +227,13 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
   assert.match(elements.get('pageBackgroundImage').src, /images\/wedding\.jpg/);
   assert.equal(elements.get('musicControls').hidden, false);
   assert.equal(audio.src, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg');
-  assert.equal(audio.paused, true);
-
-  elements.get('musicToggle').handlers.click();
-  await new Promise(setImmediate);
   assert.equal(audio.paused, false);
   assert.match(elements.get('musicToggle').textContent, /Mute music/);
 
   elements.get('musicToggle').handlers.click();
   assert.equal(audio.muted, true);
   assert.match(elements.get('musicToggle').textContent, /Unmute music/);
+  assert.equal(audio.paused, false);
 
   elements.get('musicToggle').handlers.click();
   assert.equal(audio.muted, false);
@@ -245,6 +251,28 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
   });
   assert.equal(cardImage.get('pageBackdrop').hidden, true);
   assert.match(cardImage.get('cardBackground').src, /images\/wedding\.jpg/);
+});
+
+test('offers play control when browser blocks automatic music playback', async () => {
+  const withMusic = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      musicTrack: 'beethovenAdagio',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withMusic, true);
+
+  assert.equal(elements.get('backgroundMusic').paused, true);
+  assert.match(elements.get('musicToggle').textContent, /Play music/);
+  assert.match(elements.get('notice').textContent, /Tap Play music/);
+
+  elements.get('musicToggle').handlers.click();
+  await new Promise(setImmediate);
+  assert.equal(elements.get('backgroundMusic').paused, false);
+  assert.match(elements.get('musicToggle').textContent, /Mute music/);
 });
 
 test('renders a selected background design and music preset', async () => {

@@ -6,6 +6,7 @@ const { TextDecoder, TextEncoder } = require('node:util');
 const vm = require('node:vm');
 
 const adminSource = fs.readFileSync(path.join(__dirname, '..', 'admin.js'), 'utf8');
+const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
 
 function makeNode(id) {
   return {
@@ -135,12 +136,8 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const names = fields.find((field) => field.name === 'names');
   const introDescription = fields.find((field) => field.name === 'introDescription');
 
-  assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed');
-  assert.equal(elements.get('previewDirections').href, 'https://maps.example.test/event');
   introDescription.value = 'With our families, we invite you to celebrate this special day.';
   elements.get('eventForm').handlers.input({ target: introDescription });
-  assert.equal(elements.get('previewIntroDescription').textContent, introDescription.value);
-  assert.ok(elements.get('previewDecor').children.length > 0);
   const backgroundMode = fields.find((field) => field.name === 'backgroundMode');
   backgroundMode.value = 'full';
   elements.get('eventForm').handlers.input({ target: backgroundMode });
@@ -150,13 +147,10 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   const backgroundUpload = elements.get('backgroundUpload');
   backgroundUpload.files = [{ name: 'photo.png', type: 'image/png' }];
   await backgroundUpload.handlers.change({ target: backgroundUpload });
-  assert.equal(elements.get('previewPageBackground').src.startsWith('blob:'), true);
   const noPhotos = fields.find((field) => field.value === 'noPhotos');
   assert.equal(noPhotos.value, 'noPhotos');
   noPhotos.checked = true;
   elements.get('eventForm').handlers.change({ target: noPhotos });
-  assert.equal(elements.get('previewEtiquette').hidden, false);
-  assert.equal(elements.get('previewEtiquette').children[0].textContent, '🚫📷 No photos or video, please');
 
   elements.get('addToken').handlers.click();
   elements.get('githubToken').value = 'fine-grained-test-token';
@@ -165,9 +159,8 @@ test('admin remembers the saved token and reuses it on later visits', async () =
 
   names.value = 'Sara & Ahmed’s wedding';
   elements.get('eventForm').handlers.input({ target: names });
-  assert.equal(elements.get('previewNames').textContent, 'Sara & Ahmed’s wedding');
+  assert.equal(elements.get('formTitle').textContent, 'Sara & Ahmed’s wedding');
 
-  elements.get('previewButton').handlers.click();
   await elements.get('publishButton').handlers.click();
 
   assert.equal(saved.length, 1, elements.get('status').textContent);
@@ -194,7 +187,7 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   reopened.elements.get('eventForm').handlers.input({ target: reopenedNames });
   await reopened.elements.get('publishButton').handlers.click();
   assert.equal(reopened.saved[0].options.headers.Authorization, 'Bearer fine-grained-test-token');
-  assert.equal(reopened.elements.get('previewNames').textContent, 'Updated after reopening');
+  assert.equal(reopened.elements.get('formTitle').textContent, 'Updated after reopening');
 });
 
 test('admin publishes a background design and a selected public-domain music track', async () => {
@@ -212,7 +205,7 @@ test('admin publishes a background design and a selected public-domain music tra
   const backgroundPreset = fields.find((field) => field.name === 'backgroundPreset');
   backgroundPreset.value = 'goldenArch';
   elements.get('eventForm').handlers.input({ target: backgroundPreset });
-  assert.match(elements.get('previewPageBackground').src, /golden-arch\.svg/);
+  assert.equal(backgroundPreset.value, 'goldenArch');
 
   const musicTrack = fields.find((field) => field.name === 'musicTrack');
   musicTrack.value = 'chopinRomance';
@@ -230,20 +223,9 @@ test('admin publishes a background design and a selected public-domain music tra
   assert.equal(savedEvent.musicUrl, '');
 });
 
-test('admin preview highlights the Islamic theme with its crescent-and-star mark', async () => {
-  const data = {
-    featured: 'wedding',
-    events: [{ id: 'wedding', names: 'Amina & Omar', env: 'islamic' }]
-  };
-  const { elements } = await loadAdmin(data);
-
-  assert.equal(elements.get('previewThemeMark').hidden, false);
-  assert.match(elements.get('previewDecor').className, /islamic-decor/);
-
-  const theme = elements.get('eventForm').elements.find((field) => field.name === 'env');
-  theme.value = 'classic';
-  elements.get('eventForm').handlers.input({ target: theme });
-  assert.equal(elements.get('previewThemeMark').hidden, true);
+test('editor no longer renders a live preview panel or preview button', () => {
+  assert.doesNotMatch(adminHtml, /id="previewPanel"/);
+  assert.doesNotMatch(adminHtml, /id="previewButton"/);
 });
 
 test('admin uploads a custom song with the invitation', async () => {
