@@ -37,7 +37,7 @@ async function loadAdmin(initialData, storage) {
     if (!elements.has(id)) elements.set(id, makeNode(id));
     return elements.get(id);
   }
-  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'musicUrl']
+  const fields = ['names', 'emoji', 'kicker', 'date', 'time', 'venue', 'locationUrl', 'message', 'info', 'event', 'env', 'backgroundMode', 'backgroundPreset', 'musicTrack', 'musicUrl']
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
@@ -190,4 +190,67 @@ test('admin remembers the saved token and reuses it on later visits', async () =
   await reopened.elements.get('publishButton').handlers.click();
   assert.equal(reopened.saved[0].options.headers.Authorization, 'Bearer fine-grained-test-token');
   assert.equal(reopened.elements.get('previewNames').textContent, 'Updated after reopening');
+});
+
+test('admin publishes a background design and a selected public-domain music track', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Sara & Ahmed',
+      etiquette: [],
+      env: 'garden'
+    }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, fields, saved, uploaded } = await loadAdmin(data, storage);
+  const backgroundPreset = fields.find((field) => field.name === 'backgroundPreset');
+  backgroundPreset.value = 'goldenArch';
+  elements.get('eventForm').handlers.input({ target: backgroundPreset });
+  assert.match(elements.get('previewPanel').style.backgroundImage, /golden-arch\.svg/);
+
+  const musicTrack = fields.find((field) => field.name === 'musicTrack');
+  musicTrack.value = 'chopinRomance';
+  elements.get('eventForm').handlers.input({ target: musicTrack });
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(uploaded.length, 0);
+  assert.equal(saved.length, 1, elements.get('status').textContent);
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  assert.equal(savedEvent.backgroundPreset, 'goldenArch');
+  assert.equal(savedEvent.backgroundMode, 'full');
+  assert.equal(savedEvent.musicTrack, 'chopinRomance');
+  assert.equal(savedEvent.musicUrl, '');
+});
+
+test('admin uploads a custom song with the invitation', async () => {
+  const data = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Sara & Ahmed',
+      etiquette: [],
+      env: 'garden'
+    }]
+  };
+  const storage = new Map([['invitation.github.publish-token', 'fine-grained-test-token']]);
+  const { elements, saved, uploaded } = await loadAdmin(data, storage);
+  const musicUpload = elements.get('musicUpload');
+  musicUpload.files = [{
+    type: 'audio/mpeg',
+    size: 5,
+    arrayBuffer: async () => Uint8Array.from([1, 2, 3, 4, 5]).buffer
+  }];
+  musicUpload.handlers.change({ target: musicUpload });
+  await elements.get('publishButton').handlers.click();
+
+  assert.equal(uploaded.length, 1);
+  assert.match(uploaded[0].url, /\/contents\/music\/wedding-/);
+  assert.equal(saved.length, 1, elements.get('status').textContent);
+  const request = JSON.parse(saved[0].options.body);
+  const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
+  const savedEvent = JSON.parse(new TextDecoder().decode(bytes)).events[0];
+  assert.match(savedEvent.musicUrl, /^music\/wedding-[a-z0-9]+\.mp3$/);
 });

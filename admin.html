@@ -119,8 +119,17 @@
                 <option value="islamic">Islamic wedding</option>
               </select>
             </label>
-            <label class="wide">Add an image<input id="backgroundUpload" type="file" accept="image/jpeg,image/png,image/webp"></label>
-            <p class="field-note" id="imageStatus">Choose a JPG, PNG, or WebP. It will be optimized and uploaded with the invitation when you publish.</p>
+            <label class="wide">Background design
+              <select name="backgroundPreset">
+                <option value="">No preset background</option>
+                <option value="roseGarden">Rose garden</option>
+                <option value="goldenArch">Golden arch</option>
+                <option value="moonlitSky">Moonlit sky</option>
+                <option value="blushOrnament">Blush ornament</option>
+              </select>
+            </label>
+            <label class="wide">Add your own background image<input id="backgroundUpload" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <p class="field-note" id="imageStatus">Choose a preset or upload a JPG, PNG, or WebP. Your upload is optimized before publishing.</p>
             <label class="wide">Image placement
               <select name="backgroundMode">
                 <option value="">No image</option>
@@ -128,11 +137,23 @@
                 <option value="full">Full-page background</option>
               </select>
             </label>
-            <label class="wide">Background music link (optional)<input name="musicUrl" type="url" maxlength="500" placeholder="https://example.com/song.mp3"></label>
-            <p class="field-note">Use a direct HTTPS audio link (MP3 or OGG). Guests choose when to play or mute it; it never autoplay.</p>
+            <label class="wide">Music selection
+              <select name="musicTrack">
+                <option value="">No preset track / use my own link below</option>
+                <option value="none">No music</option>
+                <option value="beethovenAdagio">Beethoven · Adagio cantabile</option>
+                <option value="beethovenVariations">Beethoven · 32 Variations</option>
+                <option value="chopinRomance">Chopin · Romance (Larghetto)</option>
+                <option value="beethovenHammerklavier">Beethoven · Adagio sostenuto</option>
+              </select>
+            </label>
+            <label class="wide">Or add a music link<input name="musicUrl" type="url" maxlength="500" placeholder="Direct audio URL or YouTube link"></label>
+            <label class="wide">Or upload your own song<input id="musicUpload" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a"></label>
+            <p class="field-note" id="musicStatus">Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.</p>
+            <p class="field-note">Preset instrumentals are public domain / CC0. Guests start music with one button, then use the same button to mute or unmute. Nothing autoplays.</p>
           </div>
           <div class="actions">
-            <button id="removeImage" type="button">Remove image</button>
+            <button id="removeImage" type="button">Remove background image</button>
           </div>
           <fieldset class="wide">
             <legend>Optional guest etiquette</legend>

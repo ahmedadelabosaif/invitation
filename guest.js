@@ -7,6 +7,18 @@
     night: { bg: '#1a2142', ink: '#eef0ff', mut: '#a9b1d6', acc: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
     islamic: { bg: '#153b35', ink: '#fff8e9', mut: '#e5d7b8', acc: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
   };
+  var BACKGROUNDS = {
+    roseGarden: './backgrounds/rose-garden.svg',
+    goldenArch: './backgrounds/golden-arch.svg',
+    moonlitSky: './backgrounds/moonlit-sky.svg',
+    blushOrnament: './backgrounds/blush-ornament.svg'
+  };
+  var MUSIC_TRACKS = {
+    beethovenAdagio: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg',
+    beethovenVariations: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Beethoven_-_32_Variations_in_C_Minor%2C_WoO_80.ogg',
+    chopinRomance: 'https://upload.wikimedia.org/wikipedia/commons/a/a4/Chopin_-_Piano_Concerto_no._1%2C_Op._11_%28string_quartet%29-2.ogg',
+    beethovenHammerklavier: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Beethoven%2C_Piano_Sonata_No._29_in_B-flat_Major%2C_Op._106_Hammerklavier_-_III._Adagio_sostenuto.ogg'
+  };
   var ETIQUETTE = {
     noPhotos: { icon: '🚫📷', label: 'No photos or video, please' },
     modestDress: { icon: '🧕', label: 'Modest dress requested' },
@@ -19,6 +31,8 @@
   var currentEvent = null;
   var lastEnvironment = null;
   var currentMusicUrl = '';
+  var currentVideoId = '';
+  var musicStarted = false;
   var invitations = null;
 
   function $(id) {
@@ -61,37 +75,80 @@
     }
   }
 
-  function updateMusicControls() {
-    var audio = $('backgroundMusic');
-    var play = $('musicPlay');
-    var mute = $('musicMute');
-    play.textContent = audio.paused ? '♫ Play music' : '❚❚ Pause music';
-    play.setAttribute('aria-pressed', audio.paused ? 'false' : 'true');
-    mute.textContent = audio.muted ? 'Unmute' : 'Mute';
-    mute.setAttribute('aria-pressed', audio.muted ? 'true' : 'false');
+  function youtubeVideoId(value) {
+    if (!value) return '';
+    try {
+      var url = new URL(value);
+      var host = url.hostname.toLowerCase();
+      var id = '';
+      if (host === 'youtu.be') id = url.pathname.slice(1);
+      else if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(host)) {
+        id = url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || '';
+      }
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : '';
+    } catch (error) {
+      return '';
+    }
   }
 
-  $('musicPlay').addEventListener('click', function () {
+  function updateMusicControls() {
     var audio = $('backgroundMusic');
-    if (audio.paused) {
-      audio.play().then(updateMusicControls).catch(function () {
-        $('notice').textContent = 'Music could not be played. Check the audio link and try again.';
+    var toggle = $('musicToggle');
+    toggle.textContent = !musicStarted ? '♫ Play music' : (audio.muted ? 'Unmute music' : 'Mute music');
+    toggle.setAttribute('aria-pressed', musicStarted && !audio.muted ? 'true' : 'false');
+  }
+
+  function sendVideoCommand(command) {
+    var video = $('backgroundVideo');
+    if (!currentVideoId || !video.contentWindow) return;
+    video.contentWindow.postMessage(JSON.stringify({
+      event: 'command',
+      func: command,
+      args: []
+    }), 'https://www.youtube-nocookie.com');
+  }
+
+  $('musicToggle').addEventListener('click', function () {
+    var audio = $('backgroundMusic');
+    if (currentVideoId) {
+      if (!musicStarted) {
+        musicStarted = true;
+        audio.muted = false;
+        sendVideoCommand('playVideo');
+      } else {
+        audio.muted = !audio.muted;
+        sendVideoCommand(audio.muted ? 'mute' : 'unMute');
+      }
+      updateMusicControls();
+    } else if (!musicStarted) {
+      audio.play().then(function () {
+        musicStarted = true;
+        updateMusicControls();
+      }).catch(function () {
+        musicStarted = false;
+        $('notice').textContent = 'Music could not be played. Check the music link and try again.';
         $('notice').hidden = false;
+        updateMusicControls();
       });
     } else {
-      audio.pause();
+      audio.muted = !audio.muted;
+      if (audio.muted) audio.pause();
+      else audio.play().catch(function () {
+        audio.muted = true;
+        $('notice').textContent = 'Music could not be played. Check the music link and try again.';
+        $('notice').hidden = false;
+      });
       updateMusicControls();
     }
   });
 
-  $('musicMute').addEventListener('click', function () {
-    var audio = $('backgroundMusic');
-    audio.muted = !audio.muted;
-    updateMusicControls();
+  $('backgroundVideo').addEventListener('load', function () {
+    if (!musicStarted) return;
+    sendVideoCommand('playVideo');
+    if ($('backgroundMusic').muted) sendVideoCommand('mute');
   });
 
   $('backgroundMusic').addEventListener('play', updateMusicControls);
-  $('backgroundMusic').addEventListener('pause', updateMusicControls);
   $('backgroundMusic').addEventListener('volumechange', updateMusicControls);
 
   function drawDecor(environment) {
@@ -118,7 +175,8 @@
     $('card').style.setProperty('--cink', environment.ink);
     $('card').style.setProperty('--cmut', environment.mut);
     $('card').style.setProperty('--cacc', environment.acc);
-    var imageUrl = safeMediaUrl(event.backgroundImage);
+    var imageUrl = safeMediaUrl(event.backgroundImage) ||
+      safeMediaUrl(BACKGROUNDS[event.backgroundPreset]);
     var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
       ? event.backgroundMode
       : '';
@@ -149,18 +207,33 @@
     $('msg').textContent = event.message || '';
     $('info').textContent = event.info || '';
     renderEtiquette(event.etiquette || []);
-    var musicUrl = safeMediaUrl(event.musicUrl);
+    var musicUrl = MUSIC_TRACKS[event.musicTrack] || safeMediaUrl(event.musicUrl);
+    var videoId = event.musicTrack ? '' : youtubeVideoId(musicUrl);
     var audio = $('backgroundMusic');
-    if (musicUrl !== currentMusicUrl) {
+    var video = $('backgroundVideo');
+    if (musicUrl !== currentMusicUrl || videoId !== currentVideoId) {
       audio.pause();
       audio.muted = false;
+      musicStarted = false;
       currentMusicUrl = musicUrl;
-      if (musicUrl) {
+      currentVideoId = videoId;
+      if (videoId) {
+        audio.removeAttribute('src');
+        audio.load();
+        video.hidden = false;
+        video.src = 'https://www.youtube-nocookie.com/embed/' + videoId +
+          '?autoplay=0&controls=0&disablekb=1&enablejsapi=1&loop=1&playlist=' +
+          videoId + '&origin=' + encodeURIComponent(location.origin);
+      } else if (musicUrl) {
+        video.hidden = true;
+        video.removeAttribute('src');
         audio.src = musicUrl;
       } else {
+        video.hidden = true;
+        video.removeAttribute('src');
         audio.removeAttribute('src');
       }
-      audio.load();
+      if (!videoId) audio.load();
     }
     $('musicControls').hidden = !musicUrl;
     updateMusicControls();
@@ -281,6 +354,8 @@
       $('pageBackdrop').hidden = true;
       $('musicControls').hidden = true;
       $('backgroundMusic').pause();
+      $('backgroundVideo').hidden = true;
+      $('backgroundVideo').removeAttribute('src');
       $('clock').replaceChildren();
       $('cal').hidden = true;
       $('more').hidden = true;

@@ -7,6 +7,30 @@
     night: { bg: '#1a2142', ink: '#eef0ff', accent: '#f2c46d', motion: 'twinkle', emojis: ['✦', '⭐', '✧'], count: 18 },
     islamic: { bg: '#153b35', ink: '#fff8e9', accent: '#d8b46a', motion: 'twinkle', emojis: ['☾', '✦', '✧'], count: 14 }
   };
+  var BACKGROUNDS = {
+    roseGarden: './backgrounds/rose-garden.svg',
+    goldenArch: './backgrounds/golden-arch.svg',
+    moonlitSky: './backgrounds/moonlit-sky.svg',
+    blushOrnament: './backgrounds/blush-ornament.svg'
+  };
+  var MUSIC_TRACKS = {
+    beethovenAdagio: {
+      title: 'Beethoven · Adagio cantabile',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg'
+    },
+    beethovenVariations: {
+      title: 'Beethoven · 32 Variations',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Beethoven_-_32_Variations_in_C_Minor%2C_WoO_80.ogg'
+    },
+    chopinRomance: {
+      title: 'Chopin · Romance (Larghetto)',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/a/a4/Chopin_-_Piano_Concerto_no._1%2C_Op._11_%28string_quartet%29-2.ogg'
+    },
+    beethovenHammerklavier: {
+      title: 'Beethoven · Adagio sostenuto',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Beethoven%2C_Piano_Sonata_No._29_in_B-flat_Major%2C_Op._106_Hammerklavier_-_III._Adagio_sostenuto.ogg'
+    }
+  };
   var REPO_CONTENTS_URL = 'https://api.github.com/repos/ahmedadelabosaif/invitation/contents/';
   var CONTENTS_URL = REPO_CONTENTS_URL + 'invitations.json';
   var TOKEN_KEY = 'invitation.github.publish-token';
@@ -26,6 +50,7 @@
   var savedToken = '';
   var editingToken = false;
   var pendingImages = {};
+  var pendingAudio = {};
 
   function $(id) {
     return document.getElementById(id);
@@ -137,7 +162,8 @@
     $('previewCard').style.setProperty('--preview-ink', theme.ink);
     $('previewCard').style.setProperty('--preview-accent', theme.accent);
     var pendingImage = pendingImages[event.id];
-    var imageUrl = pendingImage ? pendingImage.previewUrl : safeMediaUrl(event.backgroundImage);
+    var imageUrl = pendingImage ? pendingImage.previewUrl :
+      (safeMediaUrl(event.backgroundImage) || safeMediaUrl(BACKGROUNDS[event.backgroundPreset]));
     var imageMode = imageUrl && (event.backgroundMode === 'card' || event.backgroundMode === 'full')
       ? event.backgroundMode
       : '';
@@ -152,7 +178,7 @@
       : '';
     $('previewPanel').style.backgroundSize = 'cover';
     $('previewPanel').style.backgroundPosition = 'center';
-    $('previewMusicNote').hidden = !safeMediaUrl(event.musicUrl);
+    $('previewMusicNote').hidden = !MUSIC_TRACKS[event.musicTrack] && !safeMediaUrl(event.musicUrl);
     if (previewTheme !== event.env) {
       previewTheme = event.env;
       drawPreviewDecor(theme);
@@ -215,8 +241,16 @@
     var pendingImage = pendingImages[event.id];
     $('imageStatus').textContent = pendingImage
       ? (pendingImage.uploadedPath ? 'Image uploaded; publish to apply it.' : 'Image ready. It will upload when you publish.')
-      : (event.backgroundImage ? 'An image is saved for this invitation.' : 'Choose a JPG, PNG, or WebP. It will be optimized and uploaded with the invitation when you publish.');
-    $('removeImage').disabled = !pendingImage && !event.backgroundImage;
+      : (event.backgroundImage || event.backgroundPreset
+        ? 'A background is selected for this invitation.'
+        : 'Choose a preset or upload a JPG, PNG, or WebP.');
+    $('removeImage').disabled = !pendingImage && !event.backgroundImage && !event.backgroundPreset;
+    var pendingSong = pendingAudio[event.id];
+    $('musicStatus').textContent = pendingSong
+      ? (pendingSong.uploadedPath ? 'Song uploaded; publish to apply it.' : 'Song ready. It will upload when you publish.')
+      : (MUSIC_TRACKS[event.musicTrack] ? 'Selected: ' + MUSIC_TRACKS[event.musicTrack].title
+        : (event.musicTrack === 'none' ? 'No music selected.'
+          : (event.musicUrl ? 'A custom music link is saved.' : 'Choose a preset track, paste a link, or upload an MP3/OGG/WAV/M4A up to 8 MB.')));
     renderPreview();
   }
 
@@ -225,6 +259,10 @@
     if (!pendingImage) return;
     URL.revokeObjectURL(pendingImage.previewUrl);
     delete pendingImages[eventId];
+  }
+
+  function discardPendingAudio(eventId) {
+    delete pendingAudio[eventId];
   }
 
   async function optimizeImage(file) {
@@ -282,6 +320,8 @@
         blob: blob,
         previewUrl: URL.createObjectURL(blob)
       };
+      invitation.backgroundPreset = '';
+      invitation.backgroundImage = '';
       if (!invitation.backgroundMode) invitation.backgroundMode = 'card';
       markChanged();
       render();
@@ -294,11 +334,48 @@
     }
   });
 
+  $('musicUpload').addEventListener('change', function (event) {
+    var file = event.target.files && event.target.files[0];
+    var invitation = selectedEvent();
+    if (!file || !invitation) return;
+    var extensions = {
+      'audio/mpeg': 'mp3',
+      'audio/ogg': 'ogg',
+      'audio/wav': 'wav',
+      'audio/wave': 'wav',
+      'audio/x-wav': 'wav',
+      'audio/mp4': 'm4a',
+      'audio/x-m4a': 'm4a'
+    };
+    var extension = extensions[file.type];
+    if (!extension) {
+      $('musicStatus').textContent = 'Choose an MP3, OGG, WAV, or M4A audio file.';
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 8000000) {
+      $('musicStatus').textContent = 'Choose an audio file smaller than 8 MB.';
+      event.target.value = '';
+      return;
+    }
+    discardPendingAudio(invitation.id);
+    pendingAudio[invitation.id] = { file: file, extension: extension };
+    invitation.musicTrack = '';
+    invitation.musicUrl = '';
+    setFormValue('musicTrack', '');
+    setFormValue('musicUrl', '');
+    markChanged();
+    render();
+    setStatus('Song ready. Publish to add it to the invitation.');
+    event.target.value = '';
+  });
+
   $('removeImage').addEventListener('click', function () {
     var invitation = selectedEvent();
     if (!invitation) return;
     discardPendingImage(invitation.id);
     invitation.backgroundImage = '';
+    invitation.backgroundPreset = '';
     invitation.backgroundMode = '';
     $('backgroundUpload').value = '';
     markChanged();
@@ -310,6 +387,12 @@
     setStatus('Unpublished changes.');
   }
 
+  function setFormValue(name, value) {
+    Array.prototype.forEach.call($('eventForm').elements, function (control) {
+      if (control.name === name) control.value = value;
+    });
+  }
+
   function updateField(event) {
     var invitation = selectedEvent();
     var control = event.target;
@@ -319,6 +402,32 @@
       if (control.checked) choices.add(control.value);
       else choices.delete(control.value);
       invitation.etiquette = Array.from(choices);
+    } else if (control.name === 'backgroundPreset') {
+      invitation.backgroundPreset = control.value;
+      if (control.value) {
+        discardPendingImage(invitation.id);
+        invitation.backgroundImage = '';
+        if (!invitation.backgroundMode) {
+          invitation.backgroundMode = 'full';
+          setFormValue('backgroundMode', 'full');
+        }
+      } else if (!invitation.backgroundImage && !pendingImages[invitation.id]) {
+        invitation.backgroundMode = '';
+        setFormValue('backgroundMode', '');
+      }
+    } else if (control.name === 'musicTrack') {
+      discardPendingAudio(invitation.id);
+      invitation.musicTrack = control.value;
+      invitation.musicUrl = '';
+      setFormValue('musicUrl', '');
+      if (control.value === 'none') {
+        setFormValue('musicUpload', '');
+      }
+    } else if (control.name === 'musicUrl') {
+      if (control.value) discardPendingAudio(invitation.id);
+      invitation.musicUrl = control.value;
+      invitation.musicTrack = '';
+      setFormValue('musicTrack', '');
     } else {
       invitation[control.name] = control.value;
     }
@@ -331,7 +440,7 @@
     if (event.target.name !== 'etiquette') updateField(event);
   });
   $('eventForm').addEventListener('change', function (event) {
-    if (event.target.name === 'etiquette') updateField(event);
+    if (event.target.name === 'etiquette' || event.target.tagName === 'SELECT') updateField(event);
   });
 
   $('addEvent').addEventListener('click', function () {
@@ -348,6 +457,8 @@
       message: '',
       info: '',
       etiquette: [],
+      backgroundPreset: '',
+      musicTrack: '',
       env: 'classic'
     });
     selectedId = id;
@@ -503,6 +614,37 @@
     }
   }
 
+  async function uploadPendingAudio(event, headers) {
+    var pendingSong = pendingAudio[event.id];
+    if (!pendingSong) return;
+    if (pendingSong.uploadedPath) {
+      event.musicUrl = pendingSong.uploadedPath;
+      return;
+    }
+    var safeId = event.id.replace(/[^a-z0-9-]/gi, '-').slice(0, 40) || 'event';
+    var fileName = safeId + '-' + Date.now().toString(36) +
+      Math.random().toString(36).slice(2, 6) + '.' + pendingSong.extension;
+    var path = 'music/' + fileName;
+    var response = await fetch(REPO_CONTENTS_URL + path, {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+      body: JSON.stringify({
+        message: 'Upload invitation music',
+        content: encodeBytesBase64(new Uint8Array(await pendingSong.file.arrayBuffer())),
+        branch: 'main'
+      })
+    });
+    var result = await responseJson(response);
+    if (!response.ok) {
+      throw new Error(result.message || 'GitHub could not upload the music file.');
+    }
+    event.musicUrl = path;
+    pendingSong.uploadedPath = path;
+    if (event.id === selectedId) {
+      $('musicStatus').textContent = 'Song uploaded; publish to apply it.';
+    }
+  }
+
   $('publishButton').addEventListener('click', async function () {
     if (!invitations.events.every(function (event) { return event.names && event.names.trim(); })) {
       setStatus('Add a name or title for every event before publishing.');
@@ -517,13 +659,21 @@
     if (invitations.events.some(function (event) {
       return event.musicUrl && !safeMediaUrl(event.musicUrl);
     })) {
-      setStatus('Use a valid HTTPS direct audio link for the background music.');
+      setStatus('Use a valid HTTPS audio link or YouTube link for the background music.');
+      return;
+    }
+    if (invitations.events.some(function (event) {
+      return (event.musicTrack && event.musicTrack !== 'none' && !MUSIC_TRACKS[event.musicTrack]) ||
+        (event.musicTrack && event.musicUrl);
+    })) {
+      setStatus('Choose one preset music track or use your own music link, not both.');
       return;
     }
     if (invitations.events.some(function (event) {
       return (event.backgroundMode && ['card', 'full'].indexOf(event.backgroundMode) === -1) ||
-        (event.backgroundMode && !event.backgroundImage && !pendingImages[event.id]) ||
-        (event.backgroundImage && !safeMediaUrl(event.backgroundImage));
+        (event.backgroundMode && !event.backgroundImage && !event.backgroundPreset && !pendingImages[event.id]) ||
+        (event.backgroundImage && !safeMediaUrl(event.backgroundImage)) ||
+        (event.backgroundPreset && !BACKGROUNDS[event.backgroundPreset]);
     })) {
       setStatus('Choose a valid image placement and upload an image before publishing.');
       return;
@@ -562,9 +712,8 @@
       }
 
       for (var imageIndex = 0; imageIndex < invitations.events.length; imageIndex++) {
-        if (invitations.events[imageIndex].backgroundMode) {
-          await uploadPendingImage(invitations.events[imageIndex], headers);
-        }
+        await uploadPendingImage(invitations.events[imageIndex], headers);
+        await uploadPendingAudio(invitations.events[imageIndex], headers);
       }
       var content = JSON.stringify(normalizeInvitations(invitations), null, 2) + '\n';
       var saveResponse = await fetch(CONTENTS_URL, {
@@ -584,6 +733,7 @@
       originalData = JSON.parse(JSON.stringify(invitations));
       invitations.events.forEach(function (event) {
         discardPendingImage(event.id);
+        discardPendingAudio(event.id);
       });
       changed = false;
       render();

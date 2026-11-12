@@ -20,9 +20,17 @@ public invitation. Choose **Islamic wedding** for an emerald-and-gold palette
 with subtle crescent-and-star animation. Separately, select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
-Upload a JPG, PNG, or WebP to add an optional card image or full-page background;
-the editor optimizes it and stores it with the published site. You can also add
-a direct HTTPS MP3/OGG URL. Guests control playback with play/pause and mute
-buttons; music never starts automatically. Changes are drafts until published.
+Choose one of four original background designs or upload a JPG, PNG, or WebP for
+the card/full-page background. Uploads are optimized and stored with the
+published site. Choose one of four public-domain/CC0 classical tracks, or add a
+direct HTTPS audio URL, YouTube link, or upload an MP3/OGG/WAV/M4A song up to
+8 MB. Guests start the music with one button, then use that same button to
+mute/unmute; music never autoplays. Changes are drafts until published.
 Uploaded images and event data are public, so only use content you want to
 share with guests.
+
+The preset music recordings are served by Wikimedia Commons:
+[Beethoven, Adagio cantabile](https://commons.wikimedia.org/wiki/File:Beethoven,_Sonata_No._8_in_C_Minor_Pathetique,_Op._13_-_II._Adagio_cantabile.ogg),
+[Beethoven, 32 Variations](https://commons.wikimedia.org/wiki/File:Beethoven_-_32_Variations_in_C_Minor,_WoO_80.ogg),
+[Chopin, Romance (Larghetto)](https://commons.wikimedia.org/wiki/File:Chopin_-_Piano_Concerto_no._1,_Op._11_(string_quartet)-2.ogg),
+and [Beethoven, Adagio sostenuto](https://commons.wikimedia.org/wiki/File:Beethoven,_Piano_Sonata_No._29_in_B-flat_Major,_Op._106_Hammerklavier_-_III._Adagio_sostenuto.ogg).

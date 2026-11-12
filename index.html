@@ -57,10 +57,11 @@
     .mrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-decoration:none}
     .mrow:hover{border-color:var(--accent)}
     .mrow small{display:block;color:var(--muted)}
-    .music-controls{position:fixed;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:2;display:flex;gap:8px}
+    .music-controls{position:fixed;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:2}
     .music-control{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.15);font:600 .9rem Karla,system-ui,sans-serif;cursor:pointer}
     .music-control:hover{border-color:var(--accent)}
     .music-control:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    #backgroundVideo{position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;pointer-events:none}
     @media(prefers-reduced-motion:reduce){.decor.fall,.decor.rise{display:none}.decor span{animation:none!important;opacity:.6}.card{animation:none}}
     @media(prefers-reduced-motion:reduce){#pageBackdrop,.icon:not(:empty){animation:none}}
     @media(max-width:480px){.music-controls{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.music-control{padding:8px 11px;font-size:.82rem}}
@@ -91,9 +92,9 @@
     <section class="more" id="more" hidden></section>
   </main>
   <div id="musicControls" class="music-controls" hidden>
-    <button id="musicPlay" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
-    <button id="musicMute" class="music-control" type="button" aria-pressed="false">Mute</button>
+    <button id="musicToggle" class="music-control" type="button" aria-pressed="false">♫ Play music</button>
   </div>
+  <iframe id="backgroundVideo" title="Background music player" aria-hidden="true" tabindex="-1" hidden allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   <script src="./guest.js"></script>
 </body>
 </html>

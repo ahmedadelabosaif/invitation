@@ -23,6 +23,7 @@ async function loadGuest(search, data) {
         className: '',
         attributes: {},
         handlers: {},
+        contentWindow: { messages: [], postMessage(message, origin) { this.messages.push({ message, origin }); } },
         style: {
           properties: {},
           setProperty(name, value) { this.properties[name] = value; }
@@ -52,7 +53,12 @@ async function loadGuest(search, data) {
   };
   vm.runInNewContext(guestSource, {
     document,
-    location: { search, hash: '', href: 'https://ahmedadelabosaif.github.io/invitation/' },
+    location: {
+      search,
+      hash: '',
+      href: 'https://ahmedadelabosaif.github.io/invitation/',
+      origin: 'https://ahmedadelabosaif.github.io'
+    },
     URLSearchParams,
     URL,
     Date,
@@ -170,7 +176,7 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
       names: 'Amina & Omar',
       backgroundImage: 'images/wedding.jpg',
       backgroundMode: 'full',
-      musicUrl: 'https://media.example.test/song.mp3',
+      musicTrack: 'beethovenAdagio',
       env: 'garden'
     }]
   };
@@ -181,20 +187,21 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
   assert.equal(backdrop.hidden, false);
   assert.match(backdrop.style.backgroundImage, /images\/wedding\.jpg/);
   assert.equal(elements.get('musicControls').hidden, false);
-  assert.equal(audio.src, 'https://media.example.test/song.mp3');
+  assert.equal(audio.src, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Beethoven%2C_Sonata_No._8_in_C_Minor_Pathetique%2C_Op._13_-_II._Adagio_cantabile.ogg');
   assert.equal(audio.paused, true);
 
-  elements.get('musicPlay').handlers.click();
+  elements.get('musicToggle').handlers.click();
   await new Promise(setImmediate);
   assert.equal(audio.paused, false);
-  assert.match(elements.get('musicPlay').textContent, /Pause/);
+  assert.match(elements.get('musicToggle').textContent, /Mute music/);
 
-  elements.get('musicMute').handlers.click();
+  elements.get('musicToggle').handlers.click();
   assert.equal(audio.muted, true);
-  assert.equal(elements.get('musicMute').textContent, 'Unmute');
+  assert.match(elements.get('musicToggle').textContent, /Unmute music/);
 
-  elements.get('musicPlay').handlers.click();
-  assert.equal(audio.paused, true);
+  elements.get('musicToggle').handlers.click();
+  assert.equal(audio.muted, false);
+  assert.equal(audio.paused, false);
 
   const cardImage = await loadGuest('', {
     featured: 'wedding',
@@ -208,6 +215,51 @@ test('shows a full-page image and lets guests play, pause, and mute music', asyn
   });
   assert.equal(cardImage.get('pageBackdrop').hidden, true);
   assert.match(cardImage.get('card').style.backgroundImage, /images\/wedding\.jpg/);
+});
+
+test('renders a selected background design and music preset', async () => {
+  const withPresets = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      backgroundPreset: 'goldenArch',
+      backgroundMode: 'full',
+      musicTrack: 'chopinRomance',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withPresets);
+
+  assert.equal(elements.get('pageBackdrop').hidden, false);
+  assert.match(elements.get('pageBackdrop').style.backgroundImage, /golden-arch\.svg/);
+  assert.equal(elements.get('musicControls').hidden, false);
+  assert.match(elements.get('backgroundMusic').src, /Chopin_-_Piano_Concerto/);
+});
+
+test('supports the existing YouTube music link with the single sound button', async () => {
+  const withYoutube = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Amina & Omar',
+      musicUrl: 'https://www.youtube.com/watch?v=PJrfUKDy3E4',
+      env: 'garden'
+    }]
+  };
+  const elements = await loadGuest('', withYoutube);
+  const player = elements.get('backgroundVideo');
+
+  assert.equal(elements.get('musicControls').hidden, false);
+  assert.match(player.src, /youtube-nocookie\.com\/embed\/PJrfUKDy3E4/);
+  elements.get('musicToggle').handlers.click();
+  assert.match(elements.get('musicToggle').textContent, /Mute music/);
+  assert.deepEqual(JSON.parse(player.contentWindow.messages[0].message).func, 'playVideo');
+  elements.get('musicToggle').handlers.click();
+  assert.match(elements.get('musicToggle').textContent, /Unmute music/);
+  assert.deepEqual(JSON.parse(player.contentWindow.messages[1].message).func, 'mute');
+  elements.get('musicToggle').handlers.click();
+  assert.deepEqual(JSON.parse(player.contentWindow.messages[2].message).func, 'unMute');
 });
 
 test('does not use unsafe background or audio URLs', async () => {
