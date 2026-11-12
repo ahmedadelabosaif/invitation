@@ -63,10 +63,9 @@
     <strong>Invitation editor</strong>
     <span class="spacer"></span>
     <a href="./">Public invitation</a>
-    <a class="button" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json" target="_blank" rel="noopener">Publish on GitHub</a>
   </header>
   <main>
-    <p class="notice">Edit here, copy the updated data, then paste it into GitHub and commit. The public link updates after GitHub Pages publishes your change.</p>
+    <p class="notice">Edit the fields here and preview the invitation. When you're ready, copy your changes and publish them through GitHub.</p>
     <div class="layout">
       <aside class="panel stack">
         <h1>Events</h1>
@@ -106,6 +105,12 @@
           <label id="jsonLabel" class="wide" hidden>Updated invitation data — copy and paste into GitHub
             <textarea id="jsonOutput" readonly></textarea>
           </label>
+          <div id="publishStep" class="notice" hidden>
+            <strong>One last step:</strong> open GitHub, replace the invitation data with what you copied, then commit your changes.
+            <div class="actions">
+              <a class="button primary" href="https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json" target="_blank" rel="noopener">Step 2: Save changes on GitHub</a>
+            </div>
+          </div>
           <div class="actions">
             <button id="copyData" class="primary" type="button">Copy updated data</button>
           </div>

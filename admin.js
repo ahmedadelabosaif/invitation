@@ -99,6 +99,7 @@
   function markChanged() {
     changed = true;
     $('jsonLabel').hidden = true;
+    $('publishStep').hidden = true;
     setStatus('Edits are here until you copy and publish them.');
   }
 
@@ -185,9 +186,10 @@
     var output = $('jsonOutput');
     output.value = text;
     $('jsonLabel').hidden = false;
+    $('publishStep').hidden = false;
     try {
       await navigator.clipboard.writeText(text);
-      setStatus('Copied. Open “Publish on GitHub”, replace the file contents, and commit.');
+      setStatus('Copied. Click Step 2, replace the file contents, and commit.');
     } catch (error) {
       output.focus();
       output.select();

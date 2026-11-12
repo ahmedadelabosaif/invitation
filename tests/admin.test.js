@@ -90,5 +90,5 @@ test('admin form previews edits and copies publishable invitation data', async (
 
   await elements.get('copyData').handlers.click();
   assert.equal(JSON.parse(copied[0]).events[0].names, 'Sara & Ahmed’s wedding');
-  assert.match(elements.get('status').textContent, /replace the file contents, and commit/);
+  assert.match(elements.get('status').textContent, /Click Step 2, replace the file contents, and commit/);
 });

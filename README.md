@@ -5,8 +5,9 @@
 
 The admin page opens GitHub's editor for [`invitations.json`](https://github.com/ahmedadelabosaif/invitation/edit/main/invitations.json).
 Edit invitation fields in the visual editor, then click **Copy updated data**.
-Open **Publish on GitHub**, replace the file contents with the copied JSON, and
-commit. Only accounts with repository write access can publish changes.
+The GitHub save button appears after copying; open it, replace the file
+contents with the copied JSON, and commit. Only accounts with repository
+write access can publish changes.
 GitHub Pages updates the public invitation after the commit.
 
 Use **Add event** to create another invitation, **Set as main invitation** to
