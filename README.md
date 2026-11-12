@@ -16,20 +16,15 @@ token on this device** to remove it. Only save it on a trusted device; browser
 storage is accessible to scripts running on this site. GitHub commits the
 invitation update; GitHub Pages deploys it automatically.
 
-The editor keeps the full Events selector in its own workspace bar, separate
-from the page header. The main invitation is protected from deletion; set a
-different invitation as main before deleting the former one. The editor shows
-**Editing** on the left and **Review** on the right, with both visible together
-on desktop and stacked on narrow screens. Changes update the preview
-immediately without switching views. Each invitation section has its own
-font, size, alignment, and color controls beside the related editing fields;
-Review is for reordering sections with the up/down buttons, drag handles, or
-the arrow keys. You can also drag items directly on the invitation preview.
-Typography and order are saved with the invitation and used on its public
-guest page.
-
-The Editing form groups invitation details, wedding details, background/music,
-and guest etiquette into collapsible sections.
+The editor keeps the Events selector separate from the page header and protects
+the main invitation from deletion. Start with the couple’s names, date, time,
+venue, and message. Pick a color theme and one typography preset; both apply
+consistently across the invitation. The live preview stays beside the editor
+and updates as you type. Optional wedding details, personal touches, background,
+music, etiquette, and advanced text formatting are tucked into collapsible
+sections. Reorder content from the preview with drag-and-drop or the arrow
+controls. Design choices and order are saved with the invitation and used on
+its public guest page.
 
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one
@@ -45,9 +40,9 @@ for an emerald-and-gold palette, a crescent-and-star emblem, and subtle gold
 star animation. Separately, select any optional guest
 etiquette notes (for example no photos or video, modest dress, separate
 seating, prayer space, halal food, or no music) to show them on the invitation.
-Text fields are multiline. Select text and use the formatting toolbar for bold,
-italic, underline, bullets, or accent colors; click text on the live invitation
-canvas to jump to its editor field.
+Text fields are multiline. For optional bold, italic, underline, bullets, or
+accent colors, open **Advanced text formatting**. Click text on the live
+invitation canvas to jump to its editor field.
 Choose one of four original background designs or upload a JPG, PNG, or WebP for
 the card/full-page background. Uploads are optimized and stored with the
 published site. Choose one of four public-domain/CC0

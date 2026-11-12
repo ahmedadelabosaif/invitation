@@ -27,36 +27,18 @@
     cursive: 'cursive',
     system: 'system-ui, sans-serif'
   };
-  var FONT_CHOICES = [
-    { value: 'serif', label: 'Cormorant serif' },
-    { value: 'sans', label: 'Karla sans-serif' },
-    { value: 'cursive', label: 'Cursive' },
-    { value: 'system', label: 'System' }
-  ];
+  var TYPOGRAPHY_PRESETS = {
+    elegant: 'serif',
+    classic: 'system',
+    modern: 'sans'
+  };
   var SIZES = ['0.85rem', '1rem', '1.2rem', '1.5rem', '2rem', '2.5rem'];
-  var SIZE_CHOICES = [
-    { value: '0.85rem', label: 'Small' },
-    { value: '1rem', label: 'Regular' },
-    { value: '1.2rem', label: 'Large' },
-    { value: '1.5rem', label: 'Extra large' },
-    { value: '2rem', label: 'Display' },
-    { value: '2.5rem', label: 'Large display' }
-  ];
   var ALIGNMENTS = [
     { value: 'left', label: 'Left' },
     { value: 'center', label: 'Center' },
     { value: 'right', label: 'Right' }
   ];
   var COLORS = ['accent', 'gold', 'rose', 'emerald', 'white', 'ink'];
-  var COLOR_CHOICES = [
-    { value: 'accent', label: 'Theme accent' },
-    { value: 'gold', label: 'Gold' },
-    { value: 'rose', label: 'Rose' },
-    { value: 'emerald', label: 'Emerald' },
-    { value: 'white', label: 'White' },
-    { value: 'ink', label: 'Theme ink' }
-  ];
-
   function order(event) {
     var saved = Array.isArray(event.layout) ? event.layout : [];
     var result = saved.filter(function (key, index) {
@@ -79,6 +61,13 @@
     };
   }
 
+  function typography(event) {
+    var preset = event && Object.prototype.hasOwnProperty.call(TYPOGRAPHY_PRESETS, event.typography)
+      ? TYPOGRAPHY_PRESETS[event.typography]
+      : null;
+    return preset ? FONTS[preset] : '';
+  }
+
   function color(value, accent, ink) {
     return {
       accent: accent,
@@ -94,14 +83,13 @@
     keys: Object.freeze(KEYS),
     labels: Object.freeze(LABELS),
     fonts: Object.freeze(FONTS),
-    fontChoices: Object.freeze(FONT_CHOICES),
+    typographyPresets: Object.freeze(TYPOGRAPHY_PRESETS),
     sizes: Object.freeze(SIZES),
-    sizeChoices: Object.freeze(SIZE_CHOICES),
     alignments: Object.freeze(ALIGNMENTS),
     colors: Object.freeze(COLORS),
-    colorChoices: Object.freeze(COLOR_CHOICES),
     order: order,
     style: style,
+    typography: typography,
     color: color
   });
 })();

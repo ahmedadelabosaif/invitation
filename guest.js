@@ -108,7 +108,8 @@
     var style = window.InvitationLayout.style(event, key);
     var environment = ENVS[event.env] || ENVS.classic;
     var color = window.InvitationLayout.color(style.color, environment.acc, environment.ink);
-    var font = window.InvitationLayout.fonts[style.font] || '';
+    var font = window.InvitationLayout.typography(event) ||
+      window.InvitationLayout.fonts[style.font] || '';
     var size = style.size || '';
     var align = style.align || '';
     item.style.fontFamily = font;

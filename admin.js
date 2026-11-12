@@ -57,7 +57,6 @@
   var pendingImages = {};
   var pendingAudio = {};
   var activeTextControl = null;
-  var layoutStyleControls = {};
 
   function $(id) {
     return document.getElementById(id);
@@ -184,13 +183,13 @@
       .replace(/\n/g, '<br>');
   }
 
-  function applyLayoutStyle(item, style, theme) {
+  function applyLayoutStyle(item, style, theme, globalFont) {
     var targets = [item];
     if (item.querySelectorAll) {
       targets = targets.concat(Array.prototype.slice.call(item.querySelectorAll('.canvas-field')));
     }
     targets.forEach(function (target) {
-      target.style.fontFamily = window.InvitationLayout.fonts[style.font] || '';
+      target.style.fontFamily = globalFont || window.InvitationLayout.fonts[style.font] || '';
       target.style.fontSize = style.size || '';
       target.style.textAlign = style.align || '';
       target.style.color = window.InvitationLayout.color(style.color, theme[3], theme[1]);
@@ -210,15 +209,9 @@
       select.type = 'button';
       select.className = 'layout-grip';
       select.textContent = '⠿ ' + window.InvitationLayout.labels[key];
-      select.setAttribute('aria-label', 'Open style controls for ' + window.InvitationLayout.labels[key]);
+      select.setAttribute('aria-label', 'Focus ' + window.InvitationLayout.labels[key] + ' on the preview');
       select.addEventListener('click', function () {
-        var stylePanel = $('fieldStyle-' + key);
-        var parent = stylePanel;
-        while (parent && parent !== $('eventForm')) {
-          if (parent.tagName === 'DETAILS') parent.open = true;
-          parent = parent.parentNode;
-        }
-        stylePanel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        $('layout-' + key).scrollIntoView({ block: 'center', behavior: 'smooth' });
       });
       var up = document.createElement('button');
       up.type = 'button';
@@ -241,70 +234,18 @@
     });
   }
 
-  function renderLayoutControls(event) {
-    if (!event) return;
-    window.InvitationLayout.keys.forEach(function (key) {
-      var style = window.InvitationLayout.style(event, key);
-      var controls = layoutStyleControls[key];
-      controls.font.value = style.font;
-      controls.size.value = style.size;
-      controls.align.value = style.align;
-      controls.color.value = style.color;
-    });
-  }
-
-  function initializeLayoutStyleControls() {
-    var settings = [
-      { key: 'font', label: 'Font', choices: window.InvitationLayout.fontChoices },
-      { key: 'size', label: 'Size', choices: window.InvitationLayout.sizeChoices },
-      { key: 'align', label: 'Alignment', choices: window.InvitationLayout.alignments },
-      { key: 'color', label: 'Text color', choices: window.InvitationLayout.colorChoices }
-    ];
-    window.InvitationLayout.keys.forEach(function (key) {
-      var container = $('fieldStyleControls-' + key);
-      var reset = $('fieldStyleReset-' + key);
-      layoutStyleControls[key] = {};
-      settings.forEach(function (setting) {
-        var label = document.createElement('label');
-        label.textContent = setting.label;
-        var control = document.createElement('select');
-        control.id = 'fieldStyle-' + key + '-' + setting.key;
-        var defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Theme default';
-        control.appendChild(defaultOption);
-        setting.choices.forEach(function (choice) {
-          var option = document.createElement('option');
-          option.value = choice.value;
-          option.textContent = choice.label;
-          control.appendChild(option);
-        });
-        control.addEventListener('change', function () { updateLayoutStyle(key); });
-        label.appendChild(control);
-        container.appendChild(label);
-        layoutStyleControls[key][setting.key] = control;
-      });
-      reset.addEventListener('click', function () {
-        settings.forEach(function (setting) {
-          layoutStyleControls[key][setting.key].value = '';
-        });
-        updateLayoutStyle(key);
-      });
-    });
-  }
-
   function applyCanvasLayout(event) {
     window.InvitationLayout.order(event).forEach(function (key) {
       var item = $('layout-' + key);
       if (item) {
         $('designCanvas').appendChild(item);
         applyLayoutStyle(item, window.InvitationLayout.style(event, key),
-          CANVAS_THEMES[event.env] || CANVAS_THEMES.classic);
+          CANVAS_THEMES[event.env] || CANVAS_THEMES.classic,
+          window.InvitationLayout.typography(event));
       }
     });
     var ornament = $('layout-ornament');
     if (ornament) $('designCanvas').appendChild(ornament);
-    renderLayoutControls(event);
     renderLayoutOrder(event);
   }
 
@@ -473,33 +414,6 @@
       draggedLayoutItem = null;
       draggedLayoutKey = '';
     });
-  }
-
-  function updateLayoutStyle(key) {
-    var event = selectedEvent();
-    if (!event) return;
-    var controls = layoutStyleControls[key];
-    var style = {
-      font: Object.prototype.hasOwnProperty.call(window.InvitationLayout.fonts, controls.font.value)
-        ? controls.font.value : '',
-      size: window.InvitationLayout.sizes.includes(controls.size.value)
-        ? controls.size.value : '',
-      align: window.InvitationLayout.alignments.some(function (item) {
-        return item.value === controls.align.value;
-      })
-        ? controls.align.value : '',
-      color: window.InvitationLayout.colors.includes(controls.color.value)
-        ? controls.color.value : ''
-    };
-    if (!style.font && !style.size && !style.align && !style.color) {
-      if (event.layoutStyles) delete event.layoutStyles[key];
-      if (event.layoutStyles && !Object.keys(event.layoutStyles).length) delete event.layoutStyles;
-    } else {
-      if (!event.layoutStyles || typeof event.layoutStyles !== 'object') event.layoutStyles = {};
-      event.layoutStyles[key] = style;
-    }
-    markChanged();
-    renderCanvas(event);
   }
 
   function render() {
@@ -1136,7 +1050,6 @@
     event.returnValue = '';
   });
 
-  initializeLayoutStyleControls();
   fetch('./invitations.json', { cache: 'no-store' })
     .then(function (response) {
       if (!response.ok) throw new Error('Could not load invitations. Refresh and try again.');

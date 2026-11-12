@@ -55,7 +55,7 @@ async function loadAdmin(initialData, storage) {
   }
   const fields = [
     'names', 'emoji', 'kicker', 'introDescription', 'date', 'time', 'venue', 'locationUrl',
-    'message', 'info', 'event', 'env', 'religiousOpening', 'quranVerse', 'quranReference',
+    'message', 'info', 'event', 'env', 'typography', 'religiousOpening', 'quranVerse', 'quranReference',
     'hostNames', 'groomTitle', 'groomName', 'brideTitle', 'brideName', 'preEventTitle',
     'preEventDate', 'preEventTime', 'preEventVenue', 'preEventLocationUrl',
     'preEventDetails', 'contractImageUrl', 'contractImageCaption', 'backgroundMode',
@@ -64,6 +64,9 @@ async function loadAdmin(initialData, storage) {
     .map(function (name) {
       const field = makeNode(name);
       field.name = name;
+      if (['env', 'typography', 'backgroundPreset', 'backgroundMode', 'musicTrack'].includes(name)) {
+        field.tagName = 'SELECT';
+      }
       if ([
         'names', 'kicker', 'introDescription', 'venue', 'message', 'info', 'event',
         'religiousOpening', 'quranVerse', 'quranReference', 'hostNames', 'groomTitle',
@@ -265,13 +268,15 @@ test('editor keeps Editing and Review visible in side-by-side columns', () => {
   assert.match(adminHtml, /@media\(max-width:900px\)\{\.workspace\{grid-template-columns:minmax\(0,1fr\)\}/);
   const review = adminHtml.match(/<aside class="panel design-panel" id="reviewPanel">([\s\S]*?)<\/aside>/);
   assert.ok(review);
-  assert.doesNotMatch(review[1], /fieldStyle|layoutStyleTarget|Text color/);
+  assert.doesNotMatch(review[1], /typography|font|Text color/i);
 });
 
 test('editing form groups optional fields into collapsible sections', () => {
-  assert.match(adminHtml, /<details class="form-section" open>\s*<summary>Invitation details<\/summary>/);
+  assert.match(adminHtml, /<details class="form-section" open>\s*<summary>The essentials<\/summary>/);
+  assert.match(adminHtml, /Couple’s names<textarea name="names"/);
+  assert.match(adminHtml, /<summary>Personal touches \(optional\)<\/summary>/);
   assert.match(adminHtml, /<details id="weddingFields" class="form-section wide">[\s\S]*?<summary>Wedding details \(optional\)<\/summary>/);
-  assert.match(adminHtml, /<summary>Background and music<\/summary>/);
+  assert.match(adminHtml, /<summary>Background and music \(optional\)<\/summary>/);
   assert.match(adminHtml, /<summary>Guest etiquette \(optional\)<\/summary>/);
 });
 
@@ -301,13 +306,12 @@ test('the main invitation cannot be deleted accidentally', async () => {
   assert.equal(data.events[0].id, 'wedding');
 });
 
-test('shared layout sections and style options stay aligned across pages', async () => {
+test('shared layout and curated typography presets stay aligned across pages', async () => {
   const layoutWindow = {};
   vm.runInNewContext(layoutConfigSource, { window: layoutWindow });
 
   for (const key of layoutWindow.InvitationLayout.keys) {
     assert.match(adminHtml, new RegExp(`id="layout-${key}"`), `admin preview is missing ${key}`);
-    assert.match(adminHtml, new RegExp(`id="fieldStyle-${key}"`), `editor is missing inline style controls for ${key}`);
     assert.match(
       adminHtml,
       new RegExp(`id="layout-${key}"[^>]*data-layout-item="${key}"[^>]*draggable="true"`),
@@ -315,27 +319,25 @@ test('shared layout sections and style options stay aligned across pages', async
     );
     assert.match(guestHtml, new RegExp(`id="layout-${key}"`), `guest page is missing ${key}`);
   }
+  assert.doesNotMatch(adminHtml, /fieldStyleControls-|Style [^<]+<\/summary>/);
+  assert.match(adminHtml, /<select name="typography">[\s\S]*Elegant serif[\s\S]*Classic[\s\S]*Modern sans-serif/);
   assert.ok(adminHtml.indexOf('layout-config.js') < adminHtml.indexOf('admin.js'));
   assert.ok(guestHtml.indexOf('layout-config.js') < guestHtml.indexOf('guest.js'));
 
-  const { elements } = await loadAdmin({
+  const { elements, fields } = await loadAdmin({
     featured: 'wedding',
     events: [{ id: 'wedding', names: 'Sara & Ahmed' }]
   });
-  for (const key of layoutWindow.InvitationLayout.keys) {
-    assert.equal(elements.get(`fieldStyleControls-${key}`).children.length, 4);
-  }
-  const messageControls = elements.get('fieldStyleControls-message').children.map((label) => label.children[0]);
-  assert.equal(messageControls[0].children.length, layoutWindow.InvitationLayout.fontChoices.length + 1);
-  assert.equal(messageControls[1].children.length, layoutWindow.InvitationLayout.sizeChoices.length + 1);
+  assert.equal(elements.get('layoutOrder').children.length, layoutWindow.InvitationLayout.keys.length);
+  assert.equal(fields.find((field) => field.name === 'typography').value, '');
 });
 
-test('live review supports drag-and-drop section reordering', async () => {
+test('live review supports drag-and-drop and one typography preset styles every section', async () => {
   const data = {
     featured: 'wedding',
     events: [{ id: 'wedding', eventType: 'wedding', names: 'Sara & Ahmed', env: 'garden' }]
   };
-  const { elements, saved } = await loadAdmin(data, new Map([
+  const { elements, fields, saved } = await loadAdmin(data, new Map([
     ['invitation.github.publish-token', 'fine-grained-test-token']
   ]));
 
@@ -369,29 +371,25 @@ test('live review supports drag-and-drop section reordering', async () => {
   assert.equal(data.events[0].layout[0], 'weddingOpening');
   assert.equal(data.events[0].layout[1], 'emoji');
 
-  const messageStyle = elements.get('fieldStyleControls-message').children.map((label) => label.children[0]);
-  messageStyle[0].value = 'serif';
-  messageStyle[1].value = '1.5rem';
-  messageStyle[2].value = 'left';
-  messageStyle[3].value = 'gold';
-  messageStyle[1].handlers.change();
+  const typography = fields.find((field) => field.name === 'typography');
+  typography.value = 'modern';
+  elements.get('eventForm').handlers.change({ target: typography });
 
-  assert.equal(JSON.stringify(data.events[0].layoutStyles.message), JSON.stringify({
-    font: 'serif',
-    size: '1.5rem',
-    align: 'left',
-    color: 'gold'
-  }));
-  assert.equal(elements.get('layout-message').style.fontFamily, '"Cormorant Garamond", Georgia, serif');
-  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
-  assert.equal(elements.get('layout-message').style.color, '#d8b46a');
+  assert.equal(data.events[0].typography, 'modern');
+  for (const key of ['message', 'names', 'venue', 'date']) {
+    assert.equal(
+      elements.get('layout-' + key).style.fontFamily,
+      'Karla, system-ui, sans-serif',
+      `${key} should use the global typography preset`
+    );
+  }
 
   await elements.get('publishButton').handlers.click();
   const request = JSON.parse(saved[0].options.body);
   const bytes = Uint8Array.from(atob(request.content), (character) => character.charCodeAt(0));
   const published = JSON.parse(new TextDecoder().decode(bytes));
   assert.equal(JSON.stringify(published.events[0].layout), JSON.stringify(data.events[0].layout));
-  assert.equal(published.events[0].layoutStyles.message.color, 'gold');
+  assert.equal(published.events[0].typography, 'modern');
 });
 
 test('formats selected invitation text and updates the clickable canvas', async () => {

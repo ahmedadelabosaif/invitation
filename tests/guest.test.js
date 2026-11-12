@@ -169,6 +169,26 @@ test('applies only supported saved typography settings to guest sections', async
   assert.equal(elements.get('layout-names').style.fontSize, '');
 });
 
+test('applies the selected global typography preset across the guest invitation', async () => {
+  const styledInvitation = {
+    featured: 'wedding',
+    events: [{
+      id: 'wedding',
+      names: 'Ahmed & Amina',
+      message: 'Join us',
+      typography: 'modern',
+      layoutStyles: {
+        message: { font: 'serif', size: '1.5rem' }
+      }
+    }]
+  };
+  const elements = await loadGuest('', styledInvitation);
+
+  assert.equal(elements.get('layout-message').style.fontFamily, 'Karla, system-ui, sans-serif');
+  assert.equal(elements.get('layout-message').style.fontSize, '1.5rem');
+  assert.equal(elements.get('layout-names').style.fontFamily, 'Karla, system-ui, sans-serif');
+});
+
 test('renders allowlisted text formatting while escaping user-provided HTML', async () => {
   const formattedInvitation = {
     featured: 'wedding',

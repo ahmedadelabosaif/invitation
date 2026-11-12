@@ -42,14 +42,6 @@
     .form-section{margin:8px 0 14px;padding:12px;border:1px solid #e3dace;border-radius:9px}
     .form-section>summary{cursor:pointer;font-weight:600}
     .form-section[open]>summary{margin-bottom:12px}
-    .fields>.field-style.wide{grid-column:1/-1}
-    .field-style{margin:0 0 12px;padding:9px 11px;border:1px solid #e3dace;border-radius:8px;background:#fcfaf7}
-    .field-style>summary{cursor:pointer;color:#62584f;font-size:.86rem;font-weight:600}
-    .field-style[open]>summary{margin-bottom:9px}
-    .field-style-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    .field-style-controls label{min-width:0;margin:0;font-size:.8rem}
-    .field-style-controls select{padding:6px 7px;font-size:.85rem}
-    .field-style .actions{margin-top:8px}
     legend{padding:0 6px;font-weight:600}
     .etiquette-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
     .etiquette-option{display:flex;align-items:flex-start;gap:8px;margin:0;padding:8px;border:1px solid #e3dace;border-radius:8px;background:#fcfaf7;color:#50483f}
@@ -147,110 +139,54 @@
       <div class="workspace">
         <section class="panel editor-panel" id="editingPanel">
           <form id="eventForm">
-          <h1 id="formTitle">Invitation details</h1>
-          <div id="richTextToolbar" class="rich-text-toolbar" role="toolbar" aria-label="Text formatting">
-            <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
-            <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
-            <button type="button" data-format="underline" aria-label="Underline"><u>U</u></button>
-            <button type="button" data-format="bullet" aria-label="Bullet list">• List</button>
-            <button type="button" class="color-swatch text-gold" data-format="gold" aria-label="Gold text">●</button>
-            <button type="button" class="color-swatch text-rose" data-format="rose" aria-label="Rose text">●</button>
-            <button type="button" class="color-swatch text-emerald" data-format="emerald" aria-label="Emerald text">●</button>
-          </div>
-          <p class="format-hint">Select text in a writing area, then choose a format. Formatting is preserved in the guest invitation.</p>
+          <h1 id="formTitle">Your wedding invitation</h1>
           <details class="form-section" open>
-            <summary>Invitation details</summary>
+            <summary>The essentials</summary>
+            <p class="theme-note">Add the details your guests need. Your invitation preview updates as you type.</p>
           <div class="fields">
-            <label>Names / heading<textarea name="names" maxlength="160" required></textarea></label>
-            <label>Emoji<input name="emoji" maxlength="8"></label>
-            <details class="field-style wide" id="fieldStyle-names">
-              <summary>Style names and heading</summary>
-              <div id="fieldStyleControls-names" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-names" type="button">Reset names style</button></div>
-            </details>
-            <details class="field-style wide" id="fieldStyle-emoji">
-              <summary>Style invitation icon</summary>
-              <div id="fieldStyleControls-emoji" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-emoji" type="button">Reset icon style</button></div>
-            </details>
-            <label class="wide">Intro line<textarea name="kicker" maxlength="240"></textarea></label>
-            <details class="field-style wide" id="fieldStyle-kicker">
-              <summary>Style intro line</summary>
-              <div id="fieldStyleControls-kicker" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-kicker" type="button">Reset intro style</button></div>
-            </details>
-            <label class="wide">Intro description (optional)<textarea name="introDescription" maxlength="600" placeholder="A personal paragraph beneath your invitation intro"></textarea></label>
-            <details class="field-style wide" id="fieldStyle-introDescription">
-              <summary>Style intro description</summary>
-              <div id="fieldStyleControls-introDescription" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-introDescription" type="button">Reset description style</button></div>
-            </details>
+            <label class="wide">Couple’s names<textarea name="names" maxlength="160" required placeholder="Your names as you’d like them shown"></textarea></label>
             <label>Date<input name="date" type="date"></label>
             <label>Time<input name="time" type="time"></label>
-            <details class="field-style wide" id="fieldStyle-date">
-              <summary>Style date and time</summary>
-              <div id="fieldStyleControls-date" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-date" type="button">Reset date style</button></div>
-            </details>
-            <details class="field-style wide" id="fieldStyle-countdown">
-              <summary>Style countdown</summary>
-              <div id="fieldStyleControls-countdown" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-countdown" type="button">Reset countdown style</button></div>
-            </details>
             <label class="wide">Venue<textarea name="venue" maxlength="240"></textarea></label>
-            <label class="wide">Map / location link (optional)<input name="locationUrl" type="url" placeholder="https://maps.google.com/..."></label>
-            <details class="field-style wide" id="fieldStyle-venue">
-              <summary>Style venue</summary>
-              <div id="fieldStyleControls-venue" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-venue" type="button">Reset venue style</button></div>
-            </details>
             <label class="wide">Message<textarea name="message" maxlength="500"></textarea></label>
-            <details class="field-style wide" id="fieldStyle-message">
-              <summary>Style message</summary>
-              <div id="fieldStyleControls-message" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-message" type="button">Reset message style</button></div>
-            </details>
-            <label class="wide">Extra details<textarea name="info" maxlength="800"></textarea></label>
-            <details class="field-style wide" id="fieldStyle-info">
-              <summary>Style extra details</summary>
-              <div id="fieldStyleControls-info" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-info" type="button">Reset details style</button></div>
-            </details>
-            <label>Calendar title<textarea name="event" maxlength="160"></textarea></label>
-            <details class="field-style wide" id="fieldStyle-calendar">
-              <summary>Style calendar link</summary>
-              <div id="fieldStyleControls-calendar" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-calendar" type="button">Reset calendar style</button></div>
-            </details>
-            <label>Theme
+            <label>Invitation colors
               <select name="env">
-                <option value="classic">Classic</option>
+                <option value="classic">Classic blush</option>
                 <option value="garden">Garden</option>
-                <option value="beach">Beach</option>
+                <option value="beach">Coastal</option>
                 <option value="sunset">Sunset</option>
-                <option value="night">Night sky</option>
-                <option value="islamic">Islamic wedding</option>
+                <option value="night">Midnight</option>
+                <option value="islamic">Emerald and gold</option>
+              </select>
+            </label>
+            <label>Typography
+              <select name="typography">
+                <option value="">Design default</option>
+                <option value="elegant">Elegant serif</option>
+                <option value="classic">Classic</option>
+                <option value="modern">Modern sans-serif</option>
               </select>
             </label>
           </div>
+          </details>
+          <details class="form-section">
+            <summary>Personal touches (optional)</summary>
+            <div class="fields">
+              <label>Invitation icon<input name="emoji" maxlength="8" placeholder="💍"></label>
+              <label>Calendar title<textarea name="event" maxlength="160"></textarea></label>
+              <label class="wide">Intro line<textarea name="kicker" maxlength="240"></textarea></label>
+              <label class="wide">A personal note<textarea name="introDescription" maxlength="600" placeholder="A short personal paragraph"></textarea></label>
+              <label class="wide">Extra details<textarea name="info" maxlength="800"></textarea></label>
+              <label class="wide">Map link (optional)<input name="locationUrl" type="url" placeholder="https://maps.google.com/..."></label>
+            </div>
           </details>
           <details id="weddingFields" class="form-section wide">
               <summary>Wedding details (optional)</summary>
               <div class="fields">
                 <label class="wide">Opening invocation<textarea name="religiousOpening" maxlength="400" placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"></textarea></label>
-                <details class="field-style wide" id="fieldStyle-weddingOpening">
-                  <summary>Style wedding opening and verse</summary>
-                  <div id="fieldStyleControls-weddingOpening" class="field-style-controls"></div>
-                  <div class="actions"><button id="fieldStyleReset-weddingOpening" type="button">Reset opening style</button></div>
-                </details>
                 <label class="wide">Qur’anic verse<textarea name="quranVerse" maxlength="600" placeholder="وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ ..."></textarea></label>
                 <label class="wide">Verse reference<textarea name="quranReference" maxlength="180" placeholder="سورة الروم – الآية ٢١"></textarea></label>
                 <label class="wide">Families / hosts<textarea name="hostNames" maxlength="500" placeholder="Names of the families inviting guests"></textarea></label>
-                <details class="field-style wide" id="fieldStyle-hostNames">
-                  <summary>Style families and hosts</summary>
-                  <div id="fieldStyleControls-hostNames" class="field-style-controls"></div>
-                  <div class="actions"><button id="fieldStyleReset-hostNames" type="button">Reset hosts style</button></div>
-                </details>
                 <label>Groom’s title<textarea name="groomTitle" maxlength="80" placeholder="م. / المهندس"></textarea></label>
                 <label>Groom’s name<textarea name="groomName" maxlength="160"></textarea></label>
                 <label>Bride’s title<textarea name="brideTitle" maxlength="80" placeholder="د. / الدكتورة"></textarea></label>
@@ -261,22 +197,12 @@
                 <label class="wide">Location<textarea name="preEventVenue" maxlength="240"></textarea></label>
                 <label class="wide">Map / location link<input name="preEventLocationUrl" type="url" placeholder="https://maps.google.com/..."></label>
                 <label class="wide">Gathering details<textarea name="preEventDetails" maxlength="400"></textarea></label>
-                <details class="field-style wide" id="fieldStyle-relatedEvent">
-                  <summary>Style related gathering</summary>
-                  <div id="fieldStyleControls-relatedEvent" class="field-style-controls"></div>
-                  <div class="actions"><button id="fieldStyleReset-relatedEvent" type="button">Reset gathering style</button></div>
-                </details>
                 <label class="wide">Marriage-contract photo URL<input name="contractImageUrl" type="url" maxlength="500" placeholder="https://..."></label>
                 <label class="wide">Photo caption<textarea name="contractImageCaption" maxlength="400" placeholder="e.g. 23 October 2026 · Alhamdulillah"></textarea></label>
-                <details class="field-style wide" id="fieldStyle-contractPhoto">
-                  <summary>Style contract photo and caption</summary>
-                  <div id="fieldStyleControls-contractPhoto" class="field-style-controls"></div>
-                  <div class="actions"><button id="fieldStyleReset-contractPhoto" type="button">Reset photo style</button></div>
-                </details>
               </div>
           </details>
           <details class="form-section wide">
-            <summary>Background and music</summary>
+            <summary>Background and music (optional)</summary>
             <div class="fields">
             <label class="wide">Background design
               <select name="backgroundPreset">
@@ -318,11 +244,6 @@
           <details class="form-section wide">
             <summary>Guest etiquette (optional)</summary>
             <p class="theme-note">Choose only the notes you want guests to see. These are separate from the visual theme.</p>
-            <details class="field-style" id="fieldStyle-etiquette">
-              <summary>Style guest etiquette</summary>
-              <div id="fieldStyleControls-etiquette" class="field-style-controls"></div>
-              <div class="actions"><button id="fieldStyleReset-etiquette" type="button">Reset etiquette style</button></div>
-            </details>
             <div class="etiquette-list">
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="noPhotos"> 🚫📷 No photos or video, please</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="modestDress"> 🧕 Modest dress requested</label>
@@ -330,6 +251,19 @@
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="prayerSpace"> 🕌 Prayer space available</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="halalFood"> 🍽️ Halal food served</label>
               <label class="etiquette-option"><input type="checkbox" name="etiquette" value="noMusic"> 🔇 No music</label>
+            </div>
+          </details>
+          <details class="form-section">
+            <summary>Advanced text formatting (optional)</summary>
+            <p class="format-hint">Select text in a writing area, then choose a format.</p>
+            <div id="richTextToolbar" class="rich-text-toolbar" role="toolbar" aria-label="Text formatting">
+              <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
+              <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
+              <button type="button" data-format="underline" aria-label="Underline"><u>U</u></button>
+              <button type="button" data-format="bullet" aria-label="Bullet list">• List</button>
+              <button type="button" class="color-swatch text-gold" data-format="gold" aria-label="Gold text">●</button>
+              <button type="button" class="color-swatch text-rose" data-format="rose" aria-label="Rose text">●</button>
+              <button type="button" class="color-swatch text-emerald" data-format="emerald" aria-label="Emerald text">●</button>
             </div>
           </details>
           <div class="actions">
@@ -364,7 +298,7 @@
 
         <aside class="panel design-panel" id="reviewPanel">
         <h2>Review invitation</h2>
-        <p class="design-hint">Style each invitation section from its matching field on the left. Arrange sections here or drag them directly on the preview.</p>
+        <p class="design-hint">Choose a design on the left and see it update here. Drag sections to arrange your invitation.</p>
         <p class="layout-heading">Section order</p>
         <p class="move-hint">Drag the handle, use ↑/↓, or focus a preview section and press the arrow keys. Click preview text to edit it.</p>
         <ol id="layoutOrder" class="layout-order" aria-label="Invitation section order"></ol>
@@ -437,7 +371,7 @@
       </div>
     </div>
   </main>
-  <script src="./layout-config.js?v=layout-editor-v3"></script>
-  <script src="./admin.js?v=layout-editor-v4"></script>
+  <script src="./layout-config.js?v=layout-editor-v4"></script>
+  <script src="./admin.js?v=layout-editor-v5"></script>
 </body>
 </html>
