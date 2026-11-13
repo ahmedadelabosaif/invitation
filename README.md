@@ -1,32 +1,39 @@
 # Invitation
 
 - Public invitation: https://ahmedadelabosaif.github.io/invitation/
-- Visual editor: https://ahmedadelabosaif.github.io/invitation/admin.html
 
-The public page uses the fixed Arabic wedding design and contains no admin or
-customization controls. The invitation title and displayed details are filled
-from the selected event.
+GitHub Pages publishes only the guest-facing invitation. The editor files are
+excluded from the Pages build, so `/admin.html` is not available to invitees.
+GitHub Pages is static hosting and cannot password-protect an editor. Keep the
+repository's write access limited to yourself; only someone with write access
+and your local publishing token can change the published invitation.
 
-The visual editor opens directly at `/admin.html`. To publish without copying
-data, create a GitHub fine-grained personal access token limited to this
-repository with **Contents: read and write** permission. Enter the token in the
-editor, then use **Publish**. The token is used for the GitHub
-API request and saved in this browser's local storage so later visits can
-publish without re-entering it. Use **Change token** to replace it or **Forget
-token on this device** to remove it. Only save it on a trusted device; browser
-storage is accessible to scripts running on this site. GitHub commits the
-invitation update; GitHub Pages deploys it automatically.
-Guests see only the published invitation; editing controls are available on
-the admin page, not on the public invite. Enabled wedding sections include the
-verse, henna and privacy note, lunch, marriage-contract photo, and parents’
-invitation. The invitation’s dates, names, copy, venue, safe map link, optional
-soundtrack, and custom colors are rendered from the selected event.
+To customize privately, run the editor on your own computer from the repository
+root:
 
-The editor keeps the Events selector separate from the page header and protects
-the main invitation from deletion. Start with the couple’s names, date, time,
-venue, and message. The live editor preview stays beside the form and updates
-as you type. The public page follows its fixed reference design; editor preview
-arrangement and theme presets do not change that design.
+1. Run `python3 -m http.server 8000 --bind 127.0.0.1`.
+2. Open `http://127.0.0.1:8000/admin.html` in your browser.
+3. Stop the local server with Ctrl+C when finished.
+
+The loopback-only server is not reachable by invitees. In the editor, use a
+GitHub fine-grained personal access token limited to this repository with
+**Contents: read and write** permission. The token is stored in this browser's
+local storage for `127.0.0.1`; use **Forget token on this device** to remove it
+and revoke the token in GitHub if it is no longer needed. Do not share the
+token or commit it. Publishing updates `invitations.json` through GitHub, and
+Pages automatically deploys the guest-facing invitation.
+
+The public page uses the fixed Arabic wedding design without customization
+controls. Enabled wedding sections include the verse, henna and privacy note,
+lunch, marriage-contract photo, and parents’ invitation. The invitation’s
+dates, names, copy, venue, safe map link, optional soundtrack, and custom colors
+are rendered from the selected event.
+
+The local editor keeps the Events selector separate from the page header and
+protects the main invitation from deletion. Start with the couple’s names,
+date, time, venue, and message. The live editor preview stays beside the form
+and updates as you type. The public page follows its fixed reference design;
+editor preview arrangement and theme presets do not change that design.
 
 Use **Add event** to create another invitation, **Set as main invitation** to
 choose what appears at the main link, and **View guest link** to open one

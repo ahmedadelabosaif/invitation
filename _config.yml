@@ -1,0 +1,6 @@
+exclude:
+  - admin.html
+  - admin.js
+  - layout-config.js
+  - README.md
+  - tests
